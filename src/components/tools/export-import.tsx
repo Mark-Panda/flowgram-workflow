@@ -216,26 +216,154 @@ export function ExportImport(props: { disabled?: boolean }) {
         const spacingY = 180;
         const startX = 180;
         const startY = 180;
-        const nodes: FlowNodeJSON[] = (rc.metadata.nodes as any[]).map((n: any, idx: number) => {
-          const col = Math.floor(idx / 5);
-          const row = idx % 5;
-          const x = startX + col * spacingX;
-          const y = startY + row * spacingY;
+
+        const rcNodes: any[] = Array.isArray(rc.metadata.nodes) ? rc.metadata.nodes : [];
+        const rcConns: any[] = Array.isArray(rc.metadata.connections) ? rc.metadata.connections : [];
+
+        // 构建邻接表与入度表
+        const ids = rcNodes.map((n: any) => String(n.id));
+        const adjacency = new Map<string, string[]>();
+        const indegree = new Map<string, number>();
+        ids.forEach(id => {
+          adjacency.set(id, []);
+          indegree.set(id, 0);
+        });
+        for (const c of rcConns) {
+          const fromId = String(c.fromId ?? c.from?.id ?? '');
+          const toId = String(c.toId ?? c.to?.id ?? '');
+          if (!fromId || !toId) continue;
+          if (!adjacency.has(fromId)) adjacency.set(fromId, []);
+          adjacency.get(fromId)!.push(toId);
+          indegree.set(toId, (indegree.get(toId) ?? 0) + 1);
+        }
+
+        // 选择根：优先使用 firstNodeIndex，其次入度为 0 的节点；如都没有则选择第一个
+        let rootIds: string[] = [];
+        const firstIdx = rc?.metadata?.firstNodeIndex;
+        if (typeof firstIdx === 'number' && rcNodes[firstIdx]) {
+          rootIds = [String(rcNodes[firstIdx].id)];
+        } else {
+          rootIds = ids.filter(id => (indegree.get(id) ?? 0) === 0);
+          if (rootIds.length === 0 && ids.length > 0) rootIds = [ids[0]];
+        }
+
+        // 基于多源 BFS 计算层级（最长路径层级）
+        const level: Record<string, number> = {};
+        ids.forEach(id => (level[id] = 0));
+        const visited = new Set<string>();
+        const queue: string[] = [];
+        for (const r of rootIds) {
+          level[r] = 0;
+          queue.push(r);
+          visited.add(r);
+        }
+        while (queue.length) {
+          const curr = queue.shift()!;
+          const nexts = adjacency.get(curr) ?? [];
+          for (const nb of nexts) {
+            const nextLevel = level[curr] + 1;
+            if (level[nb] < nextLevel) level[nb] = nextLevel;
+            if (!visited.has(nb)) {
+              visited.add(nb);
+              queue.push(nb);
+            }
+          }
+        }
+
+        // 若存在未访问（可能因环导致），统一放在末层之后
+        const maxLevel = Math.max(0, ...Object.values(level));
+        ids.forEach(id => {
+          if (!visited.has(id)) level[id] = maxLevel + 1;
+        });
+
+        // 分层节点桶
+        const buckets = new Map<number, string[]>();
+        ids.forEach(id => {
+          const lv = level[id];
+          if (!buckets.has(lv)) buckets.set(lv, []);
+          buckets.get(lv)!.push(id);
+        });
+
+        // 构建反向邻接表（入边）
+        const reverseAdjacency = new Map<string, string[]>();
+        ids.forEach(id => reverseAdjacency.set(id, []));
+        for (const [from, tos] of adjacency.entries()) {
+          for (const to of tos) {
+            if (!reverseAdjacency.has(to)) reverseAdjacency.set(to, []);
+            reverseAdjacency.get(to)!.push(from);
+          }
+        }
+
+        // 辅助：根据相邻层位置计算同层排序（barycenter）
+        const sortByBarycenter = (
+          layerIds: string[],
+          neighborPos: Map<string, number>,
+          getNeighbors: (id: string) => string[]
+        ) => {
+          const originalIndex = new Map<string, number>();
+          layerIds.forEach((id, i) => originalIndex.set(id, i));
+          return [...layerIds]
+            .map(id => {
+              const ns = (getNeighbors(id) || []).filter(n => neighborPos.has(n));
+              if (ns.length === 0) {
+                return { id, bc: originalIndex.get(id) ?? 0 };
+              }
+              const bc = ns.reduce((sum, n) => sum + (neighborPos.get(n) ?? 0), 0) / ns.length;
+              return { id, bc };
+            })
+            .sort((a, b) => a.bc - b.bc)
+            .map(x => x.id);
+        };
+
+        // 层序排序：自顶向下用入边（上一层）重排，同层更贴近上一层邻居；再自底向上用出边（下一层）重排
+        const layerKeys = Array.from(buckets.keys()).sort((a, b) => a - b);
+        // Top-down sweep
+        for (let i = 1; i < layerKeys.length; i++) {
+          const prevLayer = buckets.get(layerKeys[i - 1]) ?? [];
+          const currLayer = buckets.get(layerKeys[i]) ?? [];
+          const posPrev = new Map<string, number>();
+          prevLayer.forEach((id, idx) => posPrev.set(id, idx));
+          const reordered = sortByBarycenter(currLayer, posPrev, id => reverseAdjacency.get(id) ?? []);
+          buckets.set(layerKeys[i], reordered);
+        }
+        // Bottom-up sweep
+        for (let i = layerKeys.length - 2; i >= 0; i--) {
+          const nextLayer = buckets.get(layerKeys[i + 1]) ?? [];
+          const currLayer = buckets.get(layerKeys[i]) ?? [];
+          const posNext = new Map<string, number>();
+          nextLayer.forEach((id, idx) => posNext.set(id, idx));
+          const reordered = sortByBarycenter(currLayer, posNext, id => adjacency.get(id) ?? []);
+          buckets.set(layerKeys[i], reordered);
+        }
+
+        // 生成节点坐标：x 按层级，y 按层内序号
+        const nodeById = new Map<string, any>();
+        rcNodes.forEach(n => nodeById.set(String(n.id), n));
+
+        const nodes: FlowNodeJSON[] = ids.map(id => {
+          const n = nodeById.get(id) ?? {};
+          const lv = level[id] ?? 0;
+          const layerNodes = buckets.get(lv) ?? [];
+          const idxInLayer = layerNodes.indexOf(id);
+          const x = startX + lv * spacingX;
+          const y = startY + (idxInLayer >= 0 ? idxInLayer : 0) * spacingY;
           return {
-            id: String(n.id),
-            type: String(n.type),
+            id,
+            type: String(n.type ?? 'default'),
             meta: { position: { x, y } },
             data: {
-              title: n.name ?? String(n.type),
+              title: n.name ?? String(n.type ?? id),
               ...(n.configuration ?? {}),
             },
           } as any;
         });
-        const edges = (rc.metadata.connections as any[]).map((e: any) => ({
+
+        const edges = rcConns.map((e: any) => ({
           sourceNodeID: String(e.fromId ?? e.from?.id ?? ''),
           targetNodeID: String(e.toId ?? e.to?.id ?? ''),
           sourcePortID: e.label ?? undefined,
         }));
+
         doc = { nodes, edges };
       }
 
