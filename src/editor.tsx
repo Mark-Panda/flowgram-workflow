@@ -9,11 +9,13 @@ import '@flowgram.ai/free-layout-editor/index.css';
 import './styles/index.css';
 import { nodeRegistries } from './nodes';
 import { initialData } from './initial-data';
+import { FlowDocumentJSON } from './typings';
 import { useEditorProps } from './hooks';
 import { DemoTools } from './components/tools';
 
-export const Editor = () => {
-  const editorProps = useEditorProps(initialData, nodeRegistries);
+export const Editor: React.FC<{ initialDoc?: FlowDocumentJSON }> = ({ initialDoc }) => {
+  const data = initialDoc ?? initialData;
+  const editorProps = useEditorProps(data, nodeRegistries);
   return (
     <div className="doc-free-feature-overview">
       <FreeLayoutEditorProvider {...editorProps}>
