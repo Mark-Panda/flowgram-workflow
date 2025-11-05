@@ -5,7 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Button, List, Nav, Typography } from '@douyinfe/semi-ui';
+import { Button, List, Nav, Typography, Tag, Skeleton, Input, Switch, Select, Pagination } from '@douyinfe/semi-ui';
 import { IconPlus, IconChevronLeft } from '@douyinfe/semi-icons';
 
 import { Editor } from '../editor';
@@ -21,6 +21,11 @@ export const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [selectedDoc, setSelectedDoc] = useState<FlowDocumentJSON | undefined>();
+  const [page, setPage] = useState(1);
+  const [size, setSize] = useState(10);
+  const [keywords, setKeywords] = useState('');
+  const [rootOnly, setRootOnly] = useState(false);
+  const [total, setTotal] = useState(0);
 
   const componentList = useMemo(
     () =>
@@ -135,19 +140,28 @@ export const AdminPanel: React.FC = () => {
     return { nodes, edges };
   };
 
-  // 拉取工作流列表
+  // 拉取工作流列表（支持分页与查询）
   useEffect(() => {
     if (activeMenu !== 'workflow' || showEditor) return;
     setLoading(true); setError(undefined);
-    fetch('http://127.0.0.1:9099/api/v1/rules')
+    const token = (typeof window !== 'undefined' && (localStorage.getItem('AUTH_TOKEN') || localStorage.getItem('token'))) || '';
+    const url = new URL('http://127.0.0.1:9099/api/v1/rules');
+    url.searchParams.set('page', String(page));
+    url.searchParams.set('size', String(size));
+    if (keywords.trim()) url.searchParams.set('keywords', keywords.trim());
+    if (rootOnly) url.searchParams.set('root', 'true');
+    fetch(url.toString(), { headers: { Accept: 'application/json, text/plain, */*', ...(token ? { Authorization: `Bearer ${token}` } : {}) } })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setRules(Array.isArray(data.items) ? data.items : []);
+        const items = Array.isArray(data.items) ? data.items : [];
+        setRules(items);
+        const t = Number(data.total ?? data.count ?? items.length);
+        setTotal(Number.isFinite(t) ? t : items.length);
       })
       .catch((err) => setError(String(err)))
       .finally(() => setLoading(false));
-  }, [activeMenu, showEditor]);
+  }, [activeMenu, showEditor, page, size, keywords, rootOnly]);
 
   const renderContent = () => {
     if (activeMenu === 'workflow') {
@@ -165,33 +179,144 @@ export const AdminPanel: React.FC = () => {
           {error ? (
             <Typography.Text type="danger">加载失败：{error}</Typography.Text>
           ) : null}
-          {loading ? (
-            <Typography.Text type="tertiary">加载中...</Typography.Text>
-          ) : (
-            <List
-              dataSource={rules}
-              renderItem={(it: any) => (
-                <List.Item
-                  header={<div style={{ width: 32, height: 32, borderRadius: 4, background: '#F2F3F5' }} />}
-                  main={
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <div>
-                        <Typography.Text strong>{String(it?.ruleChain?.name ?? '-')}</Typography.Text>
-                        <div style={{ marginTop: 4 }}>
-                          <Typography.Text type="tertiary">ID: {String(it?.ruleChain?.id ?? '-')}</Typography.Text>
-                        </div>
-                        <div style={{ marginTop: 4 }}>
-                          <Typography.Text type="tertiary">Debug: {String(it?.ruleChain?.debugMode ?? false)} | Disabled: {String(it?.ruleChain?.disabled ?? false)}</Typography.Text>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <Button onClick={() => { const doc = convertRuleChainToFlowDoc(it); setSelectedDoc(doc); setShowEditor(true); }} theme="solid" type="primary">打开</Button>
-                      </div>
-                    </div>
-                  }
-                />
-              )}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            marginBottom: 12,
+            background: '#fff',
+            borderRadius: 10,
+            border: '1px solid rgba(6,7,9,0.06)',
+            boxShadow: '0 1px 4px rgba(6,7,9,0.06)',
+            padding: '10px 12px',
+          }}>
+            <Input
+              value={keywords}
+              onChange={(v) => { setKeywords(v); setPage(1); }}
+              placeholder="搜索名称或ID"
+              showClear
+              style={{ maxWidth: 320 }}
             />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Switch checked={rootOnly} onChange={(checked) => { setRootOnly(!!checked); setPage(1); }} />
+              <Typography.Text type="tertiary">仅根链</Typography.Text>
+            </div>
+          </div>
+          {loading ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} style={{ background: '#fff', borderRadius: 12, border: '1px solid rgba(6,7,9,0.06)', boxShadow: '0 2px 10px rgba(6,7,9,0.06)', padding: 12 }}>
+                  <Skeleton.Title style={{ width: '60%' }} />
+                  <Skeleton.Paragraph rows={2} style={{ marginTop: 8 }} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                background: '#fff',
+                borderRadius: 12,
+                border: '1px solid rgba(6,7,9,0.06)',
+                boxShadow: '0 2px 10px rgba(6,7,9,0.06)',
+                padding: 12,
+              }}
+            >
+              {rules.length === 0 ? (
+                <div style={{ padding: 24, textAlign: 'center' }}>
+                  <Typography.Text type="tertiary">暂无工作流数据</Typography.Text>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+                  {rules.map((it: any) => {
+                    const chain = it?.ruleChain ?? {};
+                    const disabled = Boolean(chain?.disabled);
+                    const debug = Boolean(chain?.debugMode);
+                    const statusColor = disabled ? '#E5E6EB' : debug ? '#E8F3FF' : '#F2F3F5';
+                    return (
+                      <div
+                        key={String(chain?.id ?? Math.random())}
+                        style={{
+                          background: '#fff',
+                          borderRadius: 12,
+                          border: '1px solid rgba(6,7,9,0.06)',
+                          boxShadow: '0 2px 10px rgba(6,7,9,0.06)',
+                          padding: 12,
+                          transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 16px rgba(6,7,9,0.12)';
+                          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 10px rgba(6,7,9,0.06)';
+                          (e.currentTarget as HTMLDivElement).style.transform = 'none';
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 10,
+                              background: statusColor,
+                              border: '1px solid rgba(6,7,9,0.06)',
+                            }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <Typography.Text strong>{String(chain?.name ?? '-')}</Typography.Text>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                {debug ? <Tag size="small" color="blue">调试开启</Tag> : <Tag size="small" color="grey">调试关闭</Tag>}
+                                {disabled ? <Tag size="small" color="orange">已禁用</Tag> : <Tag size="small" color="green">启用中</Tag>}
+                              </div>
+                            </div>
+                            <div style={{ marginTop: 6 }}>
+                              <Typography.Text type="tertiary">ID: {String(chain?.id ?? '-')}</Typography.Text>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button onClick={() => { const doc = convertRuleChainToFlowDoc(it); setSelectedDoc(doc); setShowEditor(true); }} theme="solid" type="primary">打开</Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {(() => {
+                const start = total === 0 ? 0 : (page - 1) * size + 1;
+                const end = Math.min(page * size, total);
+                return (
+                  <div
+                    style={{
+                      marginTop: 16,
+                      position: 'sticky',
+                      bottom: 0,
+                      background: '#fff',
+                      borderTop: '1px solid rgba(6,7,9,0.06)',
+                      boxShadow: '0 -1px 6px rgba(6,7,9,0.06)',
+                      padding: '10px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                    }}
+                  >
+                    <Typography.Text type="tertiary">共 {total} 条</Typography.Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Select value={size} style={{ width: 100 }} onChange={(v) => { setSize(Number(v)); setPage(1); }}>
+                          <Select.Option value={10}>10 / 页</Select.Option>
+                          <Select.Option value={20}>20 / 页</Select.Option>
+                          <Select.Option value={50}>50 / 页</Select.Option>
+                        </Select>
+                      </div>
+                      <Pagination total={total} pageSize={size} currentPage={page} onChange={(p: number) => setPage(p)} />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           )}
         </div>
       );
@@ -227,10 +352,35 @@ export const AdminPanel: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <div style={{ borderBottom: '1px solid rgba(6,7,9,0.1)', padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', height: '100vh' }}>
+      {/* 左侧菜单栏 */}
+      <div
+        style={{
+          width: 240,
+          borderRight: '1px solid rgba(6,7,9,0.08)',
+          background: '#F7F8FA',
+          padding: '16px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            padding: '10px 12px',
+            borderRadius: 8,
+            background: '#fff',
+            border: '1px solid rgba(6,7,9,0.06)',
+            boxShadow: '0 1px 4px rgba(6,7,9,0.06)',
+          }}
+        >
+          <Typography.Title heading={5} style={{ margin: 0 }}>
+            Flowgram 控制台
+          </Typography.Title>
+          <Typography.Text type="tertiary">管理与组件</Typography.Text>
+        </div>
         <Nav
-          mode="horizontal"
+          mode="vertical"
           items={[
             { itemKey: 'workflow', text: '工作流管理' },
             { itemKey: 'component', text: '组件管理' },
@@ -238,9 +388,27 @@ export const AdminPanel: React.FC = () => {
           selectedKeys={[activeMenu]}
           onSelect={(data) => setActiveMenu(data.itemKey as MenuKey)}
         />
-        {renderHeader()}
+        <div style={{ marginTop: 'auto', padding: '0 4px' }}>
+          <Typography.Text type="tertiary">v1.0.0 Demo</Typography.Text>
+        </div>
       </div>
-      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>{renderContent()}</div>
+      {/* 右侧内容区 */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            borderBottom: '1px solid rgba(6,7,9,0.06)',
+            padding: '10px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#fff',
+            boxShadow: '0 1px 6px rgba(6,7,9,0.06)',
+          }}
+        >
+          {renderHeader()}
+        </div>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>{renderContent()}</div>
+      </div>
     </div>
   );
 };
