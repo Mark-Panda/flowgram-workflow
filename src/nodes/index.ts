@@ -19,9 +19,11 @@ import { BreakNodeRegistry } from './break';
 import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
 import { CaseConditionNodeRegistry } from './case-condition';
+import { TransformNodeRegistry } from './transform';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
+  TransformNodeRegistry,
   CaseConditionNodeRegistry,
   ConditionNodeRegistry,
   StartNodeRegistry,

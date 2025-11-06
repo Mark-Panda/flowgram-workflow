@@ -18,4 +18,5 @@ export enum WorkflowNodeType {
   Continue = 'continue',
   Break = 'break',
   CaseCondition = 'case-condition',
+  Transform = 'transform',
 }

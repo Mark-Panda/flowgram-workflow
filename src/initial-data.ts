@@ -52,6 +52,23 @@ export const initialData: FlowDocumentJSON = {
       },
     },
     {
+      id: 'transform_0',
+      type: 'transform',
+      meta: {
+        position: {
+          x: 2000,
+          y: 546.2,
+        },
+      },
+      data: {
+        title: 'Transform',
+        script: {
+          language: 'javascript',
+          content: `async function Transform(msg, metadata, msgType, dataType) {\n  return {\n    msg: msg,\n    metadata: metadata,\n    msgType: msgType,\n    dataType: dataType\n  };\n}`,
+        },
+      },
+    },
+    {
       id: 'condition_0',
       type: 'condition',
       meta: {
