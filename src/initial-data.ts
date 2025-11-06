@@ -25,6 +25,10 @@ export const initialData: FlowDocumentJSON = {
               type: 'string',
               default: 'Hello Flow.',
             },
+            temperature: {
+              type: 'number',
+              default: 30,
+            },
             enable: {
               type: 'boolean',
               default: true,
@@ -62,16 +66,94 @@ export const initialData: FlowDocumentJSON = {
           {
             key: 'if_0',
             value: {
+              // Case1: msg.temperature >= 20 AND msg.temperature <= 50
+              type: 'group',
+              operator: 'and',
+              children: [
+                {
+                  left: {
+                    type: 'ref',
+                    content: ['start_0', 'temperature'],
+                  },
+                  operator: '>=',
+                  right: {
+                    type: 'constant',
+                    content: 20,
+                  },
+                },
+                {
+                  left: {
+                    type: 'ref',
+                    content: ['start_0', 'temperature'],
+                  },
+                  operator: '<=',
+                  right: {
+                    type: 'constant',
+                    content: 50,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            key: 'if_1',
+            value: {
+              // Case2: msg.temperature > 50 (ELSE IF)
               left: {
                 type: 'ref',
-                content: ['start_0', 'query'],
+                content: ['start_0', 'temperature'],
               },
-              operator: 'contains',
+              operator: '>',
               right: {
                 type: 'constant',
-                content: 'Hello Flow.',
+                content: 50,
               },
             },
+          },
+        ],
+      },
+    },
+    {
+      id: 'case_condition_0',
+      type: 'case-condition',
+      meta: {
+        position: {
+          x: 1580,
+          y: 546.2,
+        },
+      },
+      data: {
+        title: '条件列表',
+        cases: [
+          {
+            key: 'case_a',
+            groups: [
+              {
+                operator: 'and',
+                rows: [
+                  { type: 'expression', content: '' },
+                  { type: 'expression', content: '' },
+                ],
+              },
+              {
+                operator: 'and',
+                rows: [
+                  { type: 'expression', content: '' },
+                  { type: 'expression', content: '' },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'case_b',
+            groups: [
+              {
+                operator: 'and',
+                rows: [
+                  { type: 'expression', content: '' },
+                ],
+              },
+            ],
           },
         ],
       },

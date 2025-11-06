@@ -1,0 +1,77 @@
+/**
+ * Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
+ * SPDX-License-Identifier: MIT
+ */
+
+import { nanoid } from 'nanoid';
+
+import { FlowNodeRegistry } from '../../typings';
+import iconCondition from '../../assets/icon-condition.svg';
+import { formMeta } from './form-meta';
+import { WorkflowNodeType } from '../constants';
+
+export const CaseConditionNodeRegistry: FlowNodeRegistry = {
+  type: WorkflowNodeType.CaseCondition,
+  info: {
+    icon: iconCondition,
+    description: '按 CASE 分组（IF / ELSE IF / ELSE）的条件节点，支持 AND/OR 组合。',
+  },
+  meta: {
+    defaultPorts: [{ type: 'input' }],
+    useDynamicPort: true,
+    expandable: false,
+    size: {
+      width: 420,
+      height: 260,
+    },
+    wrapperStyle: {
+      borderRadius: 12,
+      border: '1px solid rgba(6, 7, 9, 0.12)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+      backgroundColor: '#fff',
+    },
+  },
+  formMeta,
+  onAdd() {
+    const caseId = (i: number) => `case_${i}_${nanoid(4)}`;
+    return {
+      id: `case_condition_${nanoid(5)}`,
+      type: 'case-condition',
+      data: {
+        title: '条件列表',
+        cases: [
+          {
+            key: caseId(1),
+            groups: [
+              {
+                operator: 'and',
+                rows: [
+                  { type: 'expression', content: '' },
+                  { type: 'expression', content: '' },
+                ],
+              },
+              {
+                operator: 'and',
+                rows: [
+                  { type: 'expression', content: '' },
+                  { type: 'expression', content: '' },
+                ],
+              },
+            ],
+          },
+          {
+            key: caseId(2),
+            groups: [
+              {
+                operator: 'and',
+                rows: [
+                  { type: 'expression', content: '' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    } as any;
+  },
+};
