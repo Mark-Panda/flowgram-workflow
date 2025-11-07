@@ -46,6 +46,14 @@ export function FormInputs() {
                       hasError={Object.keys(fieldState?.errors || {}).length > 0}
                     />
                   )}
+                  {formComponent === 'node-selector' && (
+                    <NodeIdSelect
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                    />
+                  )}
                   {!formComponent && (
                     <DynamicValueInput
                       value={field.value}
@@ -66,3 +74,4 @@ export function FormInputs() {
     </Field>
   );
 }
+import { NodeIdSelect } from './node-id-select';

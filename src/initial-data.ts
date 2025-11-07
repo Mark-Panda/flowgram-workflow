@@ -341,10 +341,14 @@ export const initialData: FlowDocumentJSON = {
                 type: 'template',
                 content: '',
               },
+              targetNodeId: {
+                type: 'constant',
+                content: '',
+              },
             },
             inputs: {
               type: 'object',
-              required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
+              required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt','targetNodeId'],
               properties: {
                 modelName: {
                   type: 'string',
@@ -368,6 +372,12 @@ export const initialData: FlowDocumentJSON = {
                   type: 'string',
                   extra: {
                     formComponent: 'prompt-editor',
+                  },
+                },
+                targetNodeId: {
+                  type: 'string',
+                  extra: {
+                    formComponent: 'node-selector',
                   },
                 },
               },
@@ -547,10 +557,14 @@ export const initialData: FlowDocumentJSON = {
             type: 'template',
             content: '# User Input\nquery:{{start_0.query}}\nenable:{{start_0.enable}}',
           },
+          targetNodeId: {
+            type: 'constant',
+            content: '',
+          },
         },
         inputs: {
           type: 'object',
-          required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
+          required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt','targetNodeId'], 
           properties: {
             modelName: {
               type: 'string',
@@ -575,6 +589,9 @@ export const initialData: FlowDocumentJSON = {
               extra: {
                 formComponent: 'prompt-editor',
               },
+            },
+            targetNodeId: {
+              type: 'string',
             },
           },
         },

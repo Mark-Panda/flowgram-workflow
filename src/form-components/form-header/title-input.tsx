@@ -39,7 +39,14 @@ export function TitleInput(props: {
                 onBlur={() => updateTitleEdit(false)}
               />
             ) : (
-              <Text ellipsis={{ showTooltip: true }}>{value}</Text>
+              <Text style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'block',
+              }}>
+                {value}
+              </Text>
             )}
             <Feedback errors={fieldState?.errors} />
           </div>

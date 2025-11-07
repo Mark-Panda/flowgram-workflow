@@ -25,7 +25,7 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `llm_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'llm',
       data: {
         title: `LLM_${++index}`,
@@ -42,10 +42,6 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
             type: 'constant',
             content: 'https://mock-ai-url/api/v3',
           },
-          temperature: {
-            type: 'constant',
-            content: 0.5,
-          },
           systemPrompt: {
             type: 'template',
             content: '# Role\nYou are an AI assistant.\n',
@@ -54,6 +50,14 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
             type: 'template',
             content: '',
           },
+          temperature: {
+            type: 'constant',
+            content: 0.5,
+          },
+          // targetNodeId: {
+          //   type: 'constant',
+          //   content: '',
+          // },
         },
         inputs: {
           type: 'object',
@@ -83,6 +87,12 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
                 formComponent: 'prompt-editor',
               },
             },
+            // targetNodeId: {
+            //   type: 'string',
+            //   extra: {
+            //     formComponent: 'node-selector',
+            //   },
+            // },
           },
         },
         outputs: {

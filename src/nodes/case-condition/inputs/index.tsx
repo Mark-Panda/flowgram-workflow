@@ -103,7 +103,7 @@ export function CaseInputs() {
                         (r) => r ?? ({ type: 'expression', content: '' } as ConditionRowValueType)
                       );
                       return (
-                        <>
+                        <div key={`group-${gi}`}>
                           {gi > 0 && (
                             <div style={{ margin: '6px 0' }}>
                               <Tag type="light" color="amber" size="small">
@@ -220,7 +220,7 @@ export function CaseInputs() {
                               </Button>
                             )}
                           </RowsWrapper>
-                        </>
+                        </div>
                       );
                     })}
                     <Feedback errors={childState?.errors} invalid={childState?.invalid} />
