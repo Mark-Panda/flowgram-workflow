@@ -16,6 +16,8 @@ import {
   WorkflowNodeEntity,
   WorkflowNodeJSON,
 } from '@flowgram.ai/free-layout-editor';
+import { WorkflowNodeType } from '../nodes';
+import { Toast } from '@douyinfe/semi-ui';
 
 /**
  * Drag the end of the line to create an add panel (feature optional)
@@ -44,6 +46,23 @@ export const onDragLineEnd = async (ctx: FreeLayoutPluginContext, params: onDrag
   // get container node for the new node - 获取新节点的容器节点
   const containerNode = fromPort.node.parent;
   const isVertical = fromPort.location === 'bottom';
+
+  // For容器内只允许连接一个子节点
+  if (containerNode?.flowNodeType === WorkflowNodeType.For) {
+    const children = document
+      .getAllNodes()
+      .filter((n) => n.parent?.id === containerNode.id)
+      .filter(
+        (n) =>
+          ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
+            n.flowNodeType as WorkflowNodeType
+          )
+      );
+    if (children.length >= 1) {
+      Toast.warning({ content: 'For 子画布只允许连接一个节点' });
+      return;
+    }
+  }
 
   // open node selection panel - 打开节点选择面板
   const result = await nodePanelService.singleSelectNodePanel({

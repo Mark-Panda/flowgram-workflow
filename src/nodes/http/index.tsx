@@ -26,7 +26,7 @@ export const HTTPNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `http_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'http',
       data: {
         title: `HTTP_${++index}`,

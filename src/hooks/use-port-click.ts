@@ -20,6 +20,8 @@ import {
   WorkflowNodeJSON,
   WorkflowPortEntity,
 } from '@flowgram.ai/free-layout-editor';
+import { WorkflowNodeType } from '../nodes';
+import { Toast } from '@douyinfe/semi-ui';
 
 /**
  * click port to trigger node select panel
@@ -36,6 +38,22 @@ export const usePortClick = () => {
     if (port.portType === 'input') return;
     const mousePos = playground.config.getPosFromMouseEvent(e);
     const containerNode = port.node.parent;
+    // For容器内只允许连接一个子节点
+    if (containerNode?.flowNodeType === WorkflowNodeType.For) {
+      const children = document
+        .getAllNodes()
+        .filter((n) => n.parent?.id === containerNode.id)
+        .filter(
+          (n) =>
+            ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
+              n.flowNodeType as WorkflowNodeType
+            )
+        );
+      if (children.length >= 1) {
+        Toast.warning({ content: 'For 子画布只允许连接一个节点' });
+        return;
+      }
+    }
     // open node selection panel - 打开节点选择面板
     const result = await nodePanelService.singleSelectNodePanel({
       position: mousePos,

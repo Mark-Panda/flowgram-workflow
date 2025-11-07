@@ -20,8 +20,10 @@ import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
 import { CaseConditionNodeRegistry } from './case-condition';
 import { TransformNodeRegistry } from './transform';
+import { ForNodeRegistry } from './for';
 export { WorkflowNodeType } from './constants';
 
+// 节点注册
 export const nodeRegistries: FlowNodeRegistry[] = [
   TransformNodeRegistry,
   CaseConditionNodeRegistry,
@@ -30,6 +32,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   EndNodeRegistry,
   LLMNodeRegistry,
   LoopNodeRegistry,
+  ForNodeRegistry,
   CommentNodeRegistry,
   BlockStartNodeRegistry,
   BlockEndNodeRegistry,

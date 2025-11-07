@@ -163,7 +163,30 @@ export function useEditorProps(
        * 是否允许拖入子画布 (loop or group)
        * Whether to allow dragging into the sub-canvas (loop or group)
        */
-      canDropToNode: (ctx, params) => canContainNode(params.dragNodeType!, params.dropNodeType!),
+      canDropToNode: (ctx, params) => {
+        const allowByType = canContainNode(params.dragNodeType!, params.dropNodeType!);
+        const dropNode = (params as any).dropNode as WorkflowNodeEntity | undefined;
+        const isForContainer =
+          (params.dropNodeType as any) === WorkflowNodeType.For ||
+          dropNode?.flowNodeType === WorkflowNodeType.For;
+        if (!isForContainer) {
+          return allowByType;
+        }
+        const children = ctx.document
+          .getAllNodes()
+          .filter((n) => n.parent?.id === dropNode?.id)
+          .filter(
+            (n) =>
+              ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
+                n.flowNodeType as WorkflowNodeType
+              )
+          );
+        // 只允许一个业务子节点
+        if (children.length >= 1) {
+          return false;
+        }
+        return allowByType;
+      },
       /**
        * Whether to reset line
        * 是否允许重连
@@ -237,7 +260,15 @@ export function useEditorProps(
       /**
        * Running line
        */
-      isFlowingLine: (ctx, line) => ctx.get(WorkflowRuntimeService).isFlowingLine(line),
+      isFlowingLine: (ctx, line) => {
+        try {
+          const svc = ctx.get(WorkflowRuntimeService);
+          return svc?.isFlowingLine(line) ?? false;
+        } catch (e) {
+          // 在插件尚未绑定或运行时不可用时，安全返回false
+          return false;
+        }
+      },
       /**
        * Shortcuts
        */

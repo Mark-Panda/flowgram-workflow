@@ -12,6 +12,7 @@ export enum WorkflowNodeType {
   Variable = 'variable',
   Condition = 'condition',
   Loop = 'loop',
+  For = 'for',
   BlockStart = 'block-start',
   BlockEnd = 'block-end',
   Comment = 'comment',
