@@ -20,4 +20,7 @@ export enum WorkflowNodeType {
   Break = 'break',
   CaseCondition = 'case-condition',
   Transform = 'transform',
+  Fork = 'fork',
+  Join = 'join',
+  FetchNodeOutput = 'fetch-node-output',
 }

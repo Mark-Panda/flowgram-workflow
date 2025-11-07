@@ -21,6 +21,9 @@ import { BlockEndNodeRegistry } from './block-end';
 import { CaseConditionNodeRegistry } from './case-condition';
 import { TransformNodeRegistry } from './transform';
 import { ForNodeRegistry } from './for';
+import { ForkNodeRegistry } from './fork';
+import { JoinNodeRegistry } from './join';
+import { FetchNodeOutputRegistry } from './fetch-node-output';
 export { WorkflowNodeType } from './constants';
 
 // 节点注册
@@ -33,6 +36,9 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   LLMNodeRegistry,
   LoopNodeRegistry,
   ForNodeRegistry,
+  ForkNodeRegistry,
+  JoinNodeRegistry,
+  FetchNodeOutputRegistry,
   CommentNodeRegistry,
   BlockStartNodeRegistry,
   BlockEndNodeRegistry,
