@@ -6,16 +6,23 @@
 import { useLayoutEffect } from 'react';
 
 import { nanoid } from 'nanoid';
-import { Field, FieldArray, I18n } from '@flowgram.ai/free-layout-editor';
+import { Field, FieldArray } from '@flowgram.ai/free-layout-editor';
 import { ConditionRowValueType } from '@flowgram.ai/form-materials';
-import { Button, Input, Select } from '@douyinfe/semi-ui';
+import { Button, Input, Select, Tag } from '@douyinfe/semi-ui';
 import { IconPlus, IconCrossCircleStroked } from '@douyinfe/semi-icons';
 
 import { useNodeRenderContext } from '../../../hooks';
 import { FormItem } from '../../../form-components';
 import { Feedback } from '../../../form-components';
-import { CaseWrapper, RowsWrapper, GroupBracket, GroupLabel, CaseHeader, CaseTitle, ConditionPort } from './styles';
-import { Tag } from '@douyinfe/semi-ui';
+import {
+  CaseWrapper,
+  RowsWrapper,
+  GroupBracket,
+  GroupLabel,
+  CaseHeader,
+  CaseTitle,
+  ConditionPort,
+} from './styles';
 
 interface CaseGroupValue {
   operator: 'and' | 'or';
@@ -43,18 +50,32 @@ export function CaseInputs() {
             <Field<CaseItemValue> key={child.name} name={child.name}>
               {({ field: childField, fieldState: childState }) => {
                 const label = index === 0 ? 'IF' : 'ELSE IF';
-                const groups: CaseGroupValue[] = (childField.value?.groups ?? []) as CaseGroupValue[];
+                const groups: CaseGroupValue[] = (childField.value?.groups ??
+                  []) as CaseGroupValue[];
                 const ensureGroup = (g?: CaseGroupValue): CaseGroupValue => ({
                   operator: g?.operator ?? 'and',
                   rows: (g?.rows ?? []) as ConditionRowValueType[],
                 });
-                const setGroups = (next: CaseGroupValue[]) => childField.onChange({ ...childField.value, groups: next });
-                const appendGroup = () => setGroups([ ...groups, { operator: 'and', rows: [{ type: 'expression', content: '' } as ConditionRowValueType] } ]);
+                const setGroups = (next: CaseGroupValue[]) =>
+                  childField.onChange({ ...childField.value, groups: next });
+                const appendGroup = () =>
+                  setGroups([
+                    ...groups,
+                    {
+                      operator: 'and',
+                      rows: [{ type: 'expression', content: '' } as ConditionRowValueType],
+                    },
+                  ]);
                 const appendRowToGroup = (gi: number) => {
                   const safe = groups.map(ensureGroup);
                   const target = safe[gi];
-                  const nextRows: ConditionRowValueType[] = [ ...target.rows, { type: 'expression', content: '' } as ConditionRowValueType ];
-                  const nextGroups = safe.map((g, idx) => idx === gi ? { ...g, rows: nextRows } : g);
+                  const nextRows: ConditionRowValueType[] = [
+                    ...target.rows,
+                    { type: 'expression', content: '' } as ConditionRowValueType,
+                  ];
+                  const nextGroups = safe.map((g, idx) =>
+                    idx === gi ? { ...g, rows: nextRows } : g
+                  );
                   setGroups(nextGroups);
                 };
                 const deleteCase = () => field.delete(index);
@@ -64,7 +85,9 @@ export function CaseInputs() {
                       <CaseTitle>{label}</CaseTitle>
                       {!readonly && (
                         <>
-                          <Button size="small" onClick={() => appendGroup()}>添加 OR 条件</Button>
+                          <Button size="small" onClick={() => appendGroup()}>
+                            添加 OR 条件
+                          </Button>
                           <Button
                             theme="borderless"
                             icon={<IconCrossCircleStroked />}
@@ -76,28 +99,46 @@ export function CaseInputs() {
                     {groups.map((g, gi) => {
                       const safe = ensureGroup(g);
                       const rows = safe.rows;
-                      const displayRows = rows.map((r) => r ?? ({ type: 'expression', content: '' } as ConditionRowValueType));
+                      const displayRows = rows.map(
+                        (r) => r ?? ({ type: 'expression', content: '' } as ConditionRowValueType)
+                      );
                       return (
                         <>
                           {gi > 0 && (
                             <div style={{ margin: '6px 0' }}>
-                              <Tag type="light" color="amber" size="small">OR</Tag>
+                              <Tag type="light" color="amber" size="small">
+                                OR
+                              </Tag>
                             </div>
                           )}
                           <RowsWrapper>
                             <GroupBracket />
                             <GroupLabel>{(safe.operator ?? 'and').toUpperCase()}</GroupLabel>
                             {displayRows.map((row, rIndex) => (
-                              <FormItem key={rIndex} name={`row_${gi}_${rIndex}`} type="string" required={true} labelWidth={50}>
+                              <FormItem
+                                key={rIndex}
+                                name={`row_${gi}_${rIndex}`}
+                                type="string"
+                                required={true}
+                                labelWidth={50}
+                              >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                   <Input
                                     disabled={readonly}
                                     placeholder="左值：手动输入"
-                                    value={typeof (row as any)?.left?.content === 'string' ? (row as any).left.content : ''}
+                                    value={
+                                      typeof (row as any)?.left?.content === 'string'
+                                        ? (row as any).left.content
+                                        : ''
+                                    }
                                     onChange={(val) => {
                                       const nextGroups = groups.map(ensureGroup);
                                       const nextRows = [...nextGroups[gi].rows];
-                                      const base = (row ?? ({ type: 'expression', content: '' } as ConditionRowValueType)) as any;
+                                      const base = (row ??
+                                        ({
+                                          type: 'expression',
+                                          content: '',
+                                        } as ConditionRowValueType)) as any;
                                       const nextRow: any = {
                                         ...base,
                                         left: { type: 'constant', content: String(val ?? '') },
@@ -117,7 +158,11 @@ export function CaseInputs() {
                                     onChange={(op) => {
                                       const nextGroups = groups.map(ensureGroup);
                                       const nextRows = [...nextGroups[gi].rows];
-                                      const base = (row ?? ({ type: 'expression', content: '' } as ConditionRowValueType)) as any;
+                                      const base = (row ??
+                                        ({
+                                          type: 'expression',
+                                          content: '',
+                                        } as ConditionRowValueType)) as any;
                                       const nextRow: any = {
                                         ...base,
                                         operator: op,
@@ -129,23 +174,31 @@ export function CaseInputs() {
                                       setGroups(nextGroups);
                                     }}
                                     optionList={[
-                                      { label: '== 等于', value: '==' },
-                                      { label: '!= 不等于', value: '!=' },
-                                      { label: '>', value: '>' },
-                                      { label: '>=', value: '>=' },
-                                      { label: '<', value: '<' },
-                                      { label: '<=', value: '<=' },
-                                      { label: 'contains 包含', value: 'contains' },
+                                      { label: '等于', value: '==' },
+                                      { label: '不等于', value: '!=' },
+                                      { label: '大于', value: '>' },
+                                      { label: '大于等于', value: '>=' },
+                                      { label: '小于', value: '<' },
+                                      { label: '小于等于', value: '<=' },
+                                      { label: '包含', value: 'contains' },
                                     ]}
                                   />
                                   <Input
                                     disabled={readonly}
                                     placeholder="右值：手动输入"
-                                    value={typeof (row as any)?.right?.content === 'string' ? (row as any).right.content : ''}
+                                    value={
+                                      typeof (row as any)?.right?.content === 'string'
+                                        ? (row as any).right.content
+                                        : ''
+                                    }
                                     onChange={(val) => {
                                       const nextGroups = groups.map(ensureGroup);
                                       const nextRows = [...nextGroups[gi].rows];
-                                      const base = (row ?? ({ type: 'expression', content: '' } as ConditionRowValueType)) as any;
+                                      const base = (row ??
+                                        ({
+                                          type: 'expression',
+                                          content: '',
+                                        } as ConditionRowValueType)) as any;
                                       const nextRow: any = {
                                         ...base,
                                         right: { type: 'constant', content: String(val ?? '') },
@@ -161,15 +214,20 @@ export function CaseInputs() {
                                 </div>
                               </FormItem>
                             ))}
-                          {!readonly && (
-                            <Button size="small" onClick={() => appendRowToGroup(gi)}>+ 添加 AND 条件</Button>
-                          )}
+                            {!readonly && (
+                              <Button size="small" onClick={() => appendRowToGroup(gi)}>
+                                + 添加 AND 条件
+                              </Button>
+                            )}
                           </RowsWrapper>
                         </>
                       );
                     })}
                     <Feedback errors={childState?.errors} invalid={childState?.invalid} />
-                    <ConditionPort data-port-id={(childField.value?.key ?? `case_${index}`)} data-port-type="output" />
+                    <ConditionPort
+                      data-port-id={childField.value?.key ?? `case_${index}`}
+                      data-port-type="output"
+                    />
                   </CaseWrapper>
                 );
               }}
@@ -189,7 +247,12 @@ export function CaseInputs() {
                 onClick={() =>
                   field.append({
                     key: `case_${nanoid(6)}`,
-                    groups: [ { operator: 'and', rows: [{ type: 'expression', content: '' } as ConditionRowValueType] } ],
+                    groups: [
+                      {
+                        operator: 'and',
+                        rows: [{ type: 'expression', content: '' } as ConditionRowValueType],
+                      },
+                    ],
                   })
                 }
               >
