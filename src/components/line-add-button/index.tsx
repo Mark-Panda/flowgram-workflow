@@ -24,6 +24,8 @@ import {
 import './index.less';
 import { useVisible } from './use-visible';
 import { IconPlusCircle } from './button';
+import { Toast } from '@douyinfe/semi-ui';
+import { WorkflowNodeType } from '../../nodes/constants';
 
 export const LineAddButton = (props: LineRenderProps) => {
   const { line, selected, hovered, color } = props;
@@ -45,6 +47,23 @@ export const LineAddButton = (props: LineRenderProps) => {
 
     // get container node for the new node - 获取新节点的容器节点
     const containerNode = fromPort!.node.parent;
+
+    // For 容器只允许一个业务子节点，若已存在则阻止新增
+    if (containerNode?.flowNodeType === WorkflowNodeType.For) {
+      const children = document
+        .getAllNodes()
+        .filter((n) => n.parent?.id === containerNode.id)
+        .filter(
+          (n) =>
+            ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
+              n.flowNodeType as WorkflowNodeType
+            )
+        );
+      if (children.length >= 1) {
+        Toast.warning({ content: 'For 子画布只允许连接一个节点' });
+        return;
+      }
+    }
 
     // show node selection panel - 显示节点选择面板
     const result = await nodePanelService.singleSelectNodePanel({
