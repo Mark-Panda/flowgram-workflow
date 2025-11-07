@@ -7,12 +7,15 @@ import { FormMeta, FormRenderProps, ValidateTrigger } from '@flowgram.ai/free-la
 
 import { FormHeader, FormContent } from '../../form-components';
 import { TransformCode } from './components/code';
+import { TransformPortHints } from './components/port-hints';
 import { TransformNodeJSON } from './types';
 
 export const FormRender = ({ form }: FormRenderProps<TransformNodeJSON>) => (
   <>
     <FormHeader />
     <FormContent>
+      {/* 画布上显示端口提示（success / failed） */}
+      <TransformPortHints />
       <TransformCode />
     </FormContent>
   </>
