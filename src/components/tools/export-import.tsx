@@ -252,6 +252,87 @@ export function ExportImport(props: { disabled?: boolean }) {
               base.configuration = { cases };
             }
             break;
+          case 'transform':
+            if (n.data?.script) {
+              const scriptText: string = String(n.data?.script?.content ?? '');
+              const fnIdx = scriptText.indexOf('function Transform');
+              const braceStart = fnIdx >= 0 ? scriptText.indexOf('{', fnIdx) : -1;
+              if (braceStart >= 0) {
+                let i = braceStart + 1;
+                let depth = 1;
+                let end = scriptText.length;
+                let inSingle = false;
+                let inDouble = false;
+                let inTemplate = false;
+                let inLineComment = false;
+                let inBlockComment = false;
+                for (; i < scriptText.length; i++) {
+                  const ch = scriptText[i];
+                  const prev = scriptText[i - 1];
+                  if (inLineComment) {
+                    if (ch === '\n') inLineComment = false;
+                    continue;
+                  }
+                  if (inBlockComment) {
+                    if (ch === '*' && scriptText[i + 1] === '/') {
+                      inBlockComment = false;
+                      i++;
+                    }
+                    continue;
+                  }
+                  if (!inSingle && !inDouble && !inTemplate) {
+                    if (ch === '/' && scriptText[i + 1] === '/') {
+                      inLineComment = true;
+                      i++;
+                      continue;
+                    }
+                    if (ch === '/' && scriptText[i + 1] === '*') {
+                      inBlockComment = true;
+                      i++;
+                      continue;
+                    }
+                    if (ch === '\'' && prev !== '\\') {
+                      inSingle = true;
+                      continue;
+                    }
+                    if (ch === '"' && prev !== '\\') {
+                      inDouble = true;
+                      continue;
+                    }
+                    if (ch === '`' && prev !== '\\') {
+                      inTemplate = true;
+                      continue;
+                    }
+                  } else {
+                    if (inSingle && ch === '\'' && prev !== '\\') {
+                      inSingle = false;
+                      continue;
+                    }
+                    if (inDouble && ch === '"' && prev !== '\\') {
+                      inDouble = false;
+                      continue;
+                    }
+                    if (inTemplate && ch === '`' && prev !== '\\') {
+                      inTemplate = false;
+                      continue;
+                    }
+                    // 在字符串/模板内不计入括号匹配
+                    continue;
+                  }
+                  if (ch === '{') depth++;
+                  else if (ch === '}') {
+                    depth--;
+                    if (depth === 0) {
+                      end = i;
+                      break;
+                    }
+                  }
+                }
+                const body = scriptText.slice(braceStart + 1, end).trim();
+                base.configuration = { jsScript: body };
+              }
+            }
+            break;
           default: {
             // 保持默认逻辑
             if (
