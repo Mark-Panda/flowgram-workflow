@@ -128,6 +128,14 @@ export function ExportImport(props: { disabled?: boolean }) {
 
         // 按不同节点类型进行定制处理，默认保持原有逻辑
         switch (nodeType) {
+          case 'group':
+            if (n.data) {
+              base.configuration = {
+                nodeIds: n.data?.blockIDs,
+              };
+              base.type = 'groupAction';
+            }
+            break;
           case 'for':
             if (n.data) {
               base.configuration = {
