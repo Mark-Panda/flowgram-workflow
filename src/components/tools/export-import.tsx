@@ -203,7 +203,7 @@ export function ExportImport(props: { disabled?: boolean }) {
             }
             break;
           }
-          case 'case-condition':
+          case 'switch':
             if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
               const formatValue = (v: any) => {
                 const val = v?.content;
