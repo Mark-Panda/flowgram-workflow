@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 
 import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
-import iconCode from '../../assets/icon-script.png';
+import iconLog from '../../assets/icon_log.svg';
 import { formMeta } from './form-meta';
 
 let index = 0;
@@ -19,7 +19,7 @@ async function String(msg, metadata, msgType, dataType) {
 export const LogStringNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.LogString,
   info: {
-    icon: iconCode,
+    icon: iconLog,
     description: 'String 消息内容，函数签名与入参固定',
   },
   meta: {

@@ -7,13 +7,14 @@ import { nanoid } from 'nanoid';
 
 import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
+import iconFork from '../../assets/icon_right-branch.svg';
 
 let index = 0;
 
 export const ForkNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.Fork,
   info: {
-    icon: '',
+    icon: iconFork,
     description: '并行执行多节点',
   },
   meta: {

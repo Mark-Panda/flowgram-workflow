@@ -7,13 +7,13 @@ import { nanoid } from 'nanoid';
 
 import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
-import iconLLM from '../../assets/icon-llm.jpg';
+import iconDB from '../../assets/icon_database-search.svg';
 
 let index = 0;
 export const DBClientNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.DBClient,
   info: {
-    icon: iconLLM,
+    icon: iconDB,
     description:
       '通过标准sql接口对数据库进行增删修改查操作。内置支持mysql和postgres数据库，可以执行SQL查询、更新、插入、删除、DDL等操作',
   },

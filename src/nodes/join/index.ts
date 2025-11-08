@@ -7,13 +7,14 @@ import { nanoid } from 'nanoid';
 
 import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
+import iconJoin from '../../assets/icon_left-branch.svg';
 
 let index = 0;
 
 export const JoinNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.Join,
   info: {
-    icon: '',
+    icon: iconJoin,
     description: '合并节点: 等待所有子节点执行完成后合并输出.',
   },
   meta: {
