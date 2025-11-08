@@ -59,7 +59,7 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
             // 数据库连接池大小：并发量较高时适当增大以提升性能
             // 留空或 0 使用后端默认值
             type: 'constant',
-            // content: 'https://mock-ai-url/api/v3',
+            content: 0,
           },
           driverName: {
             // 数据库驱动名称：目前支持 'mysql' 与 'postgres'
