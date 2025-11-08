@@ -10,6 +10,7 @@ import { FormItem } from '../form-item';
 import { Feedback } from '../feedback';
 import { JsonSchema } from '../../typings';
 import { useNodeRenderContext } from '../../hooks';
+import { ArrayEditor } from './array-editor';
 
 export function FormInputs() {
   const { readonly } = useNodeRenderContext();
@@ -63,6 +64,14 @@ export function FormInputs() {
                       readonly={readonly}
                       hasError={Object.keys(fieldState?.errors || {}).length > 0}
                       schema={property}
+                    />
+                  )}
+                  {formComponent === 'array-editor' && (
+                    <ArrayEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
                     />
                   )}
                   {!formComponent && (

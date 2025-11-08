@@ -51,7 +51,7 @@ export const TestRunForm: FC<TestRunFormProps> = ({ values, setValues }) => {
               precision={0}
               value={field.value}
               onChange={(value) => field.onChange(value)}
-              placeholder="Please input integer"
+              placeholder="请输入 integer"
             />
           </div>
         );
@@ -61,7 +61,7 @@ export const TestRunForm: FC<TestRunFormProps> = ({ values, setValues }) => {
             <InputNumber
               value={field.value}
               onChange={(value) => field.onChange(value)}
-              placeholder="Please input number"
+              placeholder="请输入 number"
             />
           </div>
         );
@@ -83,7 +83,7 @@ export const TestRunForm: FC<TestRunFormProps> = ({ values, setValues }) => {
             <Input
               value={field.value}
               onChange={(value) => field.onChange(value)}
-              placeholder="Please input text"
+              placeholder="请输入 text"
             />
           </div>
         );

@@ -77,13 +77,7 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
         },
         inputs: {
           type: 'object',
-          required: [
-            'sql',
-            'getOne',
-            'poolSize',
-            'driverName',
-            'dsn',
-          ],
+          required: ['sql', 'getOne', 'poolSize', 'driverName', 'dsn'],
           properties: {
             driverName: {
               type: 'string',
@@ -103,7 +97,7 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
                 label: 'sql',
                 formComponent: 'prompt-editor',
                 description:
-                  'SQL 模板，支持变量插值；与下方“参数列表”按顺序绑定占位符（如 ? 或 $1）',
+                  '可以使用 ${metadata.key} 或者 ${msg.key}变量，SQL参数允许使用 ? 占位符',
               },
             },
             params: {
@@ -114,7 +108,8 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
               extra: {
                 label: '参数列表',
                 description:
-                  '按顺序填入与 SQL 模板占位符一一对应的参数值。例如 `SELECT * FROM user WHERE id = ?` 对应 [id]',
+                  '可以使用 ${metadata.key} 读取元数据中的变量或者使用 ${msg.key} 读取消息负荷中的变量进行替换',
+                formComponent: 'array-editor',
               },
             },
             getOne: {

@@ -16,11 +16,11 @@ import { ForkNodeRegistry } from './fork';
 import { ForNodeRegistry } from './for';
 import { FetchNodeOutputRegistry } from './fetch-node-output';
 import { EndNodeRegistry } from './end';
+import { DBClientNodeRegistry } from './dbClient';
 import { CommentNodeRegistry } from './comment';
 import { CaseConditionNodeRegistry } from './case-condition';
 import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
-import { DBClientNodeRegistry } from './dbClient';
 export { WorkflowNodeType } from './constants';
 
 // 节点注册
