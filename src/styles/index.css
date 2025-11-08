@@ -4,6 +4,19 @@
  */
 
 :root {
+  /* ensure full-height layout */
+}
+
+html, body, #root {
+  height: 100%;
+  background: #fff;
+}
+
+body {
+  margin: 0;
+}
+
+:root {
   /* Port colors */
   --g-workflow-port-color-primary: #4d53e8;
   --g-workflow-port-color-secondary: #9197f1;

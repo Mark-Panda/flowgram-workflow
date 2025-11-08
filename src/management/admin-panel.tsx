@@ -5,10 +5,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Button, List, Nav, Typography, Tag, Skeleton, Input, Switch, Select, Pagination } from '@douyinfe/semi-ui';
+import { Button, List, Nav, Typography, Tag, Skeleton, Input, Switch, Select, Pagination, Modal, Toast } from '@douyinfe/semi-ui';
 import { IconPlus, IconChevronLeft } from '@douyinfe/semi-icons';
 
 import { Editor } from '../editor';
+import { RuleDetail, RuleDetailData } from './rule-detail';
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
 import { nodeRegistries } from '../nodes';
 
@@ -21,11 +22,27 @@ export const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [selectedDoc, setSelectedDoc] = useState<FlowDocumentJSON | undefined>();
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailData, setDetailData] = useState<RuleDetailData | undefined>();
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const [keywords, setKeywords] = useState('');
   const [rootOnly, setRootOnly] = useState(false);
   const [total, setTotal] = useState(0);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createName, setCreateName] = useState('');
+  const [createDesc, setCreateDesc] = useState('');
+  const [createRoot, setCreateRoot] = useState(true);
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [createId, setCreateId] = useState<string>(() => {
+    try {
+      // lazy nanoid import to avoid bundle if not used
+      const { nanoid } = require('nanoid');
+      return nanoid(12);
+    } catch {
+      return Math.random().toString(36).slice(2, 14);
+    }
+  });
 
   const componentList = useMemo(
     () =>
@@ -44,9 +61,9 @@ export const AdminPanel: React.FC = () => {
           {!showEditor ? (
             <>
               <Typography.Title heading={4} style={{ margin: 0 }}>
-                工作流管理
+                工作流设置
               </Typography.Title>
-              <Button icon={<IconPlus />} theme="solid" type="primary" onClick={() => { setSelectedDoc(undefined); setShowEditor(true); }}>
+              <Button icon={<IconPlus />} theme="solid" type="primary" onClick={() => { setShowCreateModal(true); }}>
                 新建工作流
               </Button>
             </>
@@ -165,6 +182,11 @@ export const AdminPanel: React.FC = () => {
 
   const renderContent = () => {
     if (activeMenu === 'workflow') {
+      if (showDetail) {
+        return (
+          <RuleDetail data={detailData as RuleDetailData} onBack={() => { setShowDetail(false); setDetailData(undefined); }} />
+        );
+      }
       if (showEditor) {
         // 展示当前已有的画布
         return (
@@ -276,7 +298,17 @@ export const AdminPanel: React.FC = () => {
                           </div>
                         </div>
                         <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
-                          <Button onClick={() => { const doc = convertRuleChainToFlowDoc(it); setSelectedDoc(doc); setShowEditor(true); }} theme="solid" type="primary">打开</Button>
+                          <Button
+                            onClick={() => {
+                              const id = String(chain?.id ?? '');
+                              if (!id) return;
+                              window.location.hash = `#/workflow/${encodeURIComponent(id)}`;
+                            }}
+                            theme="solid"
+                            type="primary"
+                          >
+                            打开
+                          </Button>
                         </div>
                       </div>
                     );
@@ -334,8 +366,8 @@ export const AdminPanel: React.FC = () => {
                   <img src={item.icon as string} alt={String(item.type)} style={{ width: 32, height: 32, borderRadius: 4 }} />
                 ) : (
                   <div style={{ width: 32, height: 32, borderRadius: 4, background: '#F2F3F5' }} />
-                )
-              }
+      )
+    }
               main={
                 <div>
                   <Typography.Text strong>{String(item.type)}</Typography.Text>
@@ -350,6 +382,78 @@ export const AdminPanel: React.FC = () => {
       </div>
     );
   };
+
+  const renderCreateModal = () => (
+    <Modal
+      title="新建工作流"
+      visible={showCreateModal}
+      onCancel={() => setShowCreateModal(false)}
+      confirmLoading={createSubmitting}
+      onOk={async () => {
+        if (!createName.trim()) {
+          Toast.warning({ content: '请输入工作流名称' });
+          return;
+        }
+        setCreateSubmitting(true);
+        try {
+          const token = (typeof window !== 'undefined' && (localStorage.getItem('AUTH_TOKEN') || localStorage.getItem('token'))) || '';
+          const url = `http://127.0.0.1:9099/api/v1/rules/${encodeURIComponent(createId)}/base`;
+          const body = {
+            id: createId,
+            name: createName.trim(),
+            root: !!createRoot,
+            additionalInfo: { description: createDesc ?? '' },
+          };
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json, text/plain, */*',
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(body),
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`HTTP ${res.status}: ${text || 'Request failed'}`);
+          }
+          Toast.success({ content: '创建成功' });
+          setShowCreateModal(false);
+          // 路由跳转到与“打开工作流”一致的详情页
+          window.location.hash = `#/workflow/${encodeURIComponent(createId)}`;
+          // 重置表单
+          setCreateName('');
+          setCreateDesc('');
+          setCreateRoot(true);
+          try {
+            const { nanoid } = require('nanoid');
+            setCreateId(nanoid(12));
+          } catch {
+            setCreateId(Math.random().toString(36).slice(2, 14));
+          }
+          // 重新加载列表
+          setPage(1);
+        } catch (e) {
+          Toast.error({ content: String((e as Error)?.message ?? e) });
+        } finally {
+          setCreateSubmitting(false);
+        }
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <Input value={createName} onChange={setCreateName} placeholder="工作流名称" />
+        <Input value={createDesc} onChange={setCreateDesc} placeholder="工作流描述" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Switch checked={createRoot} onChange={(v) => setCreateRoot(!!v)} />
+          <Typography.Text>根规则链</Typography.Text>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Typography.Text type="tertiary">工作流ID</Typography.Text>
+          <Input value={createId} onChange={setCreateId} placeholder="自动生成，可修改" />
+        </div>
+      </div>
+    </Modal>
+  );
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
@@ -382,11 +486,16 @@ export const AdminPanel: React.FC = () => {
         <Nav
           mode="vertical"
           items={[
-            { itemKey: 'workflow', text: '工作流管理' },
+            { itemKey: 'workflow', text: '工作流设置' },
             { itemKey: 'component', text: '组件管理' },
           ]}
           selectedKeys={[activeMenu]}
-          onSelect={(data) => setActiveMenu(data.itemKey as MenuKey)}
+          onSelect={(data) => {
+            const key = data.itemKey as MenuKey;
+            setActiveMenu(key);
+            if (key === 'workflow') window.location.hash = '#/';
+            if (key === 'component') window.location.hash = '#/components';
+          }}
         />
         <div style={{ marginTop: 'auto', padding: '0 4px' }}>
           <Typography.Text type="tertiary">v1.0.0 Demo</Typography.Text>
@@ -407,8 +516,9 @@ export const AdminPanel: React.FC = () => {
         >
           {renderHeader()}
         </div>
-        <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>{renderContent()}</div>
-      </div>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>{renderContent()}</div>
+      {renderCreateModal()}
     </div>
-  );
+  </div>
+);
 };
