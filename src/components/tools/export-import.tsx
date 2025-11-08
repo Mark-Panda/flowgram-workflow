@@ -113,16 +113,76 @@ export function ExportImport(props: { disabled?: boolean }) {
         }
       });
 
-      const nodesRC: RuleNodeRC[] = flattened.map((n: any) => ({
-        id: n.id,
-        additionalInfo: n.meta ? { meta: n.meta } : undefined,
-        type: String(n.type),
-        name: n.data?.title ?? String(n.type),
-        debugMode: false,
-        configuration: {
-          ...(n.data ?? {}),
-        },
-      }));
+      const nodesRC: RuleNodeRC[] = flattened.map((n: any) => {
+        const nodeType = String(n.type);
+        const base: RuleNodeRC = {
+          id: n.id,
+          additionalInfo: n.meta ? { meta: n.meta } : undefined,
+          type: nodeType,
+          name: n.data?.title ?? nodeType,
+          debugMode: false,
+          configuration: {
+            ...(n.data ?? {}),
+          },
+        };
+
+        // 按不同节点类型进行定制处理，默认保持原有逻辑
+        switch (nodeType) {
+          case 'http': {
+            var newconfig = {};
+            if (n.data?.api) {
+              (newconfig as any)['requestMethod'] = n.data?.api.method;
+              if (n.data?.api.url?.content) {
+                (newconfig as any)['restEndpointUrlPattern'] = n.data?.api.url?.content;
+              }
+            }
+            if (
+              n.data?.headersValues &&
+              Object.keys(n.data?.headersValues).length > 0 &&
+              n.data?.headers &&
+              Object.keys(n.data?.headers).length > 0
+            ) {
+              const headermap: Record<string, any> = {};
+              Object.keys(n.data.headers.properties).forEach((key) => {
+                headermap[key] = (n.data.headersValues as any)[key].content;
+              });
+              (newconfig as any)['headers'] = headermap;
+            }
+            if (
+              n.data?.paramsValues &&
+              Object.keys(n.data?.paramsValues).length > 0 &&
+              n.data?.params &&
+              Object.keys(n.data?.params).length > 0
+            ) {
+              const parammap: Record<string, any> = {};
+              Object.keys(n.data.params.properties).forEach((key) => {
+                parammap[key] = (n.data.paramsValues as any)[key].content;
+              });
+              (newconfig as any)['params'] = parammap;
+            }
+            if (n.data?.body && n.data?.body?.bodyType === 'JSON' && n.data?.body?.json?.content) {
+              (newconfig as any)['body'] = n.data?.body.json.content;
+            }
+            if (n.data?.timeout) {
+              (newconfig as any)['readTimeoutMs'] = n.data?.timeout.timeout;
+            }
+            base.configuration = newconfig;
+            break;
+          }
+          case 'llm': {
+            base.configuration = {
+              ...(n.data ?? {}),
+              model: n.data?.model ?? n.configuration?.model ?? undefined,
+            };
+            break;
+          }
+          default: {
+            // 保持默认逻辑
+            break;
+          }
+        }
+        return base;
+      });
 
       // 汇总连接：顶层 edges + loop 内 edges
       const connectionsRC: NodeConnectionRC[] = [];
@@ -131,7 +191,7 @@ export function ExportImport(props: { disabled?: boolean }) {
         connectionsRC.push({
           fromId: e.sourceNodeID ?? e.fromId ?? e.from?.id ?? '',
           toId: e.targetNodeID ?? e.toId ?? e.to?.id ?? '',
-          type: e.type ?? 'DEFAULT',
+          type: e.type ?? 'SUCCESS',
           label: e.sourcePortID ?? e.label,
         });
       };

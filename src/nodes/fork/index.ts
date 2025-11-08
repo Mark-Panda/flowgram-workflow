@@ -17,6 +17,12 @@ export const ForkNodeRegistry: FlowNodeRegistry = {
     description: '并行执行多节点',
   },
   meta: {
+    // 设置端口：一个输入，多个输出（success / failed）
+    defaultPorts: [
+      { type: 'input', location: 'left' },
+      { type: 'output', location: 'right', portID: 'success' },
+      { type: 'output', location: 'bottom', portID: 'failed' },
+    ],
     size: {
       width: 360,
       height: 220,

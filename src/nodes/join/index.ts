@@ -17,6 +17,12 @@ export const JoinNodeRegistry: FlowNodeRegistry = {
     description: '合并节点: 等待所有子节点执行完成后合并输出.',
   },
   meta: {
+    // 设置端口：一个输入，两个输出（success / failed）
+    defaultPorts: [
+      { type: 'input', location: 'left' },
+      { type: 'output', location: 'right', portID: 'success' },
+      { type: 'output', location: 'bottom', portID: 'failed' },
+    ],
     size: {
       width: 360,
       height: 240,

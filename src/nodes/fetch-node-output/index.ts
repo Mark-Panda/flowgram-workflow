@@ -17,6 +17,12 @@ export const FetchNodeOutputRegistry: FlowNodeRegistry = {
     description: '获取已经执行完节点的输出信息',
   },
   meta: {
+    // 设置端口：一个输入，两个输出（success / failed）
+    defaultPorts: [
+      { type: 'input', location: 'left' },
+      { type: 'output', location: 'right', portID: 'success' },
+      { type: 'output', location: 'bottom', portID: 'failed' },
+    ],
     size: {
       width: 360,
       height: 240,

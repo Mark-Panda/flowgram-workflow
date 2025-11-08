@@ -18,6 +18,12 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
       'Call the large language model and use variables and prompt words to generate responses.',
   },
   meta: {
+    // 设置端口：一个输入，两个输出（success / failed）
+    defaultPorts: [
+      { type: 'input', location: 'left' },
+      { type: 'output', location: 'right', portID: 'success' },
+      { type: 'output', location: 'bottom', portID: 'failed' },
+    ],
     size: {
       width: 360,
       height: 390,
@@ -54,10 +60,6 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
             type: 'constant',
             content: 0.5,
           },
-          // targetNodeId: {
-          //   type: 'constant',
-          //   content: '',
-          // },
         },
         inputs: {
           type: 'object',
@@ -87,12 +89,6 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
                 formComponent: 'prompt-editor',
               },
             },
-            // targetNodeId: {
-            //   type: 'string',
-            //   extra: {
-            //     formComponent: 'node-selector',
-            //   },
-            // },
           },
         },
         outputs: {
