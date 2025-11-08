@@ -24,7 +24,8 @@ export function TransformCode() {
         {({ field }) => {
           const FIXED_HEADER = 'async function Transform(msg, metadata, msgType, dataType) {';
           const SIGNATURE_TRANSFORM = /^(?:\s*async\s+)?function\s+Transform\s*\([^)]*\)\s*\{/m;
-          const SIGNATURE_STRICT = /^(?:\s*async\s+)?function\s+Transform\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
+          const SIGNATURE_STRICT =
+            /^(?:\s*async\s+)?function\s+Transform\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
 
           const enforceSignature = (src: string): string => {
             if (SIGNATURE_STRICT.test(src)) return src; // already correct

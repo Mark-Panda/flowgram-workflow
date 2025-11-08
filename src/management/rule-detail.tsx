@@ -4,11 +4,13 @@
  */
 
 import React, { useMemo, useState } from 'react';
+
 import { Button, Input, Nav, Switch, Typography, Toast } from '@douyinfe/semi-ui';
-import { createRuleBase, getRuleDetail } from '../services/api-rules';
-import { Editor } from '../editor';
+
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
+import { createRuleBase, getRuleDetail } from '../services/api-rules';
 import { WorkflowNodeType } from '../nodes';
+import { Editor } from '../editor';
 
 export interface RuleDetailData {
   ruleChain: {
@@ -45,12 +47,13 @@ export const RuleDetail: React.FC<{
   React.useEffect(() => {
     if (initialTab) setActiveKey(initialTab);
   }, [initialTab]);
-  const menuItems = useMemo(() => (
-    [
+  const menuItems = useMemo(
+    () => [
       { itemKey: 'workflow', text: '工作流设置' },
       { itemKey: 'design', text: '工作流设计' },
-    ]
-  ), []);
+    ],
+    []
+  );
 
   // 将接口返回的metadata转换为FlowDocumentJSON；如无数据则使用全新画布
   const convertMetadataToDoc = (md?: RuleDetailData['metadata']): FlowDocumentJSON | undefined => {
@@ -66,13 +69,27 @@ export const RuleDetail: React.FC<{
     }
     // 简单转换：按层级摆放，若无连接信息则仅平铺
     const ids = md.nodes.map((n: any) => String(n.id));
-    const spacingX = 440, spacingY = 180; const startX = 180, startY = 180;
-    const nodes: FlowNodeJSON[] = ids.map((id, idx) => ({
-      id,
-      type: String((md.nodes as any[])[idx]?.type ?? WorkflowNodeType.Transform),
-      meta: { position: { x: startX + (idx % 4) * spacingX, y: startY + Math.floor(idx / 4) * spacingY } },
-      data: { title: String((md.nodes as any[])[idx]?.name ?? id), ...(((md.nodes as any[])[idx]?.configuration) ?? {}) },
-    } as any));
+    const spacingX = 440,
+      spacingY = 180;
+    const startX = 180,
+      startY = 180;
+    const nodes: FlowNodeJSON[] = ids.map(
+      (id, idx) =>
+        ({
+          id,
+          type: String((md.nodes as any[])[idx]?.type ?? WorkflowNodeType.Transform),
+          meta: {
+            position: {
+              x: startX + (idx % 4) * spacingX,
+              y: startY + Math.floor(idx / 4) * spacingY,
+            },
+          },
+          data: {
+            title: String((md.nodes as any[])[idx]?.name ?? id),
+            ...((md.nodes as any[])[idx]?.configuration ?? {}),
+          },
+        } as any)
+    );
     const edges = Array.isArray(md.connections)
       ? md.connections.map((e: any) => ({
           sourceNodeID: String(e.fromId ?? e.from?.id ?? ''),
@@ -87,7 +104,9 @@ export const RuleDetail: React.FC<{
   // 左侧子菜单选中状态（基础信息/变量/运行日志/工作流集成）
   const [subKey, setSubKey] = useState<string>('basic');
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F7F8FA' }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F7F8FA' }}
+    >
       <div
         style={{
           borderBottom: '1px solid rgba(6,7,9,0.06)',
@@ -103,7 +122,9 @@ export const RuleDetail: React.FC<{
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Button onClick={onBack} type="secondary">退出</Button>
+          <Button onClick={onBack} type="secondary">
+            退出
+          </Button>
           <Nav
             mode="horizontal"
             items={menuItems}
@@ -113,13 +134,27 @@ export const RuleDetail: React.FC<{
               setActiveKey(key);
               const id = String(data?.ruleChain?.id ?? '');
               if (!id) return;
-              if (key === 'design') window.location.hash = `#/workflow/${encodeURIComponent(id)}/design`;
+              if (key === 'design')
+                window.location.hash = `#/workflow/${encodeURIComponent(id)}/design`;
               if (key === 'workflow') window.location.hash = `#/workflow/${encodeURIComponent(id)}`;
             }}
             style={{ marginLeft: 8 }}
           />
         </div>
-        <Typography.Title heading={5} style={{ margin: 0, maxWidth: 420, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center', justifySelf: 'center' }}>{name || data?.ruleChain?.id}</Typography.Title>
+        <Typography.Title
+          heading={5}
+          style={{
+            margin: 0,
+            maxWidth: 420,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            textAlign: 'center',
+            justifySelf: 'center',
+          }}
+        >
+          {name || data?.ruleChain?.id}
+        </Typography.Title>
         <div />
       </div>
       {activeKey === 'design' ? (
@@ -128,7 +163,15 @@ export const RuleDetail: React.FC<{
         </div>
       ) : (
         <div style={{ padding: 16 }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', maxWidth: 1200, margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 16,
+              alignItems: 'flex-start',
+              maxWidth: 1200,
+              margin: '0 auto',
+            }}
+          >
             {/* 左侧垂直菜单 */}
             <div style={{ width: 240 }}>
               <Nav
@@ -145,10 +188,25 @@ export const RuleDetail: React.FC<{
             </div>
             {/* 右侧卡片内容 */}
             <div style={{ flex: 1 }}>
-              <div style={{ background: '#fff', border: '1px solid rgba(6,7,9,0.06)', boxShadow: '0 1px 6px rgba(6,7,9,0.06)', borderRadius: 12, padding: 16 }}>
+              <div
+                style={{
+                  background: '#fff',
+                  border: '1px solid rgba(6,7,9,0.06)',
+                  boxShadow: '0 1px 6px rgba(6,7,9,0.06)',
+                  borderRadius: 12,
+                  padding: 16,
+                }}
+              >
                 {subKey === 'basic' && (
                   <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 12, alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '200px 1fr',
+                        gap: 12,
+                        alignItems: 'center',
+                      }}
+                    >
                       <Typography.Text type="tertiary">ID</Typography.Text>
                       <Typography.Text>{data?.ruleChain?.id}</Typography.Text>
 
@@ -158,7 +216,9 @@ export const RuleDetail: React.FC<{
                       <Typography.Text type="tertiary">调试模式</Typography.Text>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Switch checked={debug} onChange={(v) => setDebug(!!v)} />
-                        <Typography.Text type="tertiary">开启后会显著增加系统负载，并将节点执行时输出日志</Typography.Text>
+                        <Typography.Text type="tertiary">
+                          开启后会显著增加系统负载，并将节点执行时输出日志
+                        </Typography.Text>
                       </div>
 
                       <Typography.Text type="tertiary">根链</Typography.Text>

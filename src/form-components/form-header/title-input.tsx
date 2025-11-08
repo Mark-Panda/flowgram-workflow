@@ -39,12 +39,14 @@ export function TitleInput(props: {
                 onBlur={() => updateTitleEdit(false)}
               />
             ) : (
-              <Text style={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                display: 'block',
-              }}>
+              <Text
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  display: 'block',
+                }}
+              >
                 {value}
               </Text>
             )}

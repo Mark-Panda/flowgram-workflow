@@ -20,8 +20,9 @@ import {
   WorkflowNodeJSON,
   WorkflowPortEntity,
 } from '@flowgram.ai/free-layout-editor';
-import { WorkflowNodeType } from '../nodes';
 import { Toast } from '@douyinfe/semi-ui';
+
+import { WorkflowNodeType } from '../nodes';
 
 /**
  * click port to trigger node select panel

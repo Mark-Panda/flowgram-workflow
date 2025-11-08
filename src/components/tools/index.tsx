@@ -15,6 +15,7 @@ import { AddNode } from '../add-node';
 import { ZoomSelect } from './zoom-select';
 import { SwitchLine } from './switch-line';
 import { ToolContainer, ToolSection } from './styles';
+import { SaveButton } from './save-button';
 import { Readonly } from './readonly';
 import { MinimapSwitch } from './minimap-switch';
 import { Minimap } from './minimap';
@@ -24,7 +25,6 @@ import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
 import { ProblemButton } from '../problem-panel';
 import { ExportImport } from './export-import';
-import { SaveButton } from './save-button';
 
 export const DemoTools = () => {
   const { history, playground } = useClientContext();

@@ -166,9 +166,7 @@ export const initialData: FlowDocumentJSON = {
             groups: [
               {
                 operator: 'and',
-                rows: [
-                  { type: 'expression', content: '' },
-                ],
+                rows: [{ type: 'expression', content: '' }],
               },
             ],
           },

@@ -6,9 +6,9 @@
 import { FormMeta, FormRenderProps, ValidateTrigger } from '@flowgram.ai/free-layout-editor';
 
 import { FormHeader, FormContent } from '../../form-components';
-import { TransformCode } from './components/code';
-import { TransformPortHints } from './components/port-hints';
 import { TransformNodeJSON } from './types';
+import { TransformPortHints } from './components/port-hints';
+import { TransformCode } from './components/code';
 
 export const FormRender = ({ form }: FormRenderProps<TransformNodeJSON>) => (
   <>
@@ -21,7 +21,8 @@ export const FormRender = ({ form }: FormRenderProps<TransformNodeJSON>) => (
   </>
 );
 
-const SIGNATURE_REG = /^(?:\s*async\s+)?function\s+Transform\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
+const SIGNATURE_REG =
+  /^(?:\s*async\s+)?function\s+Transform\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
 
 export const formMeta: FormMeta = {
   render: (props) => <FormRender {...props} />,

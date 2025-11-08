@@ -16,8 +16,9 @@ import {
   WorkflowNodeEntity,
   WorkflowNodeJSON,
 } from '@flowgram.ai/free-layout-editor';
-import { WorkflowNodeType } from '../nodes';
 import { Toast } from '@douyinfe/semi-ui';
+
+import { WorkflowNodeType } from '../nodes';
 
 /**
  * Drag the end of the line to create an add panel (feature optional)

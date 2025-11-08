@@ -4,9 +4,10 @@
  */
 
 import React, { useMemo } from 'react';
-import { Select } from '@douyinfe/semi-ui';
+
 import { useService, WorkflowDocument, WorkflowNodeEntity } from '@flowgram.ai/free-layout-editor';
 import { IFlowValue } from '@flowgram.ai/form-materials';
+import { Select } from '@douyinfe/semi-ui';
 
 interface NodeIdSelectProps {
   value?: IFlowValue;
@@ -15,7 +16,12 @@ interface NodeIdSelectProps {
   hasError?: boolean;
 }
 
-export const NodeIdSelect: React.FC<NodeIdSelectProps> = ({ value, onChange, readonly, hasError }) => {
+export const NodeIdSelect: React.FC<NodeIdSelectProps> = ({
+  value,
+  onChange,
+  readonly,
+  hasError,
+}) => {
   const document = useService(WorkflowDocument);
 
   const nodes = useMemo<WorkflowNodeEntity[]>(() => {
@@ -26,18 +32,21 @@ export const NodeIdSelect: React.FC<NodeIdSelectProps> = ({ value, onChange, rea
     }
   }, [document]);
 
-  const options = useMemo(() => {
-    return nodes.map((n) => {
-      const json = document.toNodeJSON(n) as any;
-      const title = json?.data?.title;
-      return {
-        label: title ? String(title) : n.id,
-        value: n.id,
-      };
-    });
-  }, [nodes, document]);
+  const options = useMemo(
+    () =>
+      nodes.map((n) => {
+        const json = document.toNodeJSON(n) as any;
+        const title = json?.data?.title;
+        return {
+          label: title ? String(title) : n.id,
+          value: n.id,
+        };
+      }),
+    [nodes, document]
+  );
 
-  const selectedValue = (value?.type === 'constant' ? (value.content as string) : undefined) ?? undefined;
+  const selectedValue =
+    (value?.type === 'constant' ? (value.content as string) : undefined) ?? undefined;
 
   return (
     <div style={{ width: '100%' }}>

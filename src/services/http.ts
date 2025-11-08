@@ -12,9 +12,7 @@ const BASE_URL = 'http://127.0.0.1:9099/api/v1';
 
 const getToken = (): string => {
   if (typeof window === 'undefined') return '';
-  return (
-    (window.localStorage.getItem('AUTH_TOKEN') || window.localStorage.getItem('token')) || ''
-  );
+  return window.localStorage.getItem('AUTH_TOKEN') || window.localStorage.getItem('token') || '';
 };
 
 export interface RequestOptions {
@@ -46,7 +44,10 @@ client.interceptors.response.use(
   async (error) => {
     if (error?.response) {
       const status = error.response.status;
-      const text = typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data);
+      const text =
+        typeof error.response.data === 'string'
+          ? error.response.data
+          : JSON.stringify(error.response.data);
       throw new Error(`HTTP ${status}: ${text || 'Request failed'}`);
     }
     throw error;

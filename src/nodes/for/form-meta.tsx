@@ -4,6 +4,7 @@
  */
 
 import { FormRenderProps, FlowNodeJSON, Field, FormMeta } from '@flowgram.ai/free-layout-editor';
+import { useService, WorkflowDocument } from '@flowgram.ai/free-layout-editor';
 import { SubCanvasRender } from '@flowgram.ai/free-container-plugin';
 import {
   BatchOutputs,
@@ -12,13 +13,12 @@ import {
   IFlowValue,
   IFlowRefValue,
 } from '@flowgram.ai/form-materials';
+import { Input, Select } from '@douyinfe/semi-ui';
 
 import { defaultFormMeta } from '../default-form-meta';
+import { WorkflowNodeType } from '../constants';
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
 import { FormHeader, FormContent, FormItem, Feedback } from '../../form-components';
-import { Input, Select } from '@douyinfe/semi-ui';
-import { useService, WorkflowDocument } from '@flowgram.ai/free-layout-editor';
-import { WorkflowNodeType } from '../constants';
 
 // 使用通用 FlowNodeJSON 即可，无需特定 forFor 字段
 type ForNodeJSON = FlowNodeJSON;
@@ -34,9 +34,7 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
   const nodeIdLinked = (
     <Field<IFlowValue> name={`nodeId`}>
       {({ field, fieldState }) => {
-        const children = document
-          .getAllNodes()
-          .filter((n) => n.parent?.id === node.id);
+        const children = document.getAllNodes().filter((n) => n.parent?.id === node.id);
         const validChildren = children.filter(
           (n) =>
             ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(

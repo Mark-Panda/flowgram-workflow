@@ -205,7 +205,11 @@ export function ExportImport(props: { disabled?: boolean }) {
         !!o && Array.isArray(o.nodes) && Array.isArray(o.edges);
 
       const isRuleChain = (o: any): o is { ruleChain: any; metadata: any } =>
-        !!o && !!o.ruleChain && !!o.metadata && Array.isArray(o.metadata.nodes) && Array.isArray(o.metadata.connections);
+        !!o &&
+        !!o.ruleChain &&
+        !!o.metadata &&
+        Array.isArray(o.metadata.nodes) &&
+        Array.isArray(o.metadata.connections);
 
       let doc: FlowDocumentJSON | null = null;
       if (isFlowDoc(raw)) {
@@ -218,13 +222,15 @@ export function ExportImport(props: { disabled?: boolean }) {
         const startY = 180;
 
         const rcNodes: any[] = Array.isArray(rc.metadata.nodes) ? rc.metadata.nodes : [];
-        const rcConns: any[] = Array.isArray(rc.metadata.connections) ? rc.metadata.connections : [];
+        const rcConns: any[] = Array.isArray(rc.metadata.connections)
+          ? rc.metadata.connections
+          : [];
 
         // 构建邻接表与入度表
         const ids = rcNodes.map((n: any) => String(n.id));
         const adjacency = new Map<string, string[]>();
         const indegree = new Map<string, number>();
-        ids.forEach(id => {
+        ids.forEach((id) => {
           adjacency.set(id, []);
           indegree.set(id, 0);
         });
@@ -243,13 +249,13 @@ export function ExportImport(props: { disabled?: boolean }) {
         if (typeof firstIdx === 'number' && rcNodes[firstIdx]) {
           rootIds = [String(rcNodes[firstIdx].id)];
         } else {
-          rootIds = ids.filter(id => (indegree.get(id) ?? 0) === 0);
+          rootIds = ids.filter((id) => (indegree.get(id) ?? 0) === 0);
           if (rootIds.length === 0 && ids.length > 0) rootIds = [ids[0]];
         }
 
         // 基于多源 BFS 计算层级（最长路径层级）
         const level: Record<string, number> = {};
-        ids.forEach(id => (level[id] = 0));
+        ids.forEach((id) => (level[id] = 0));
         const visited = new Set<string>();
         const queue: string[] = [];
         for (const r of rootIds) {
@@ -272,13 +278,13 @@ export function ExportImport(props: { disabled?: boolean }) {
 
         // 若存在未访问（可能因环导致），统一放在末层之后
         const maxLevel = Math.max(0, ...Object.values(level));
-        ids.forEach(id => {
+        ids.forEach((id) => {
           if (!visited.has(id)) level[id] = maxLevel + 1;
         });
 
         // 分层节点桶
         const buckets = new Map<number, string[]>();
-        ids.forEach(id => {
+        ids.forEach((id) => {
           const lv = level[id];
           if (!buckets.has(lv)) buckets.set(lv, []);
           buckets.get(lv)!.push(id);
@@ -286,7 +292,7 @@ export function ExportImport(props: { disabled?: boolean }) {
 
         // 构建反向邻接表（入边）
         const reverseAdjacency = new Map<string, string[]>();
-        ids.forEach(id => reverseAdjacency.set(id, []));
+        ids.forEach((id) => reverseAdjacency.set(id, []));
         for (const [from, tos] of adjacency.entries()) {
           for (const to of tos) {
             if (!reverseAdjacency.has(to)) reverseAdjacency.set(to, []);
@@ -303,8 +309,8 @@ export function ExportImport(props: { disabled?: boolean }) {
           const originalIndex = new Map<string, number>();
           layerIds.forEach((id, i) => originalIndex.set(id, i));
           return [...layerIds]
-            .map(id => {
-              const ns = (getNeighbors(id) || []).filter(n => neighborPos.has(n));
+            .map((id) => {
+              const ns = (getNeighbors(id) || []).filter((n) => neighborPos.has(n));
               if (ns.length === 0) {
                 return { id, bc: originalIndex.get(id) ?? 0 };
               }
@@ -312,7 +318,7 @@ export function ExportImport(props: { disabled?: boolean }) {
               return { id, bc };
             })
             .sort((a, b) => a.bc - b.bc)
-            .map(x => x.id);
+            .map((x) => x.id);
         };
 
         // 层序排序：自顶向下用入边（上一层）重排，同层更贴近上一层邻居；再自底向上用出边（下一层）重排
@@ -323,7 +329,11 @@ export function ExportImport(props: { disabled?: boolean }) {
           const currLayer = buckets.get(layerKeys[i]) ?? [];
           const posPrev = new Map<string, number>();
           prevLayer.forEach((id, idx) => posPrev.set(id, idx));
-          const reordered = sortByBarycenter(currLayer, posPrev, id => reverseAdjacency.get(id) ?? []);
+          const reordered = sortByBarycenter(
+            currLayer,
+            posPrev,
+            (id) => reverseAdjacency.get(id) ?? []
+          );
           buckets.set(layerKeys[i], reordered);
         }
         // Bottom-up sweep
@@ -332,15 +342,15 @@ export function ExportImport(props: { disabled?: boolean }) {
           const currLayer = buckets.get(layerKeys[i]) ?? [];
           const posNext = new Map<string, number>();
           nextLayer.forEach((id, idx) => posNext.set(id, idx));
-          const reordered = sortByBarycenter(currLayer, posNext, id => adjacency.get(id) ?? []);
+          const reordered = sortByBarycenter(currLayer, posNext, (id) => adjacency.get(id) ?? []);
           buckets.set(layerKeys[i], reordered);
         }
 
         // 生成节点坐标：x 按层级，y 按层内序号
         const nodeById = new Map<string, any>();
-        rcNodes.forEach(n => nodeById.set(String(n.id), n));
+        rcNodes.forEach((n) => nodeById.set(String(n.id), n));
 
-        const nodes: FlowNodeJSON[] = ids.map(id => {
+        const nodes: FlowNodeJSON[] = ids.map((id) => {
           const n = nodeById.get(id) ?? {};
           const lv = level[id] ?? 0;
           const layerNodes = buckets.get(lv) ?? [];
@@ -398,12 +408,7 @@ export function ExportImport(props: { disabled?: boolean }) {
     <>
       <Space>
         <Tooltip content="导出为 JSON">
-          <Button
-            theme="light"
-            icon={<IconDownload />}
-            disabled={disabled}
-            onClick={openExport}
-          >
+          <Button theme="light" icon={<IconDownload />} disabled={disabled} onClick={openExport}>
             导出JSON
           </Button>
         </Tooltip>
@@ -433,7 +438,7 @@ export function ExportImport(props: { disabled?: boolean }) {
         title="导出工作流 JSON"
         visible={exportVisible}
         onCancel={() => setExportVisible(false)}
-        footer={(
+        footer={
           <Space>
             <Button icon={<IconCopy />} onClick={copyExport}>
               复制
@@ -445,7 +450,7 @@ export function ExportImport(props: { disabled?: boolean }) {
               关闭
             </Button>
           </Space>
-        )}
+        }
         width={720}
       >
         <TextArea
@@ -459,7 +464,7 @@ export function ExportImport(props: { disabled?: boolean }) {
         title="导出 RuleChain JSON"
         visible={ruleChainVisible}
         onCancel={() => setRuleChainVisible(false)}
-        footer={(
+        footer={
           <Space>
             <Button
               icon={<IconCopy />}
@@ -496,7 +501,7 @@ export function ExportImport(props: { disabled?: boolean }) {
               关闭
             </Button>
           </Space>
-        )}
+        }
         width={720}
       >
         <TextArea

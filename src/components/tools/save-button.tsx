@@ -4,9 +4,10 @@
  */
 
 import React from 'react';
+
+import { useService, WorkflowDocument, useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Button, Toast, Tooltip } from '@douyinfe/semi-ui';
 import { IconSave } from '@douyinfe/semi-icons';
-import { useService, WorkflowDocument, useClientContext } from '@flowgram.ai/free-layout-editor';
 
 export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   const wfDocument = useService(WorkflowDocument);
@@ -35,7 +36,14 @@ export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
 
   return (
     <Tooltip content="保存画布">
-      <Button icon={<IconSave />} type="primary" theme="solid" size="small" disabled={disabled || playground.config.readonly} onClick={onClick}>
+      <Button
+        icon={<IconSave />}
+        type="primary"
+        theme="solid"
+        size="small"
+        disabled={disabled || playground.config.readonly}
+        onClick={onClick}
+      >
         保存
       </Button>
     </Tooltip>

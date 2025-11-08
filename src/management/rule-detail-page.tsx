@@ -4,11 +4,16 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Spin, Typography } from '@douyinfe/semi-ui';
-import { RuleDetail, RuleDetailData } from './rule-detail';
-import { getRuleDetail } from '../services/api-rules';
 
-export const RuleDetailPage: React.FC<{ id: string; tab?: 'workflow' | 'design' }> = ({ id, tab }) => {
+import { Spin, Typography } from '@douyinfe/semi-ui';
+
+import { getRuleDetail } from '../services/api-rules';
+import { RuleDetail, RuleDetailData } from './rule-detail';
+
+export const RuleDetailPage: React.FC<{ id: string; tab?: 'workflow' | 'design' }> = ({
+  id,
+  tab,
+}) => {
   const [data, setData] = useState<RuleDetailData | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,10 +37,33 @@ export const RuleDetailPage: React.FC<{ id: string; tab?: 'workflow' | 'design' 
     };
   }, [id]);
 
-  if (loading) return <Spin tip="加载中..." style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />;
-  if (error || !data) return <div style={{ padding: 24 }}><Typography.Text type="danger">加载失败：{error ?? '未知错误'}</Typography.Text></div>;
+  if (loading)
+    return (
+      <Spin
+        tip="加载中..."
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      />
+    );
+  if (error || !data)
+    return (
+      <div style={{ padding: 24 }}>
+        <Typography.Text type="danger">加载失败：{error ?? '未知错误'}</Typography.Text>
+      </div>
+    );
 
   return (
-    <RuleDetail data={data} onBack={() => { window.location.hash = '#/'; }} initialTab={tab ?? 'workflow'} />
+    <RuleDetail
+      data={data}
+      onBack={() => {
+        window.location.hash = '#/';
+      }}
+      initialTab={tab ?? 'workflow'}
+    />
   );
 };

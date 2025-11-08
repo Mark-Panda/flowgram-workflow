@@ -7,9 +7,9 @@ import { EditorRenderer, FreeLayoutEditorProvider } from '@flowgram.ai/free-layo
 
 import '@flowgram.ai/free-layout-editor/index.css';
 import './styles/index.css';
+import { FlowDocumentJSON } from './typings';
 import { nodeRegistries } from './nodes';
 import { initialData } from './initial-data';
-import { FlowDocumentJSON } from './typings';
 import { useEditorProps } from './hooks';
 import { DemoTools } from './components/tools';
 

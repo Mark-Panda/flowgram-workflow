@@ -4,11 +4,12 @@
  */
 
 import React from 'react';
+
 import { createRoot } from 'react-dom/client';
 import { unstableSetCreateRoot } from '@flowgram.ai/form-materials';
 
-import { AdminPanel } from './management/admin-panel';
 import { RuleDetailPage } from './management/rule-detail-page';
+import { AdminPanel } from './management/admin-panel';
 
 /**
  * React 18/19 polyfill for form-materials
@@ -28,7 +29,7 @@ function Router() {
   const match = hash.match(/^#\/workflow\/([^/]+)(?:\/(design))?$/);
   if (match) {
     const id = decodeURIComponent(match[1]);
-    const tab = (match[2] as 'design' | undefined);
+    const tab = match[2] as 'design' | undefined;
     return <RuleDetailPage id={id} tab={tab} />;
   }
   return <AdminPanel />;
