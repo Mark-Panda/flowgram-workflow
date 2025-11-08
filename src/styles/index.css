@@ -78,3 +78,8 @@
   justify-content: center;
   align-items: center;
 }
+
+/* 隐藏节点设置按钮 */
+button.semi-button:has(.semi-icon-setting) {
+  display: none !important;
+}
