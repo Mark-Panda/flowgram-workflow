@@ -35,7 +35,7 @@ export const CaseConditionNodeRegistry: FlowNodeRegistry = {
   onAdd() {
     const caseId = (i: number) => `case_${i}_${nanoid(4)}`;
     return {
-      id: `case_condition_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'case-condition',
       data: {
         title: '条件列表',
@@ -64,9 +64,7 @@ export const CaseConditionNodeRegistry: FlowNodeRegistry = {
             groups: [
               {
                 operator: 'and',
-                rows: [
-                  { type: 'expression', content: '' },
-                ],
+                rows: [{ type: 'expression', content: '' }],
               },
             ],
           },

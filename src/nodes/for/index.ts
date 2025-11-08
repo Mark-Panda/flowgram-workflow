@@ -20,8 +20,7 @@ export const ForNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.For,
   info: {
     icon: iconLoop,
-    description:
-      'Used to repeatedly execute a series of tasks by setting the number of iterations and logic.',
+    description: '遍历目标节点',
   },
   meta: {
     /**

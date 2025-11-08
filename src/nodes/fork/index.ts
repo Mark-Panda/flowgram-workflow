@@ -14,7 +14,7 @@ export const ForkNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.Fork,
   info: {
     icon: '',
-    description: 'Fork node: branch execution without parameters.',
+    description: '并行执行多节点',
   },
   meta: {
     size: {
@@ -24,7 +24,7 @@ export const ForkNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `fork_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: WorkflowNodeType.Fork,
       data: {
         title: `Fork_${++index}`,

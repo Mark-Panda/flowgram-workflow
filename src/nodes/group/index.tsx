@@ -50,7 +50,7 @@ export const GroupNodeRegistry: FlowNodeRegistry = {
   onAdd() {
     return {
       type: FlowNodeBaseType.GROUP,
-      id: `group_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       meta: {
         position: {
           x: 0,

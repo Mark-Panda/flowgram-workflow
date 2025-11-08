@@ -26,7 +26,7 @@ export const VariableNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `variable_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'variable',
       data: {
         title: `Variable_${++index}`,

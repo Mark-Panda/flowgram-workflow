@@ -46,7 +46,7 @@ export const CodeNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `code_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'code',
       data: {
         title: `Code_${++index}`,

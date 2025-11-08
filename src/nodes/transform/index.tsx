@@ -41,7 +41,7 @@ export const TransformNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `transform_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'transform',
       data: {
         title: `Transform`,

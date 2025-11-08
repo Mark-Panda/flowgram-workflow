@@ -30,7 +30,7 @@ export const ConditionNodeRegistry: FlowNodeRegistry = {
   formMeta,
   onAdd() {
     return {
-      id: `condition_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'condition',
       data: {
         title: 'Condition',

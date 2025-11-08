@@ -79,7 +79,7 @@ export const LoopNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `loop_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: WorkflowNodeType.Loop,
       data: {
         title: `Loop_${++index}`,

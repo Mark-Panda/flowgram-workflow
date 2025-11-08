@@ -34,7 +34,7 @@ export const ContinueNodeRegistry: FlowNodeRegistry = {
   formMeta,
   onAdd() {
     return {
-      id: `continue_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: 'continue',
       data: {
         title: `Continue_${++index}`,

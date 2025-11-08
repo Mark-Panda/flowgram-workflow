@@ -14,7 +14,7 @@ export const FetchNodeOutputRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.FetchNodeOutput,
   info: {
     icon: '',
-    description: 'Fetch target node output by selecting a node ID.',
+    description: '获取已经执行完节点的输出信息',
   },
   meta: {
     size: {
@@ -24,10 +24,10 @@ export const FetchNodeOutputRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `fetch_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: WorkflowNodeType.FetchNodeOutput,
       data: {
-        title: `FetchNodeOutput_${++index}`,
+        title: `获取完成节点信息_${++index}`,
         inputsValues: {
           nodeId: { type: 'constant', content: '' },
         },

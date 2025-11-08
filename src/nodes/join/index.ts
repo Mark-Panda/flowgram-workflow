@@ -14,7 +14,7 @@ export const JoinNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.Join,
   info: {
     icon: '',
-    description: 'Join node: wait and merge with configurable timeout.',
+    description: '合并节点: 等待所有子节点执行完成后合并输出.',
   },
   meta: {
     size: {
@@ -24,7 +24,7 @@ export const JoinNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `join_${nanoid(5)}`,
+      id: `${nanoid(16)}`,
       type: WorkflowNodeType.Join,
       data: {
         title: `Join_${++index}`,
