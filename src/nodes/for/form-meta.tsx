@@ -47,7 +47,7 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
           field.onChange({ type: 'constant', content: firstChildId });
         }
         return (
-          <FormItem name={'nodeId'} type={'string'} required>
+          <FormItem name={'处理节点ID'} type={'string'} required>
             <Input value={firstChildId} disabled placeholder="请选择在子画布中连接的单个节点" />
             <Feedback errors={fieldState?.errors} />
           </FormItem>
@@ -59,7 +59,7 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
   const textInput = (
     <Field<IFlowValue> name={`note`}>
       {({ field, fieldState }) => (
-        <FormItem name={'note'} type={'string'}>
+        <FormItem name={'迭代值表达式'} type={'string'}>
           <Input
             value={typeof field.value?.content === 'string' ? (field.value?.content as string) : ''}
             onChange={(val) => field.onChange({ type: 'constant', content: val })}
@@ -74,16 +74,23 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
   const modeSelect = (
     <Field<IFlowValue> name={`operationMode`}>
       {({ field, fieldState }) => (
-        <FormItem name={'operationMode'} type={'number'}>
+        <FormItem name={'执行模式'} type={'number'}>
+          {(() => {
+            const cur = field.value?.content as number | undefined;
+            if (typeof cur !== 'number') {
+              field.onChange({ type: 'constant', content: 0 });
+            }
+            return null;
+          })()}
           <Select
             value={(field.value?.content as number) ?? undefined}
             onChange={(val) => field.onChange({ type: 'constant', content: val })}
             disabled={readonly}
             optionList={[
-              { label: '0 - 忽略', value: 0 },
-              { label: '1 - 追加', value: 1 },
-              { label: '2 - 覆盖', value: 2 },
-              { label: '3 - 异步执行', value: 3 },
+              { label: '同步不合并执行结果', value: 0 },
+              { label: '同步合并执行结果', value: 1 },
+              { label: '同步覆盖执行结果', value: 2 },
+              { label: '异步不合并执行结果', value: 3 },
             ]}
             style={{ width: '100%' }}
           />
@@ -119,7 +126,7 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
           {textInput}
           {modeSelect}
           {nodeIdLinked}
-          {forOutputs}
+          {/* {forOutputs} */}
         </FormContent>
       </>
     );

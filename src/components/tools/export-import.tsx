@@ -128,6 +128,15 @@ export function ExportImport(props: { disabled?: boolean }) {
 
         // 按不同节点类型进行定制处理，默认保持原有逻辑
         switch (nodeType) {
+          case 'for':
+            if (n.data) {
+              base.configuration = {
+                range: n.data?.note.content,
+                do: n.data?.nodeId.content,
+                mode: n.data?.operationMode.content,
+              };
+            }
+            break;
           case 'http': {
             var newconfig = {};
             if (n.data?.api) {
