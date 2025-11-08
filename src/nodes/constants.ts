@@ -23,4 +23,6 @@ export enum WorkflowNodeType {
   Fork = 'fork',
   Join = 'join',
   FetchNodeOutput = 'fetch-node-output',
+  LogString = 'log',
+  JsFilter = 'jsFilter',
 }

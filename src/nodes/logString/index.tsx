@@ -1,0 +1,51 @@
+/**
+ * Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
+ * SPDX-License-Identifier: MIT
+ */
+
+import { nanoid } from 'nanoid';
+
+import { WorkflowNodeType } from '../constants';
+import { FlowNodeRegistry } from '../../typings';
+import iconCode from '../../assets/icon-script.png';
+import { formMeta } from './form-meta';
+
+let index = 0;
+const defaultCode = `// 函数签名不可修改
+async function String(msg, metadata, msgType, dataType) {
+  return 'Incoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);
+}`;
+
+export const LogStringNodeRegistry: FlowNodeRegistry = {
+  type: WorkflowNodeType.LogString,
+  info: {
+    icon: iconCode,
+    description: 'String 消息内容，函数签名与入参固定',
+  },
+  meta: {
+    // 设置端口：一个输入，两个输出（success / failed）
+    defaultPorts: [
+      { type: 'input', location: 'left' },
+      { type: 'output', location: 'right', portID: 'success' },
+      { type: 'output', location: 'bottom', portID: 'failed' },
+    ],
+    size: {
+      width: 360,
+      height: 330,
+    },
+  },
+  onAdd() {
+    return {
+      id: `${nanoid(16)}`,
+      type: WorkflowNodeType.LogString,
+      data: {
+        title: `Log_${++index}`,
+        script: {
+          language: 'javascript',
+          content: defaultCode,
+        },
+      },
+    };
+  },
+  formMeta,
+};

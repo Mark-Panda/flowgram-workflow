@@ -4,11 +4,11 @@
  */
 
 import { FlowNodeRegistry } from '../typings';
-import { VariableNodeRegistry } from './variable';
 import { TransformNodeRegistry } from './transform';
 import { StartNodeRegistry } from './start';
-import { LoopNodeRegistry } from './loop';
+import { LogStringNodeRegistry } from './logString';
 import { LLMNodeRegistry } from './llm';
+import { JsFilterNodeRegistry } from './jsFilter';
 import { JoinNodeRegistry } from './join';
 import { HTTPNodeRegistry } from './http';
 import { GroupNodeRegistry } from './group';
@@ -16,12 +16,8 @@ import { ForkNodeRegistry } from './fork';
 import { ForNodeRegistry } from './for';
 import { FetchNodeOutputRegistry } from './fetch-node-output';
 import { EndNodeRegistry } from './end';
-import { ContinueNodeRegistry } from './continue';
-import { ConditionNodeRegistry } from './condition';
 import { CommentNodeRegistry } from './comment';
-import { CodeNodeRegistry } from './code';
 import { CaseConditionNodeRegistry } from './case-condition';
-import { BreakNodeRegistry } from './break';
 import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
 export { WorkflowNodeType } from './constants';
@@ -29,12 +25,12 @@ export { WorkflowNodeType } from './constants';
 // 节点注册
 export const nodeRegistries: FlowNodeRegistry[] = [
   TransformNodeRegistry,
+  JsFilterNodeRegistry,
+  LogStringNodeRegistry,
   CaseConditionNodeRegistry,
-  // ConditionNodeRegistry,
   StartNodeRegistry,
   EndNodeRegistry,
   LLMNodeRegistry,
-  // LoopNodeRegistry,
   ForNodeRegistry,
   ForkNodeRegistry,
   JoinNodeRegistry,
@@ -43,9 +39,5 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   BlockStartNodeRegistry,
   BlockEndNodeRegistry,
   HTTPNodeRegistry,
-  // CodeNodeRegistry,
-  // ContinueNodeRegistry,
-  // BreakNodeRegistry,
-  // VariableNodeRegistry,
   GroupNodeRegistry,
 ];

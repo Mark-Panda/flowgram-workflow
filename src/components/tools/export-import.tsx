@@ -262,9 +262,19 @@ export function ExportImport(props: { disabled?: boolean }) {
             }
             break;
           case 'transform':
+          case 'log':
+          case 'jsFilter':
             if (n.data?.script) {
+              const matchName =
+                n.type === 'transform'
+                  ? 'Transform'
+                  : n.type === 'log'
+                  ? 'String'
+                  : n.type === 'jsFilter'
+                  ? 'Filter'
+                  : '';
               const scriptText: string = String(n.data?.script?.content ?? '');
-              const fnIdx = scriptText.indexOf('function Transform');
+              const fnIdx = scriptText.indexOf(`function ${matchName}`);
               const braceStart = fnIdx >= 0 ? scriptText.indexOf('{', fnIdx) : -1;
               if (braceStart >= 0) {
                 let i = braceStart + 1;
