@@ -26,6 +26,7 @@ export function FormInputs() {
           const property = properties[key];
 
           const formComponent = property.extra?.formComponent;
+          const displayLabel = property.extra?.label || key;
 
           const vertical = ['prompt-editor'].includes(formComponent || '');
 
@@ -33,7 +34,7 @@ export function FormInputs() {
             <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
               {({ field, fieldState }) => (
                 <FormItem
-                  name={key}
+                  name={displayLabel}
                   vertical={vertical}
                   type={property.type as string}
                   required={required.includes(key)}
@@ -52,6 +53,15 @@ export function FormInputs() {
                       onChange={field.onChange}
                       readonly={readonly}
                       hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                    />
+                  )}
+                  {formComponent === 'enum-select' && (
+                    <EnumSelect
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      schema={property}
                     />
                   )}
                   {!formComponent && (
@@ -75,3 +85,4 @@ export function FormInputs() {
   );
 }
 import { NodeIdSelect } from './node-id-select';
+import { EnumSelect } from './enum-select';

@@ -33,7 +33,7 @@ export const HTTPNodeRegistry: FlowNodeRegistry = {
   onAdd() {
     return {
       id: `${nanoid(16)}`,
-      type: 'http',
+      type: 'restApiCall',
       data: {
         title: `HTTP_${++index}`,
         api: {
@@ -47,9 +47,9 @@ export const HTTPNodeRegistry: FlowNodeRegistry = {
         outputs: {
           type: 'object',
           properties: {
-            body: { type: 'string' },
-            headers: { type: 'object' },
-            statusCode: { type: 'integer' },
+            // body: { type: 'string' },
+            // headers: { type: 'object' },
+            // statusCode: { type: 'integer' },
           },
         },
       },

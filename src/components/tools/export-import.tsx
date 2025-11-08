@@ -170,14 +170,53 @@ export function ExportImport(props: { disabled?: boolean }) {
             break;
           }
           case 'llm': {
-            base.configuration = {
-              ...(n.data ?? {}),
-              model: n.data?.model ?? n.configuration?.model ?? undefined,
-            };
+            if (
+              n.data?.inputs &&
+              Object.keys(n.data?.inputs).length > 0 &&
+              n.data?.inputsValues &&
+              Object.keys(n.data?.inputsValues).length > 0
+            ) {
+              const configmap: Record<string, any> = {};
+              const parammap: Record<string, any> = {};
+              Object.keys(n.data.inputs.properties).forEach((key) => {
+                switch (key) {
+                  case 'userPrompt':
+                    configmap['messages'] = [
+                      {
+                        role: 'user',
+                        content: (n.data.inputsValues as any)[key].content,
+                      },
+                    ];
+                    break;
+                  case 'temperature':
+                  case 'responseFormat':
+                  case 'topP':
+                  case 'maxTokens':
+                    parammap[key] = (n.data.inputsValues as any)[key].content;
+                    break;
+                  default:
+                    configmap[key] = (n.data.inputsValues as any)[key].content;
+                }
+                configmap['params'] = parammap;
+              });
+              base.configuration = configmap;
+            }
             break;
           }
           default: {
             // 保持默认逻辑
+            if (
+              n.data?.inputs &&
+              Object.keys(n.data?.inputs).length > 0 &&
+              n.data?.inputsValues &&
+              Object.keys(n.data?.inputsValues).length > 0
+            ) {
+              const parammap: Record<string, any> = {};
+              Object.keys(n.data.inputs.properties).forEach((key) => {
+                parammap[key] = (n.data.inputsValues as any)[key].content;
+              });
+              base.configuration = parammap;
+            }
             break;
           }
         }
