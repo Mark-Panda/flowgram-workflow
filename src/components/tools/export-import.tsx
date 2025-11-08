@@ -203,6 +203,55 @@ export function ExportImport(props: { disabled?: boolean }) {
             }
             break;
           }
+          case 'case-condition':
+            if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
+              const formatValue = (v: any) => {
+                const val = v?.content;
+                const isNum =
+                  typeof val === 'number' ||
+                  (typeof val === 'string' && /^-?\d+(?:\.\d+)?$/.test(val));
+                return isNum ? String(val) : JSON.stringify(String(val ?? ''));
+              };
+
+              const formatRow = (row: any) => {
+                if (!row) return '';
+                if (row.content && String(row.content).trim().length > 0) {
+                  return String(row.content).trim();
+                }
+                if (row.type === 'expression') {
+                  const left = row.left?.content ?? '';
+                  const op = row.operator ?? '';
+                  const right = formatValue(row.right ?? {});
+                  if (left && op && right) {
+                    return `${left} ${op} ${right}`;
+                  }
+                }
+                return '';
+              };
+
+              const formatGroup = (g: any) => {
+                const rows = Array.isArray(g?.rows) ? g.rows : [];
+                const exprs = rows.map(formatRow).filter((s: string) => s && s.length > 0);
+                const joiner = g?.operator === 'or' ? ' || ' : ' && ';
+                if (exprs.length === 0) return '';
+                const joined = exprs.join(joiner);
+                return exprs.length > 1 ? `(${joined})` : joined;
+              };
+
+              const cases = (n.data.cases as any[])
+                .map((c: any) => {
+                  const groups = Array.isArray(c?.groups) ? c.groups : [];
+                  const groupExprs = groups
+                    .map(formatGroup)
+                    .filter((s: string) => s && s.length > 0);
+                  const fullExpr = groupExprs.join(' || ');
+                  return { case: fullExpr, then: String(c.key ?? '') };
+                })
+                .filter((item) => item.case && item.then);
+
+              base.configuration = { cases };
+            }
+            break;
           default: {
             // 保持默认逻辑
             if (
@@ -230,7 +279,7 @@ export function ExportImport(props: { disabled?: boolean }) {
         connectionsRC.push({
           fromId: e.sourceNodeID ?? e.fromId ?? e.from?.id ?? '',
           toId: e.targetNodeID ?? e.toId ?? e.to?.id ?? '',
-          type: e.type ?? 'SUCCESS',
+          type: e.sourcePortID ?? 'SUCCESS',
           label: e.sourcePortID ?? e.label,
         });
       };

@@ -34,14 +34,14 @@ export const ForkNodeRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.Fork,
       data: {
         title: `Fork_${++index}`,
-        inputs: {
-          type: 'object',
-          properties: {},
-        },
-        outputs: {
-          type: 'object',
-          properties: {},
-        },
+        // inputs: {
+        //   type: 'object',
+        //   properties: {},
+        // },
+        // outputs: {
+        //   type: 'object',
+        //   properties: {},
+        // },
       },
     };
   },
