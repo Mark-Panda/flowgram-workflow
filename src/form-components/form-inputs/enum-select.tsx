@@ -4,8 +4,10 @@
  */
 
 import React, { useMemo } from 'react';
-import { Select } from '@douyinfe/semi-ui';
+
 import { IFlowValue } from '@flowgram.ai/form-materials';
+import { Select } from '@douyinfe/semi-ui';
+
 import { JsonSchema } from '../../typings';
 
 interface EnumSelectProps {
@@ -16,7 +18,13 @@ interface EnumSelectProps {
   schema: JsonSchema;
 }
 
-export const EnumSelect: React.FC<EnumSelectProps> = ({ value, onChange, readonly, hasError, schema }) => {
+export const EnumSelect: React.FC<EnumSelectProps> = ({
+  value,
+  onChange,
+  readonly,
+  hasError,
+  schema,
+}) => {
   const items = useMemo(() => {
     const raw = (schema as any).extra?.options || (schema as any).enum || [];
     if (!Array.isArray(raw)) return [];
@@ -28,7 +36,8 @@ export const EnumSelect: React.FC<EnumSelectProps> = ({ value, onChange, readonl
     );
   }, [schema]);
 
-  const selectedValue = (value?.type === 'constant' ? (value.content as any) : undefined) ?? undefined;
+  const selectedValue =
+    (value?.type === 'constant' ? (value.content as any) : undefined) ?? undefined;
 
   return (
     <div style={{ width: '100%' }}>

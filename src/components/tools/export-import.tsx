@@ -291,7 +291,7 @@ export function ExportImport(props: { disabled?: boolean }) {
                       i++;
                       continue;
                     }
-                    if (ch === '\'' && prev !== '\\') {
+                    if (ch === "'" && prev !== '\\') {
                       inSingle = true;
                       continue;
                     }
@@ -304,7 +304,7 @@ export function ExportImport(props: { disabled?: boolean }) {
                       continue;
                     }
                   } else {
-                    if (inSingle && ch === '\'' && prev !== '\\') {
+                    if (inSingle && ch === "'" && prev !== '\\') {
                       inSingle = false;
                       continue;
                     }

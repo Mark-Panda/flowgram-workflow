@@ -133,7 +133,7 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
             responseFormat: {
               type: 'string',
               enum: ['text', 'json_object', 'json_schema'],
-              extra: {  label: '输出格式',formComponent: 'enum-select' },
+              extra: { label: '输出格式', formComponent: 'enum-select' },
             },
             temperature: {
               type: 'number',
