@@ -20,6 +20,7 @@ import { CommentNodeRegistry } from './comment';
 import { CaseConditionNodeRegistry } from './case-condition';
 import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
+import { DBClientNodeRegistry } from './dbClient';
 export { WorkflowNodeType } from './constants';
 
 // 节点注册
@@ -40,4 +41,5 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   BlockEndNodeRegistry,
   HTTPNodeRegistry,
   GroupNodeRegistry,
+  DBClientNodeRegistry,
 ];

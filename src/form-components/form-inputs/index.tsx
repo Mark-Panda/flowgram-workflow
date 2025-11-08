@@ -38,6 +38,7 @@ export function FormInputs() {
                   vertical={vertical}
                   type={property.type as string}
                   required={required.includes(key)}
+                  description={property.extra?.description}
                 >
                   {formComponent === 'prompt-editor' && (
                     <PromptEditorWithVariables

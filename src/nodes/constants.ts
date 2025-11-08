@@ -25,4 +25,5 @@ export enum WorkflowNodeType {
   FetchNodeOutput = 'fetch-node-output',
   LogString = 'log',
   JsFilter = 'jsFilter',
+  DBClient = 'dbClient',
 }

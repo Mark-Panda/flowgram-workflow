@@ -146,6 +146,7 @@ export function ExportImport(props: { disabled?: boolean }) {
             }
             break;
           case 'http': {
+            base.type = 'restApiCall';
             var newconfig = {};
             if (n.data?.api) {
               (newconfig as any)['requestMethod'] = n.data?.api.method;
