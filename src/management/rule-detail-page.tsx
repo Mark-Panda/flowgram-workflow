@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { Spin, Typography } from '@douyinfe/semi-ui';
 import { RuleDetail, RuleDetailData } from './rule-detail';
+import { getRuleDetail } from '../services/api-rules';
 
 export const RuleDetailPage: React.FC<{ id: string; tab?: 'workflow' | 'design' }> = ({ id, tab }) => {
   const [data, setData] = useState<RuleDetailData | undefined>();
@@ -18,15 +19,7 @@ export const RuleDetailPage: React.FC<{ id: string; tab?: 'workflow' | 'design' 
       setLoading(true);
       setError(undefined);
       try {
-        const token = (typeof window !== 'undefined' && (localStorage.getItem('AUTH_TOKEN') || localStorage.getItem('token'))) || '';
-        const res = await fetch(`http://127.0.0.1:9099/api/v1/rules/${encodeURIComponent(id)}`, {
-          headers: {
-            Accept: 'application/json, text/plain, */*',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
+        const json = await getRuleDetail(id);
         if (mounted) setData(json as RuleDetailData);
       } catch (e) {
         if (mounted) setError(String((e as Error)?.message ?? e));

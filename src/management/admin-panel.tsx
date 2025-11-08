@@ -12,6 +12,7 @@ import { Editor } from '../editor';
 import { RuleDetail, RuleDetailData } from './rule-detail';
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
 import { nodeRegistries } from '../nodes';
+import { getRuleList, createRuleBase } from '../services/api-rules';
 
 type MenuKey = 'workflow' | 'component';
 
@@ -161,16 +162,8 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     if (activeMenu !== 'workflow' || showEditor) return;
     setLoading(true); setError(undefined);
-    const token = (typeof window !== 'undefined' && (localStorage.getItem('AUTH_TOKEN') || localStorage.getItem('token'))) || '';
-    const url = new URL('http://127.0.0.1:9099/api/v1/rules');
-    url.searchParams.set('page', String(page));
-    url.searchParams.set('size', String(size));
-    if (keywords.trim()) url.searchParams.set('keywords', keywords.trim());
-    if (rootOnly) url.searchParams.set('root', 'true');
-    fetch(url.toString(), { headers: { Accept: 'application/json, text/plain, */*', ...(token ? { Authorization: `Bearer ${token}` } : {}) } })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+    getRuleList({ page, size, keywords: keywords.trim() || undefined, root: rootOnly || undefined })
+      .then((data) => {
         const items = Array.isArray(data.items) ? data.items : [];
         setRules(items);
         const t = Number(data.total ?? data.count ?? items.length);
@@ -396,27 +389,13 @@ export const AdminPanel: React.FC = () => {
         }
         setCreateSubmitting(true);
         try {
-          const token = (typeof window !== 'undefined' && (localStorage.getItem('AUTH_TOKEN') || localStorage.getItem('token'))) || '';
-          const url = `http://127.0.0.1:9099/api/v1/rules/${encodeURIComponent(createId)}/base`;
           const body = {
             id: createId,
             name: createName.trim(),
             root: !!createRoot,
             additionalInfo: { description: createDesc ?? '' },
           };
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-              Accept: 'application/json, text/plain, */*',
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify(body),
-          });
-          if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`HTTP ${res.status}: ${text || 'Request failed'}`);
-          }
+          await createRuleBase(createId, body);
           Toast.success({ content: '创建成功' });
           setShowCreateModal(false);
           // 路由跳转到与“打开工作流”一致的详情页

@@ -5,6 +5,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Button, Input, Nav, Switch, Typography, Toast } from '@douyinfe/semi-ui';
+import { createRuleBase, getRuleDetail } from '../services/api-rules';
 import { Editor } from '../editor';
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
 import { WorkflowNodeType } from '../nodes';
@@ -183,8 +184,6 @@ export const RuleDetail: React.FC<{
                           }
                           try {
                             setSaving(true);
-                            const token = (typeof window !== 'undefined' && (localStorage.getItem('AUTH_TOKEN') || localStorage.getItem('token'))) || '';
-                            const postUrl = `http://127.0.0.1:9099/api/v1/rules/${encodeURIComponent(id)}/base`;
                             const body = {
                               id,
                               name,
@@ -194,32 +193,9 @@ export const RuleDetail: React.FC<{
                               additionalInfo: { description: desc ?? '' },
                               configuration: { vars: {} },
                             };
-                            const res = await fetch(postUrl, {
-                              method: 'POST',
-                              headers: {
-                                Accept: 'application/json, text/plain, */*',
-                                'Content-Type': 'application/json',
-                                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                              },
-                              body: JSON.stringify(body),
-                            });
-                            if (!res.ok) {
-                              const t = await res.text();
-                              throw new Error(`保存失败：HTTP ${res.status} ${t || ''}`);
-                            }
+                            await createRuleBase(id, body);
                             // 保存成功后刷新详情
-                            const getUrl = `http://127.0.0.1:9099/api/v1/rules/${encodeURIComponent(id)}`;
-                            const detailRes = await fetch(getUrl, {
-                              headers: {
-                                Accept: 'application/json, text/plain, */*',
-                                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                              },
-                            });
-                            if (!detailRes.ok) {
-                              const txt = await detailRes.text();
-                              throw new Error(`刷新失败：HTTP ${detailRes.status} ${txt || ''}`);
-                            }
-                            const json = await detailRes.json();
+                            const json = await getRuleDetail(id);
                             const rc = json?.ruleChain || {};
                             setName(String(rc?.name ?? name));
                             setDesc(String(rc?.additionalInfo?.description ?? desc ?? ''));
