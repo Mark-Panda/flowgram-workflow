@@ -38,6 +38,7 @@ export const ContinueNodeRegistry: FlowNodeRegistry = {
       type: 'continue',
       data: {
         title: `Continue_${++index}`,
+        positionType: 'middle',
       },
     };
   },

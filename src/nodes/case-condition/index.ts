@@ -39,6 +39,7 @@ export const CaseConditionNodeRegistry: FlowNodeRegistry = {
       type: 'switch',
       data: {
         title: '条件列表',
+        positionType: 'middle',
         cases: [
           {
             key: caseId(1),

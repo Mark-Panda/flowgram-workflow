@@ -34,6 +34,7 @@ export const ConditionNodeRegistry: FlowNodeRegistry = {
       type: 'condition',
       data: {
         title: 'Condition',
+        positionType: 'middle',
         conditions: [
           {
             key: `if_${nanoid(5)}`,

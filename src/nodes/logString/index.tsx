@@ -40,6 +40,7 @@ export const LogStringNodeRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.LogString,
       data: {
         title: `Log_${++index}`,
+        positionType: 'middle',
         script: {
           language: 'javascript',
           content: defaultCode,

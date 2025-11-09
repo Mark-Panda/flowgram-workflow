@@ -36,6 +36,7 @@ export const HTTPNodeRegistry: FlowNodeRegistry = {
       type: 'restApiCall',
       data: {
         title: `HTTP_${++index}`,
+        positionType: 'middle',
         api: {
           method: 'GET',
         },

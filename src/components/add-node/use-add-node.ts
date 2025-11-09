@@ -17,6 +17,8 @@ import {
   WorkflowNodeMeta,
   FlowNodeBaseType,
 } from '@flowgram.ai/free-layout-editor';
+import { Toast } from '@douyinfe/semi-ui';
+import { WorkflowNodeType } from '../../nodes';
 // hook to get panel position from mouse event - 从鼠标事件获取面板位置的 hook
 const useGetPanelPosition = () => {
   const playground = usePlayground();
@@ -88,6 +90,19 @@ export const useAddNode = () => {
               return;
             }
             const { nodeType, nodeJSON } = panelParams;
+            // 限制：画布中只能有一个 header 类型的节点（创建前校验）
+            const rawBefore = workflowDocument.toJSON();
+            const existsHeaderBefore = Array.isArray(rawBefore.nodes)
+              ? rawBefore.nodes.some(
+                  (n: any) => n?.data?.positionType === 'header' || String(n?.type) === 'start'
+                )
+              : false;
+            const isHeaderCandidate =
+              nodeJSON?.data?.positionType === 'header' || nodeType === WorkflowNodeType.Start;
+            if (existsHeaderBefore && isHeaderCandidate) {
+              Toast.error('画布中只能存在一个 Header 类型的节点');
+              return;
+            }
             const position = Boolean(containerNode)
               ? getAntiOverlapPosition(workflowDocument, {
                   x: 0,
@@ -101,6 +116,18 @@ export const useAddNode = () => {
               nodeJSON ?? ({} as WorkflowNodeJSON),
               containerNode?.id
             );
+            // 二次校验：创建后若出现多个 header，撤销新建
+            const rawAfter = workflowDocument.toJSON();
+            const headerCount = Array.isArray(rawAfter.nodes)
+              ? rawAfter.nodes.filter(
+                  (n: any) => n?.data?.positionType === 'header' || String(n?.type) === 'start'
+                ).length
+              : 0;
+            if (isHeaderCandidate && headerCount > 1) {
+              node.dispose();
+              Toast.error('画布中只能存在一个 Header 类型的节点');
+              return;
+            }
             select(node);
           },
           // handle panel close - 处理面板关闭

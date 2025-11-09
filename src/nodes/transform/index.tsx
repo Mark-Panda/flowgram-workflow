@@ -45,6 +45,7 @@ export const TransformNodeRegistry: FlowNodeRegistry = {
       type: 'transform',
       data: {
         title: `Transform`,
+        positionType: 'middle',
         script: {
           language: 'javascript',
           content: defaultCode,

@@ -35,6 +35,7 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
       type: 'dbClient',
       data: {
         title: `查询数据库_${++index}`,
+        positionType: 'middle',
         inputsValues: {
           // SQL 模板内容：在表单中使用 prompt-editor 进行编辑，
           // 支持引用变量（模板插值），并可与下方 params 数组按顺序绑定占位符

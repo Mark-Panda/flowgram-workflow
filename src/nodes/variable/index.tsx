@@ -30,6 +30,7 @@ export const VariableNodeRegistry: FlowNodeRegistry = {
       type: 'variable',
       data: {
         title: `Variable_${++index}`,
+        positionType: 'middle',
         assign: [
           {
             operator: 'declare',

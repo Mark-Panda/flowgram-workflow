@@ -50,6 +50,7 @@ export const CodeNodeRegistry: FlowNodeRegistry = {
       type: 'code',
       data: {
         title: `Code_${++index}`,
+        positionType: 'middle',
         inputsValues: {
           input: { type: 'constant', content: '' },
         },

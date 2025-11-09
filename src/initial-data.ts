@@ -18,6 +18,7 @@ export const initialData: FlowDocumentJSON = {
       },
       data: {
         title: 'Start',
+        positionType: 'header',
         outputs: {
           type: 'object',
           properties: {
@@ -184,6 +185,7 @@ export const initialData: FlowDocumentJSON = {
       },
       data: {
         title: 'End',
+        positionType: 'tail',
         inputsValues: {
           success: {
             type: 'constant',

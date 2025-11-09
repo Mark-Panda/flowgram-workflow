@@ -83,6 +83,7 @@ export const LoopNodeRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.Loop,
       data: {
         title: `Loop_${++index}`,
+        positionType: 'middle',
       },
       blocks: [
         {
@@ -94,7 +95,7 @@ export const LoopNodeRegistry: FlowNodeRegistry = {
               y: 0,
             },
           },
-          data: {},
+          data: { positionType: 'middle' },
         },
         {
           id: `block_end_${nanoid(5)}`,
@@ -105,7 +106,7 @@ export const LoopNodeRegistry: FlowNodeRegistry = {
               y: 0,
             },
           },
-          data: {},
+          data: { positionType: 'middle' },
         },
       ],
     };

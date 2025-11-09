@@ -37,6 +37,7 @@ export const FetchNodeOutputRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.FetchNodeOutput,
       data: {
         title: `获取完成节点信息_${++index}`,
+        positionType: 'middle',
         inputsValues: {
           nodeId: { type: 'constant', content: '' },
         },

@@ -35,6 +35,7 @@ export const JoinNodeRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.Join,
       data: {
         title: `Join_${++index}`,
+        positionType: 'middle',
         inputsValues: {
           timeout: { type: 'constant', content: 0 },
         },

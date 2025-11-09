@@ -40,6 +40,7 @@ export const JsFilterNodeRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.JsFilter,
       data: {
         title: `JsFilter_${++index}`,
+        positionType: 'middle',
         script: {
           language: 'javascript',
           content: defaultCode,

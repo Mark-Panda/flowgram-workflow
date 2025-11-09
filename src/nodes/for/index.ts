@@ -82,6 +82,7 @@ export const ForNodeRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.For,
       data: {
         title: `For_${++index}`,
+        positionType: 'middle',
       },
       blocks: [
         {
@@ -93,7 +94,7 @@ export const ForNodeRegistry: FlowNodeRegistry = {
               y: 0,
             },
           },
-          data: {},
+          data: { positionType: 'middle' },
         },
         {
           id: `block_end_${nanoid(5)}`,
@@ -104,7 +105,7 @@ export const ForNodeRegistry: FlowNodeRegistry = {
               y: 0,
             },
           },
-          data: {},
+          data: { positionType: 'middle' },
         },
       ],
     };

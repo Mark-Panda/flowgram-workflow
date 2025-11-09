@@ -38,6 +38,7 @@ export const BreakNodeRegistry: FlowNodeRegistry = {
       type: 'break',
       data: {
         title: `Break_${++index}`,
+        positionType: 'middle',
       },
     };
   },

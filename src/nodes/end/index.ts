@@ -11,9 +11,9 @@ import { WorkflowNodeType } from '../constants';
 export const EndNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.End,
   meta: {
-    deleteDisable: true,
+    deleteDisable: false,
     copyDisable: true,
-    nodePanelVisible: false,
+    nodePanelVisible: true,
     defaultPorts: [{ type: 'input' }],
     size: {
       width: 360,
@@ -30,9 +30,20 @@ export const EndNodeRegistry: FlowNodeRegistry = {
    */
   formMeta,
   /**
-   * End Node cannot be added
+   * Allow adding end node from panel
    */
-  canAdd() {
-    return false;
+  onAdd() {
+    return {
+      id: `${/* id */ (Math.random().toString(36).slice(2))}`,
+      type: WorkflowNodeType.End,
+      data: {
+        title: 'End',
+        positionType: 'tail',
+        inputs: {
+          type: 'object',
+          properties: {},
+        },
+      },
+    } as any;
   },
 };

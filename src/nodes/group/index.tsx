@@ -60,6 +60,7 @@ export const GroupNodeRegistry: FlowNodeRegistry = {
       data: {
         color: 'Green',
         title: `Group_${++index}`,
+        positionType: 'middle',
       },
     };
   },

@@ -12,9 +12,9 @@ export const StartNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.Start,
   meta: {
     isStart: true,
-    deleteDisable: true,
+    deleteDisable: false,
     copyDisable: true,
-    nodePanelVisible: false,
+    nodePanelVisible: true,
     defaultPorts: [{ type: 'output' }],
     size: {
       width: 360,
@@ -31,9 +31,20 @@ export const StartNodeRegistry: FlowNodeRegistry = {
    */
   formMeta,
   /**
-   * Start Node cannot be added
+   * Allow adding start node from panel
    */
-  canAdd() {
-    return false;
+  onAdd() {
+    return {
+      id: `${/* id */ (Math.random().toString(36).slice(2))}`,
+      type: WorkflowNodeType.Start,
+      data: {
+        title: 'Start',
+        positionType: 'header',
+        outputs: {
+          type: 'object',
+          properties: {},
+        },
+      },
+    } as any;
   },
 };

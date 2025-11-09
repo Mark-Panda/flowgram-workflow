@@ -35,6 +35,7 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
       type: 'ai/llm',
       data: {
         title: `LLM_${++index}`,
+        positionType: 'middle',
         inputsValues: {
           model: {
             type: 'constant',

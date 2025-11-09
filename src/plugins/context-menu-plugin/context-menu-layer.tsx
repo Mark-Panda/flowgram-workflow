@@ -18,6 +18,8 @@ import {
   WorkflowDragService,
 } from '@flowgram.ai/free-layout-editor';
 import { ContainerUtils } from '@flowgram.ai/free-container-plugin';
+import { Toast } from '@douyinfe/semi-ui';
+import { WorkflowNodeType } from '../../nodes';
 
 @injectable()
 export class ContextMenuLayer extends Layer {
@@ -55,6 +57,19 @@ export class ContextMenuLayer extends Layer {
           return;
         }
         const { nodeType, nodeJSON } = panelParams;
+        // 限制：画布中只能有一个 header 类型的节点（创建前校验）
+        const rawBefore = this.ctx.document.toJSON() as any;
+        const hasHeader = Array.isArray(rawBefore?.nodes)
+          ? rawBefore.nodes.some(
+              (n: any) => n?.data?.positionType === 'header' || String(n?.type) === 'start'
+            )
+          : false;
+        const isHeaderCandidate =
+          nodeJSON?.data?.positionType === 'header' || nodeType === WorkflowNodeType.Start;
+        if (hasHeader && isHeaderCandidate) {
+          Toast.error('画布中只能存在一个 Header 类型的节点');
+          return;
+        }
         const position = this.dragService.adjustSubNodePosition(nodeType, containerNode, mousePos);
         // create new workflow node based on selected type - 根据选择的类型创建新的工作流节点
         const node: WorkflowNodeEntity = this.ctx.document.createWorkflowNodeByType(
@@ -63,6 +78,18 @@ export class ContextMenuLayer extends Layer {
           nodeJSON ?? ({} as WorkflowNodeJSON),
           containerNode?.id
         );
+        // 二次校验：创建后若出现多个 header，撤销新建
+        const rawAfter = this.ctx.document.toJSON() as any;
+        const headerCount = Array.isArray(rawAfter?.nodes)
+          ? rawAfter.nodes.filter(
+              (n: any) => n?.data?.positionType === 'header' || String(n?.type) === 'start'
+            ).length
+          : 0;
+        if (isHeaderCandidate && headerCount > 1) {
+          node.dispose();
+          Toast.error('画布中只能存在一个 Header 类型的节点');
+          return;
+        }
         // select the newly created node - 选择新创建的节点
         this.selectService.select(node);
       },
