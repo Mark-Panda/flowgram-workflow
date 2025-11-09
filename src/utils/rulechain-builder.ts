@@ -161,7 +161,8 @@ export function buildRuleChainJSONFromDocument(
         if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
           const formatValue = (v: any) => {
             const val = v?.content;
-            const isNum = typeof val === 'number' || (typeof val === 'string' && /^-?\d+(?:\.\d+)?$/.test(val));
+            const isNum =
+              typeof val === 'number' || (typeof val === 'string' && /^-?\d+(?:\.\d+)?$/.test(val));
             return isNum ? String(val) : JSON.stringify(String(val ?? ''));
           };
           const formatRow = (row: any) => {
@@ -236,7 +237,7 @@ export function buildRuleChainJSONFromDocument(
                   i++;
                   continue;
                 }
-                if (ch === '\'' && prev !== '\\') {
+                if (ch === "'" && prev !== '\\') {
                   inSingle = true;
                   continue;
                 }
@@ -249,7 +250,7 @@ export function buildRuleChainJSONFromDocument(
                   continue;
                 }
               } else {
-                if (inSingle && ch === '\'' && prev !== '\\') {
+                if (inSingle && ch === "'" && prev !== '\\') {
                   inSingle = false;
                   continue;
                 }

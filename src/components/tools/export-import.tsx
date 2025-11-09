@@ -15,11 +15,11 @@ import { JsonSchemaUtils } from '@flowgram.ai/form-materials';
 import { Button, Modal, TextArea, Toast, Space, Tooltip } from '@douyinfe/semi-ui';
 import { IconDownload, IconUpload, IconCopy } from '@douyinfe/semi-icons';
 
+import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
 import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { GetGlobalVariableSchema } from '../../plugins/variable-panel-plugin';
 import iconVariable from '../../assets/icon-variable.png';
-import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
 
 export function ExportImport(props: { disabled?: boolean }) {
   const { document: workflowDocument, get } = useClientContext();

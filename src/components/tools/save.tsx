@@ -7,8 +7,9 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { useClientContext, FlowNodeEntity } from '@flowgram.ai/free-layout-editor';
 import { Button, Badge, Toast } from '@douyinfe/semi-ui';
-import { getRuleBaseInfo } from '../../services/rule-base-info';
+
 import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
+import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { updateRule } from '../../services/api-rules';
 
 export function Save(props: { disabled: boolean }) {

@@ -8,8 +8,9 @@ import React from 'react';
 import { useService, WorkflowDocument, useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Button, Toast, Tooltip } from '@douyinfe/semi-ui';
 import { IconSave } from '@douyinfe/semi-icons';
-import { getRuleBaseInfo } from '../../services/rule-base-info';
+
 import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
+import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { updateRule } from '../../services/api-rules';
 
 export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
