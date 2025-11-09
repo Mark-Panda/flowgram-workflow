@@ -165,7 +165,7 @@ export function buildRuleChainJSONFromDocument(
           }
           break;
         }
-        case 'http': {
+        case 'restApiCall': {
           const newconfig: Record<string, any> = {};
           if (n.data?.api) {
             newconfig['requestMethod'] = n.data?.api.method;
@@ -196,6 +196,7 @@ export function buildRuleChainJSONFromDocument(
               parammap[key] = (n.data.paramsValues as any)[key].content;
             });
             newconfig['params'] = parammap;
+            // TODO: 将params参数解析到URL上
           }
           if (n.data?.body && n.data?.body?.bodyType === 'JSON' && n.data?.body?.json?.content) {
             newconfig['body'] = n.data?.body.json.content;
@@ -398,6 +399,7 @@ export function buildRuleChainJSONFromDocument(
   const connectionsRC: NodeConnectionRC[] = [];
   const pushEdge = (e: any) => {
     if (!e) return;
+    if (e.sourceNodeID.startsWith('block_start') || e.targetNodeID.startsWith('block_end')) return;
     connectionsRC.push({
       fromId: e.sourceNodeID ?? e.fromId ?? e.from?.id ?? '',
       toId: e.targetNodeID ?? e.toId ?? e.to?.id ?? '',
