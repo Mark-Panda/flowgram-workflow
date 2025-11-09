@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { nanoid } from 'nanoid';
 import { WorkflowDocument } from '@flowgram.ai/free-layout-editor';
 
 export interface RuleChainBaseInfo {
@@ -32,9 +33,35 @@ interface NodeConnectionRC {
   label?: string;
 }
 
+interface FromDsl {
+  path: string;
+  configuration: Record<string, any>;
+  processors: string[];
+}
+
+interface ToDsl {
+  path: string;
+  configuration: Record<string, any>;
+  wait: boolean;
+  processors: string[];
+}
+
+interface RouterDsl {
+  id: string;
+  params: any[];
+  from: FromDsl;
+  to: ToDsl;
+  additionalInfo?: Record<string, any>;
+}
+
+type EndpointDsl = RuleNodeRC & {
+  processors?: string[];
+  routers?: RouterDsl[];
+};
+
 interface RuleMetadataRC {
   firstNodeIndex: number;
-  endpoints?: Array<{ ruleNode: RuleNodeRC; processors: string[]; routers: any[] }>;
+  endpoints?: EndpointDsl[];
   nodes: RuleNodeRC[];
   connections: NodeConnectionRC[];
   ruleChainConnections?: Array<{ fromId: string; toId: string; type: string }>;
@@ -59,229 +86,277 @@ export function buildRuleChainJSONFromDocument(
       n.blocks.forEach((b: any) => flattened.push(b));
     }
   });
-
-  const nodesRC: RuleNodeRC[] = flattened.map((n: any) => {
-    const nodeType = String(n.type);
-    const base: RuleNodeRC = {
-      id: n.id,
-      additionalInfo: n.meta ? { meta: n.meta } : undefined,
-      type: nodeType,
-      name: n.data?.title ?? nodeType,
-      debugMode: false,
-      configuration: {
-        ...(n.data ?? {}),
-      },
-      flowgramConfig: n,
-    };
-
-    switch (nodeType) {
-      case 'group': {
-        if (n.data) {
-          base.configuration = { nodeIds: n.data?.blockIDs };
-          base.type = 'groupAction';
-        }
-        break;
-      }
-      case 'http': {
-        const newconfig: Record<string, any> = {};
-        if (n.data?.api) {
-          newconfig['requestMethod'] = n.data?.api.method;
-          if (n.data?.api.url?.content) {
-            newconfig['restEndpointUrlPattern'] = n.data?.api.url?.content;
+  const endpoiontNode = ['endpoint/schedule'];
+  // 处理endpoiont节点信息
+  const endpoiontsRc: EndpointDsl[] = flattened
+    .filter((n: any) => endpoiontNode.includes(String(n.type)))
+    .map((n: any) => {
+      const nodeType = String(n.type);
+      const base: EndpointDsl = {
+        id: n.id,
+        additionalInfo: n.meta ? { meta: n.meta } : undefined,
+        type: nodeType,
+        name: n.data?.title ?? nodeType,
+        debugMode: false,
+        configuration: {},
+        flowgramConfig: n,
+      };
+      switch (nodeType) {
+        case 'endpoint/schedule':
+          if (n.data?.inputs && n.data?.inputsValues) {
+            base.routers = [
+              {
+                id: nanoid(16),
+                params: [],
+                from: {
+                  path: n.data?.inputsValues.cron.content,
+                  configuration: {},
+                  processors: [],
+                },
+                to: {
+                  path: baseOverride?.id + ':' + flattened[0].id,
+                  configuration: {},
+                  wait: false,
+                  processors: [],
+                },
+              },
+            ];
           }
-        }
-        if (
-          n.data?.headersValues &&
-          Object.keys(n.data?.headersValues).length > 0 &&
-          n.data?.headers &&
-          Object.keys(n.data?.headers).length > 0
-        ) {
-          const headermap: Record<string, any> = {};
-          Object.keys(n.data.headers.properties).forEach((key: string) => {
-            headermap[key] = (n.data.headersValues as any)[key].content;
-          });
-          newconfig['headers'] = headermap;
-        }
-        if (
-          n.data?.paramsValues &&
-          Object.keys(n.data?.paramsValues).length > 0 &&
-          n.data?.params &&
-          Object.keys(n.data?.params).length > 0
-        ) {
-          const parammap: Record<string, any> = {};
-          Object.keys(n.data.params.properties).forEach((key: string) => {
-            parammap[key] = (n.data.paramsValues as any)[key].content;
-          });
-          newconfig['params'] = parammap;
-        }
-        if (n.data?.body && n.data?.body?.bodyType === 'JSON' && n.data?.body?.json?.content) {
-          newconfig['body'] = n.data?.body.json.content;
-        }
-        if (n.data?.timeout) {
-          newconfig['readTimeoutMs'] = n.data?.timeout.timeout;
-        }
-        base.configuration = newconfig;
-        break;
+          break;
+        default:
+          break;
       }
-      case 'llm': {
-        if (
-          n.data?.inputs &&
-          Object.keys(n.data?.inputs).length > 0 &&
-          n.data?.inputsValues &&
-          Object.keys(n.data?.inputsValues).length > 0
-        ) {
-          const configmap: Record<string, any> = {};
-          const parammap: Record<string, any> = {};
-          Object.keys(n.data.inputs.properties).forEach((key: string) => {
-            switch (key) {
-              case 'userPrompt':
-                configmap['messages'] = [
-                  {
-                    role: 'user',
-                    content: (n.data.inputsValues as any)[key].content,
-                  },
-                ];
-                break;
-              case 'temperature':
-              case 'responseFormat':
-              case 'topP':
-              case 'maxTokens':
-                parammap[key] = (n.data.inputsValues as any)[key].content;
-                break;
-              default:
-                configmap[key] = (n.data.inputsValues as any)[key].content;
-            }
-            configmap['params'] = parammap;
-          });
-          base.configuration = configmap;
+      return base;
+    });
+
+  const nodesRC: RuleNodeRC[] = flattened
+    .map((n: any) => {
+      const nodeType = String(n.type);
+      const base: RuleNodeRC = {
+        id: n.id,
+        additionalInfo: n.meta ? { meta: n.meta } : undefined,
+        type: nodeType,
+        name: n.data?.title ?? nodeType,
+        debugMode: false,
+        configuration: {
+          ...(n.data ?? {}),
+        },
+        flowgramConfig: n,
+      };
+
+      switch (nodeType) {
+        case 'endpoint/schedule':
+          // 按要求：endpoint/schedule 不加入 nodesRC
+          return null as any;
+        case 'group': {
+          if (n.data) {
+            base.configuration = { nodeIds: n.data?.blockIDs };
+            base.type = 'groupAction';
+          }
+          break;
         }
-        break;
-      }
-      case 'case-condition': {
-        if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
-          const formatValue = (v: any) => {
-            const val = v?.content;
-            const isNum =
-              typeof val === 'number' || (typeof val === 'string' && /^-?\d+(?:\.\d+)?$/.test(val));
-            return isNum ? String(val) : JSON.stringify(String(val ?? ''));
-          };
-          const formatRow = (row: any) => {
-            if (!row) return '';
-            if (row.content && String(row.content).trim().length > 0) {
-              return String(row.content).trim();
+        case 'http': {
+          const newconfig: Record<string, any> = {};
+          if (n.data?.api) {
+            newconfig['requestMethod'] = n.data?.api.method;
+            if (n.data?.api.url?.content) {
+              newconfig['restEndpointUrlPattern'] = n.data?.api.url?.content;
             }
-            if (row.type === 'expression') {
-              const left = row.left?.content ?? '';
-              const op = row.operator ?? '';
-              const right = formatValue(row.right ?? {});
-              if (left && op && right) return `${left} ${op} ${right}`;
-            }
-            return '';
-          };
-          const formatGroup = (g: any) => {
-            const rows = Array.isArray(g?.rows) ? g.rows : [];
-            const exprs = rows.map(formatRow).filter((s: string) => s && s.length > 0);
-            const joiner = g?.operator === 'or' ? ' || ' : ' && ';
-            if (exprs.length === 0) return '';
-            const joined = exprs.join(joiner);
-            return exprs.length > 1 ? `(${joined})` : joined;
-          };
-          const cases = (n.data.cases as any[])
-            .map((c: any) => {
-              const groups = Array.isArray(c?.groups) ? c.groups : [];
-              const groupExprs = groups.map(formatGroup).filter((s: string) => s && s.length > 0);
-              const fullExpr = groupExprs.join(' || ');
-              return { case: fullExpr, then: String(c.key ?? '') };
-            })
-            .filter((item) => item.case && item.then);
-          base.configuration = { cases };
+          }
+          if (
+            n.data?.headersValues &&
+            Object.keys(n.data?.headersValues).length > 0 &&
+            n.data?.headers &&
+            Object.keys(n.data?.headers).length > 0
+          ) {
+            const headermap: Record<string, any> = {};
+            Object.keys(n.data.headers.properties).forEach((key: string) => {
+              headermap[key] = (n.data.headersValues as any)[key].content;
+            });
+            newconfig['headers'] = headermap;
+          }
+          if (
+            n.data?.paramsValues &&
+            Object.keys(n.data?.paramsValues).length > 0 &&
+            n.data?.params &&
+            Object.keys(n.data?.params).length > 0
+          ) {
+            const parammap: Record<string, any> = {};
+            Object.keys(n.data.params.properties).forEach((key: string) => {
+              parammap[key] = (n.data.paramsValues as any)[key].content;
+            });
+            newconfig['params'] = parammap;
+          }
+          if (n.data?.body && n.data?.body?.bodyType === 'JSON' && n.data?.body?.json?.content) {
+            newconfig['body'] = n.data?.body.json.content;
+          }
+          if (n.data?.timeout) {
+            newconfig['readTimeoutMs'] = n.data?.timeout.timeout;
+          }
+          base.configuration = newconfig;
+          break;
         }
-        break;
-      }
-      case 'transform': {
-        if (n.data?.script) {
-          const scriptText: string = String(n.data?.script?.content ?? '');
-          const fnIdx = scriptText.indexOf('function Transform');
-          const braceStart = fnIdx >= 0 ? scriptText.indexOf('{', fnIdx) : -1;
-          if (braceStart >= 0) {
-            let i = braceStart + 1;
-            let depth = 1;
-            let end = scriptText.length;
-            let inSingle = false;
-            let inDouble = false;
-            let inTemplate = false;
-            let inLineComment = false;
-            let inBlockComment = false;
-            for (; i < scriptText.length; i++) {
-              const ch = scriptText[i];
-              const prev = scriptText[i - 1];
-              if (inLineComment) {
-                if (ch === '\n') inLineComment = false;
-                continue;
-              }
-              if (inBlockComment) {
-                if (ch === '*' && scriptText[i + 1] === '/') {
-                  inBlockComment = false;
-                  i++;
-                }
-                continue;
-              }
-              if (!inSingle && !inDouble && !inTemplate) {
-                if (ch === '/' && scriptText[i + 1] === '/') {
-                  inLineComment = true;
-                  i++;
-                  continue;
-                }
-                if (ch === '/' && scriptText[i + 1] === '*') {
-                  inBlockComment = true;
-                  i++;
-                  continue;
-                }
-                if (ch === "'" && prev !== '\\') {
-                  inSingle = true;
-                  continue;
-                }
-                if (ch === '"' && prev !== '\\') {
-                  inDouble = true;
-                  continue;
-                }
-                if (ch === '`' && prev !== '\\') {
-                  inTemplate = true;
-                  continue;
-                }
-              } else {
-                if (inSingle && ch === "'" && prev !== '\\') {
-                  inSingle = false;
-                  continue;
-                }
-                if (inDouble && ch === '"' && prev !== '\\') {
-                  inDouble = false;
-                  continue;
-                }
-                if (inTemplate && ch === '`' && prev !== '\\') {
-                  inTemplate = false;
-                  continue;
-                }
-                continue;
-              }
-              if (ch === '{') depth++;
-              else if (ch === '}') {
-                depth--;
-                if (depth === 0) {
-                  end = i;
+        case 'llm': {
+          if (
+            n.data?.inputs &&
+            Object.keys(n.data?.inputs).length > 0 &&
+            n.data?.inputsValues &&
+            Object.keys(n.data?.inputsValues).length > 0
+          ) {
+            const configmap: Record<string, any> = {};
+            const parammap: Record<string, any> = {};
+            Object.keys(n.data.inputs.properties).forEach((key: string) => {
+              switch (key) {
+                case 'userPrompt':
+                  configmap['messages'] = [
+                    {
+                      role: 'user',
+                      content: (n.data.inputsValues as any)[key].content,
+                    },
+                  ];
                   break;
+                case 'temperature':
+                case 'responseFormat':
+                case 'topP':
+                case 'maxTokens':
+                  parammap[key] = (n.data.inputsValues as any)[key].content;
+                  break;
+                default:
+                  configmap[key] = (n.data.inputsValues as any)[key].content;
+              }
+              configmap['params'] = parammap;
+            });
+            base.configuration = configmap;
+          }
+          break;
+        }
+        case 'case-condition': {
+          if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
+            const formatValue = (v: any) => {
+              const val = v?.content;
+              const isNum =
+                typeof val === 'number' ||
+                (typeof val === 'string' && /^-?\d+(?:\.\d+)?$/.test(val));
+              return isNum ? String(val) : JSON.stringify(String(val ?? ''));
+            };
+            const formatRow = (row: any) => {
+              if (!row) return '';
+              if (row.content && String(row.content).trim().length > 0) {
+                return String(row.content).trim();
+              }
+              if (row.type === 'expression') {
+                const left = row.left?.content ?? '';
+                const op = row.operator ?? '';
+                const right = formatValue(row.right ?? {});
+                if (left && op && right) return `${left} ${op} ${right}`;
+              }
+              return '';
+            };
+            const formatGroup = (g: any) => {
+              const rows = Array.isArray(g?.rows) ? g.rows : [];
+              const exprs = rows.map(formatRow).filter((s: string) => s && s.length > 0);
+              const joiner = g?.operator === 'or' ? ' || ' : ' && ';
+              if (exprs.length === 0) return '';
+              const joined = exprs.join(joiner);
+              return exprs.length > 1 ? `(${joined})` : joined;
+            };
+            const cases = (n.data.cases as any[])
+              .map((c: any) => {
+                const groups = Array.isArray(c?.groups) ? c.groups : [];
+                const groupExprs = groups.map(formatGroup).filter((s: string) => s && s.length > 0);
+                const fullExpr = groupExprs.join(' || ');
+                return { case: fullExpr, then: String(c.key ?? '') };
+              })
+              .filter((item) => item.case && item.then);
+            base.configuration = { cases };
+          }
+          break;
+        }
+        case 'jsTransform': {
+          if (n.data?.script) {
+            const scriptText: string = String(n.data?.script?.content ?? '');
+            const fnIdx = scriptText.indexOf('function Transform');
+            const braceStart = fnIdx >= 0 ? scriptText.indexOf('{', fnIdx) : -1;
+            if (braceStart >= 0) {
+              let i = braceStart + 1;
+              let depth = 1;
+              let end = scriptText.length;
+              let inSingle = false;
+              let inDouble = false;
+              let inTemplate = false;
+              let inLineComment = false;
+              let inBlockComment = false;
+              for (; i < scriptText.length; i++) {
+                const ch = scriptText[i];
+                const prev = scriptText[i - 1];
+                if (inLineComment) {
+                  if (ch === '\n') inLineComment = false;
+                  continue;
+                }
+                if (inBlockComment) {
+                  if (ch === '*' && scriptText[i + 1] === '/') {
+                    inBlockComment = false;
+                    i++;
+                  }
+                  continue;
+                }
+                if (!inSingle && !inDouble && !inTemplate) {
+                  if (ch === '/' && scriptText[i + 1] === '/') {
+                    inLineComment = true;
+                    i++;
+                    continue;
+                  }
+                  if (ch === '/' && scriptText[i + 1] === '*') {
+                    inBlockComment = true;
+                    i++;
+                    continue;
+                  }
+                  if (ch === "'" && prev !== '\\') {
+                    inSingle = true;
+                    continue;
+                  }
+                  if (ch === '"' && prev !== '\\') {
+                    inDouble = true;
+                    continue;
+                  }
+                  if (ch === '`' && prev !== '\\') {
+                    inTemplate = true;
+                    continue;
+                  }
+                } else {
+                  if (inSingle && ch === "'" && prev !== '\\') {
+                    inSingle = false;
+                    continue;
+                  }
+                  if (inDouble && ch === '"' && prev !== '\\') {
+                    inDouble = false;
+                    continue;
+                  }
+                  if (inTemplate && ch === '`' && prev !== '\\') {
+                    inTemplate = false;
+                    continue;
+                  }
+                  continue;
+                }
+                if (ch === '{') depth++;
+                else if (ch === '}') {
+                  depth--;
+                  if (depth === 0) {
+                    end = i;
+                    break;
+                  }
                 }
               }
+              const body = scriptText.slice(braceStart + 1, end).trim();
+              base.configuration = { jsScript: body };
             }
-            const body = scriptText.slice(braceStart + 1, end).trim();
-            base.configuration = { jsScript: body };
           }
+          break;
         }
-        break;
       }
-    }
-    return base;
-  });
+      return base;
+    })
+    .filter((x: any) => !!x) as RuleNodeRC[];
 
   // 汇总连接：顶层 edges + loop 内 edges
   const connectionsRC: NodeConnectionRC[] = [];
@@ -312,7 +387,7 @@ export function buildRuleChainJSONFromDocument(
     },
     metadata: {
       firstNodeIndex: startIndex >= 0 ? startIndex : 0,
-      endpoints: [],
+      endpoints: endpoiontsRc,
       nodes: nodesRC,
       connections: connectionsRC,
       ruleChainConnections: [],

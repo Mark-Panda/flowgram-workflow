@@ -42,7 +42,7 @@ export const TransformNodeRegistry: FlowNodeRegistry = {
   onAdd() {
     return {
       id: `${nanoid(16)}`,
-      type: 'transform',
+      type: WorkflowNodeType.Transform,
       data: {
         title: `Transform`,
         positionType: 'middle',

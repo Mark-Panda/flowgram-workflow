@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { nanoid } from 'nanoid';
+
 import { FlowNodeRegistry } from '../../typings';
 import iconStart from '../../assets/icon-start.jpg';
 import { formMeta } from './form-meta';
@@ -35,7 +37,7 @@ export const StartNodeRegistry: FlowNodeRegistry = {
    */
   onAdd() {
     return {
-      id: `${/* id */ Math.random().toString(36).slice(2)}`,
+      id: `${nanoid(16)}`,
       type: WorkflowNodeType.Start,
       data: {
         title: 'Start',

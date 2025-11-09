@@ -36,7 +36,7 @@ export const CaseConditionNodeRegistry: FlowNodeRegistry = {
     const caseId = (i: number) => `case_${i}_${nanoid(4)}`;
     return {
       id: `${nanoid(16)}`,
-      type: 'switch',
+      type: WorkflowNodeType.CaseCondition,
       data: {
         title: '条件列表',
         positionType: 'middle',
