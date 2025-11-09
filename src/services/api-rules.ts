@@ -16,3 +16,6 @@ export const createRuleBase = async (id: string, body: any) =>
   requestJSON(`/rules/${encodeURIComponent(id)}/base`, { method: 'POST', body });
 
 export const getRuleDetail = async (id: string) => requestJSON(`/rules/${encodeURIComponent(id)}`);
+
+export const updateRule = async (id: string, body: any) =>
+  requestJSON(`/rules/${encodeURIComponent(id)}`, { method: 'POST', body });

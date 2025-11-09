@@ -6,7 +6,10 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import { useClientContext, FlowNodeEntity } from '@flowgram.ai/free-layout-editor';
-import { Button, Badge } from '@douyinfe/semi-ui';
+import { Button, Badge, Toast } from '@douyinfe/semi-ui';
+import { getRuleBaseInfo } from '../../services/rule-base-info';
+import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
+import { updateRule } from '../../services/api-rules';
 
 export function Save(props: { disabled: boolean }) {
   const [errorCount, setErrorCount] = useState(0);
@@ -24,7 +27,21 @@ export function Save(props: { disabled: boolean }) {
   const onSave = useCallback(async () => {
     const allForms = clientContext.document.getAllNodes().map((node) => node.form);
     await Promise.all(allForms.map(async (form) => form?.validate()));
-    console.log('>>>>> save data: ', clientContext.document.toJSON());
+    try {
+      const baseInfo = getRuleBaseInfo();
+      const text = buildRuleChainJSONFromDocument(clientContext.document, baseInfo);
+      const payload = JSON.parse(text);
+      const id = String(payload?.ruleChain?.id || baseInfo?.id || '');
+      if (!id) {
+        Toast.error('保存失败：缺少规则链ID');
+        return;
+      }
+      await updateRule(id, payload);
+      Toast.success('保存成功');
+    } catch (e) {
+      console.error(e);
+      Toast.error(`保存失败：${String((e as Error)?.message ?? e)}`);
+    }
   }, [clientContext]);
 
   /**

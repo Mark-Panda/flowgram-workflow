@@ -8,29 +8,29 @@ import React from 'react';
 import { useService, WorkflowDocument, useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Button, Toast, Tooltip } from '@douyinfe/semi-ui';
 import { IconSave } from '@douyinfe/semi-icons';
+import { getRuleBaseInfo } from '../../services/rule-base-info';
+import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
+import { updateRule } from '../../services/api-rules';
 
 export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   const wfDocument = useService(WorkflowDocument);
   const { playground } = useClientContext();
 
-  const onClick = () => {
+  const onClick = async () => {
     try {
-      const json = wfDocument.toJSON();
-      const fileName = `workflow-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-      const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
-      const link = window.document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.href = url;
-      link.download = fileName;
-      link.style.display = 'none';
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      Toast.success({ content: '画布已导出为文件（保存）' });
+      const baseInfo = getRuleBaseInfo();
+      const text = buildRuleChainJSONFromDocument(wfDocument, baseInfo);
+      const payload = JSON.parse(text);
+      const id = String(payload?.ruleChain?.id || baseInfo?.id || '');
+      if (!id) {
+        Toast.error({ content: '保存失败：缺少规则链ID' });
+        return;
+      }
+      await updateRule(id, payload);
+      Toast.success({ content: '保存成功' });
     } catch (e) {
       console.error(e);
-      Toast.error({ content: '保存失败' });
+      Toast.error({ content: `保存失败：${String((e as Error)?.message ?? e)}` });
     }
   };
 

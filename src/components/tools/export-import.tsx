@@ -19,6 +19,7 @@ import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
 import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { GetGlobalVariableSchema } from '../../plugins/variable-panel-plugin';
 import iconVariable from '../../assets/icon-variable.png';
+import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
 
 export function ExportImport(props: { disabled?: boolean }) {
   const { document: workflowDocument, get } = useClientContext();
@@ -436,10 +437,10 @@ export function ExportImport(props: { disabled?: boolean }) {
 
   const openRuleChainExport = useCallback(() => {
     const baseInfo = getRuleBaseInfo();
-    const text = buildRuleChainJSON(baseInfo);
+    const text = buildRuleChainJSONFromDocument(workflowDocument, baseInfo);
     setRuleChainText(text);
     setRuleChainVisible(true);
-  }, [buildRuleChainJSON]);
+  }, [workflowDocument]);
 
   const copyExport = useCallback(async () => {
     try {
