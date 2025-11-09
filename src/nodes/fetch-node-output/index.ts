@@ -7,13 +7,16 @@ import { nanoid } from 'nanoid';
 
 import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
+import iconCollectLaptop from '../../assets/icon_collect-laptop.svg';
+
+
 
 let index = 0;
 
 export const FetchNodeOutputRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.FetchNodeOutput,
   info: {
-    icon: '',
+    icon: iconCollectLaptop,
     description: '获取已经执行完节点的输出信息',
   },
   meta: {
