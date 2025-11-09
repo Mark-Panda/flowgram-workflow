@@ -16,6 +16,7 @@ import { Button, Modal, TextArea, Toast, Space, Tooltip } from '@douyinfe/semi-u
 import { IconDownload, IconUpload, IconCopy } from '@douyinfe/semi-icons';
 
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
+import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { GetGlobalVariableSchema } from '../../plugins/variable-panel-plugin';
 import iconVariable from '../../assets/icon-variable.png';
 
@@ -101,332 +102,341 @@ export function ExportImport(props: { disabled?: boolean }) {
     metadata: RuleMetadataRC;
   }
 
-  const buildRuleChainJSON = useCallback(() => {
-    try {
-      const raw = workflowDocument.toJSON() as any;
-      // 展平节点（包含 loop/group 等子块）
-      const flattened: any[] = [];
-      raw.nodes.forEach((n: any) => {
-        flattened.push(n);
-        if (Array.isArray(n.blocks)) {
-          n.blocks.forEach((b: any) => flattened.push(b));
-        }
-      });
+  // 接受从“工作流设置”接口带过来的 RuleChain 基本信息作为覆盖参数
+  const buildRuleChainJSON = useCallback(
+    (baseOverride?: Partial<RuleChainBaseInfo>) => {
+      try {
+        const raw = workflowDocument.toJSON() as any;
+        // 展平节点（包含 loop/group 等子块）
+        const flattened: any[] = [];
+        raw.nodes.forEach((n: any) => {
+          flattened.push(n);
+          if (Array.isArray(n.blocks)) {
+            n.blocks.forEach((b: any) => flattened.push(b));
+          }
+        });
 
-      const nodesRC: RuleNodeRC[] = flattened.map((n: any) => {
-        const nodeType = String(n.type);
-        const base: RuleNodeRC = {
-          id: n.id,
-          additionalInfo: n.meta ? { meta: n.meta } : undefined,
-          type: nodeType,
-          name: n.data?.title ?? nodeType,
-          debugMode: false,
-          configuration: {
-            ...(n.data ?? {}),
+        const nodesRC: RuleNodeRC[] = flattened.map((n: any) => {
+          const nodeType = String(n.type);
+          const base: RuleNodeRC = {
+            id: n.id,
+            additionalInfo: n.meta ? { meta: n.meta } : undefined,
+            type: nodeType,
+            name: n.data?.title ?? nodeType,
+            debugMode: false,
+            configuration: {
+              ...(n.data ?? {}),
+            },
+          };
+
+          // 按不同节点类型进行定制处理，默认保持原有逻辑
+          switch (nodeType) {
+            case 'group':
+              if (n.data) {
+                base.configuration = {
+                  nodeIds: n.data?.blockIDs,
+                };
+                base.type = 'groupAction';
+              }
+              break;
+            case 'for':
+              if (n.data) {
+                base.configuration = {
+                  range: n.data?.note.content,
+                  do: n.data?.nodeId.content,
+                  mode: n.data?.operationMode.content,
+                };
+              }
+              break;
+            case 'http': {
+              base.type = 'restApiCall';
+              var newconfig = {};
+              if (n.data?.api) {
+                (newconfig as any)['requestMethod'] = n.data?.api.method;
+                if (n.data?.api.url?.content) {
+                  (newconfig as any)['restEndpointUrlPattern'] = n.data?.api.url?.content;
+                }
+              }
+              if (
+                n.data?.headersValues &&
+                Object.keys(n.data?.headersValues).length > 0 &&
+                n.data?.headers &&
+                Object.keys(n.data?.headers).length > 0
+              ) {
+                const headermap: Record<string, any> = {};
+                Object.keys(n.data.headers.properties).forEach((key) => {
+                  headermap[key] = (n.data.headersValues as any)[key].content;
+                });
+                (newconfig as any)['headers'] = headermap;
+              }
+              if (
+                n.data?.paramsValues &&
+                Object.keys(n.data?.paramsValues).length > 0 &&
+                n.data?.params &&
+                Object.keys(n.data?.params).length > 0
+              ) {
+                const parammap: Record<string, any> = {};
+                Object.keys(n.data.params.properties).forEach((key) => {
+                  parammap[key] = (n.data.paramsValues as any)[key].content;
+                });
+                (newconfig as any)['params'] = parammap;
+              }
+              if (
+                n.data?.body &&
+                n.data?.body?.bodyType === 'JSON' &&
+                n.data?.body?.json?.content
+              ) {
+                (newconfig as any)['body'] = n.data?.body.json.content;
+              }
+              if (n.data?.timeout) {
+                (newconfig as any)['readTimeoutMs'] = n.data?.timeout.timeout;
+              }
+              base.configuration = newconfig;
+              break;
+            }
+            case 'llm': {
+              if (
+                n.data?.inputs &&
+                Object.keys(n.data?.inputs).length > 0 &&
+                n.data?.inputsValues &&
+                Object.keys(n.data?.inputsValues).length > 0
+              ) {
+                const configmap: Record<string, any> = {};
+                const parammap: Record<string, any> = {};
+                Object.keys(n.data.inputs.properties).forEach((key) => {
+                  switch (key) {
+                    case 'userPrompt':
+                      configmap['messages'] = [
+                        {
+                          role: 'user',
+                          content: (n.data.inputsValues as any)[key].content,
+                        },
+                      ];
+                      break;
+                    case 'temperature':
+                    case 'responseFormat':
+                    case 'topP':
+                    case 'maxTokens':
+                      parammap[key] = (n.data.inputsValues as any)[key].content;
+                      break;
+                    default:
+                      configmap[key] = (n.data.inputsValues as any)[key].content;
+                  }
+                  configmap['params'] = parammap;
+                });
+                base.configuration = configmap;
+              }
+              break;
+            }
+            case 'switch':
+              if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
+                const formatValue = (v: any) => {
+                  const val = v?.content;
+                  const isNum =
+                    typeof val === 'number' ||
+                    (typeof val === 'string' && /^-?\d+(?:\.\d+)?$/.test(val));
+                  return isNum ? String(val) : JSON.stringify(String(val ?? ''));
+                };
+
+                const formatRow = (row: any) => {
+                  if (!row) return '';
+                  if (row.content && String(row.content).trim().length > 0) {
+                    return String(row.content).trim();
+                  }
+                  if (row.type === 'expression') {
+                    const left = row.left?.content ?? '';
+                    const op = row.operator ?? '';
+                    const right = formatValue(row.right ?? {});
+                    if (left && op && right) {
+                      return `${left} ${op} ${right}`;
+                    }
+                  }
+                  return '';
+                };
+
+                const formatGroup = (g: any) => {
+                  const rows = Array.isArray(g?.rows) ? g.rows : [];
+                  const exprs = rows.map(formatRow).filter((s: string) => s && s.length > 0);
+                  const joiner = g?.operator === 'or' ? ' || ' : ' && ';
+                  if (exprs.length === 0) return '';
+                  const joined = exprs.join(joiner);
+                  return exprs.length > 1 ? `(${joined})` : joined;
+                };
+
+                const cases = (n.data.cases as any[])
+                  .map((c: any) => {
+                    const groups = Array.isArray(c?.groups) ? c.groups : [];
+                    const groupExprs = groups
+                      .map(formatGroup)
+                      .filter((s: string) => s && s.length > 0);
+                    const fullExpr = groupExprs.join(' || ');
+                    return { case: fullExpr, then: String(c.key ?? '') };
+                  })
+                  .filter((item) => item.case && item.then);
+
+                base.configuration = { cases };
+              }
+              break;
+            case 'transform':
+            case 'log':
+            case 'jsFilter':
+              if (n.data?.script) {
+                const matchName =
+                  n.type === 'transform'
+                    ? 'Transform'
+                    : n.type === 'log'
+                    ? 'String'
+                    : n.type === 'jsFilter'
+                    ? 'Filter'
+                    : '';
+                const scriptText: string = String(n.data?.script?.content ?? '');
+                const fnIdx = scriptText.indexOf(`function ${matchName}`);
+                const braceStart = fnIdx >= 0 ? scriptText.indexOf('{', fnIdx) : -1;
+                if (braceStart >= 0) {
+                  let i = braceStart + 1;
+                  let depth = 1;
+                  let end = scriptText.length;
+                  let inSingle = false;
+                  let inDouble = false;
+                  let inTemplate = false;
+                  let inLineComment = false;
+                  let inBlockComment = false;
+                  for (; i < scriptText.length; i++) {
+                    const ch = scriptText[i];
+                    const prev = scriptText[i - 1];
+                    if (inLineComment) {
+                      if (ch === '\n') inLineComment = false;
+                      continue;
+                    }
+                    if (inBlockComment) {
+                      if (ch === '*' && scriptText[i + 1] === '/') {
+                        inBlockComment = false;
+                        i++;
+                      }
+                      continue;
+                    }
+                    if (!inSingle && !inDouble && !inTemplate) {
+                      if (ch === '/' && scriptText[i + 1] === '/') {
+                        inLineComment = true;
+                        i++;
+                        continue;
+                      }
+                      if (ch === '/' && scriptText[i + 1] === '*') {
+                        inBlockComment = true;
+                        i++;
+                        continue;
+                      }
+                      if (ch === "'" && prev !== '\\') {
+                        inSingle = true;
+                        continue;
+                      }
+                      if (ch === '"' && prev !== '\\') {
+                        inDouble = true;
+                        continue;
+                      }
+                      if (ch === '`' && prev !== '\\') {
+                        inTemplate = true;
+                        continue;
+                      }
+                    } else {
+                      if (inSingle && ch === "'" && prev !== '\\') {
+                        inSingle = false;
+                        continue;
+                      }
+                      if (inDouble && ch === '"' && prev !== '\\') {
+                        inDouble = false;
+                        continue;
+                      }
+                      if (inTemplate && ch === '`' && prev !== '\\') {
+                        inTemplate = false;
+                        continue;
+                      }
+                      // 在字符串/模板内不计入括号匹配
+                      continue;
+                    }
+                    if (ch === '{') depth++;
+                    else if (ch === '}') {
+                      depth--;
+                      if (depth === 0) {
+                        end = i;
+                        break;
+                      }
+                    }
+                  }
+                  const body = scriptText.slice(braceStart + 1, end).trim();
+                  base.configuration = { jsScript: body };
+                }
+              }
+              break;
+            default: {
+              // 保持默认逻辑
+              if (
+                n.data?.inputs &&
+                Object.keys(n.data?.inputs).length > 0 &&
+                n.data?.inputsValues &&
+                Object.keys(n.data?.inputsValues).length > 0
+              ) {
+                const parammap: Record<string, any> = {};
+                Object.keys(n.data.inputs.properties).forEach((key) => {
+                  parammap[key] = (n.data.inputsValues as any)[key].content;
+                });
+                base.configuration = parammap;
+              }
+              break;
+            }
+          }
+          return base;
+        });
+
+        // 汇总连接：顶层 edges + loop 内 edges
+        const connectionsRC: NodeConnectionRC[] = [];
+        const pushEdge = (e: any) => {
+          if (!e) return;
+          connectionsRC.push({
+            fromId: e.sourceNodeID ?? e.fromId ?? e.from?.id ?? '',
+            toId: e.targetNodeID ?? e.toId ?? e.to?.id ?? '',
+            type: e.sourcePortID ?? 'SUCCESS',
+            label: e.sourcePortID ?? e.label,
+          });
+        };
+        (raw.edges ?? []).forEach(pushEdge);
+        raw.nodes.forEach((n: any) => {
+          (n.edges ?? []).forEach(pushEdge);
+        });
+
+        const startIndex = nodesRC.findIndex((n) => n.type === 'start');
+        const ruleChain: RuleChainRC = {
+          ruleChain: {
+            id: String(baseOverride?.id ?? raw.id ?? 'workflow'),
+            name: String(baseOverride?.name ?? raw.name ?? 'Workflow'),
+            debugMode: !!(baseOverride?.debugMode ?? false),
+            root: !!(baseOverride?.root ?? true),
+            disabled: !!(baseOverride?.disabled ?? false),
+            configuration: { ...(baseOverride?.configuration ?? {}) },
+            additionalInfo: { ...(baseOverride?.additionalInfo ?? {}) },
+          },
+          metadata: {
+            firstNodeIndex: startIndex >= 0 ? startIndex : 0,
+            endpoints: [],
+            nodes: nodesRC,
+            connections: connectionsRC,
+            ruleChainConnections: [],
           },
         };
 
-        // 按不同节点类型进行定制处理，默认保持原有逻辑
-        switch (nodeType) {
-          case 'group':
-            if (n.data) {
-              base.configuration = {
-                nodeIds: n.data?.blockIDs,
-              };
-              base.type = 'groupAction';
-            }
-            break;
-          case 'for':
-            if (n.data) {
-              base.configuration = {
-                range: n.data?.note.content,
-                do: n.data?.nodeId.content,
-                mode: n.data?.operationMode.content,
-              };
-            }
-            break;
-          case 'http': {
-            base.type = 'restApiCall';
-            var newconfig = {};
-            if (n.data?.api) {
-              (newconfig as any)['requestMethod'] = n.data?.api.method;
-              if (n.data?.api.url?.content) {
-                (newconfig as any)['restEndpointUrlPattern'] = n.data?.api.url?.content;
-              }
-            }
-            if (
-              n.data?.headersValues &&
-              Object.keys(n.data?.headersValues).length > 0 &&
-              n.data?.headers &&
-              Object.keys(n.data?.headers).length > 0
-            ) {
-              const headermap: Record<string, any> = {};
-              Object.keys(n.data.headers.properties).forEach((key) => {
-                headermap[key] = (n.data.headersValues as any)[key].content;
-              });
-              (newconfig as any)['headers'] = headermap;
-            }
-            if (
-              n.data?.paramsValues &&
-              Object.keys(n.data?.paramsValues).length > 0 &&
-              n.data?.params &&
-              Object.keys(n.data?.params).length > 0
-            ) {
-              const parammap: Record<string, any> = {};
-              Object.keys(n.data.params.properties).forEach((key) => {
-                parammap[key] = (n.data.paramsValues as any)[key].content;
-              });
-              (newconfig as any)['params'] = parammap;
-            }
-            if (n.data?.body && n.data?.body?.bodyType === 'JSON' && n.data?.body?.json?.content) {
-              (newconfig as any)['body'] = n.data?.body.json.content;
-            }
-            if (n.data?.timeout) {
-              (newconfig as any)['readTimeoutMs'] = n.data?.timeout.timeout;
-            }
-            base.configuration = newconfig;
-            break;
-          }
-          case 'llm': {
-            if (
-              n.data?.inputs &&
-              Object.keys(n.data?.inputs).length > 0 &&
-              n.data?.inputsValues &&
-              Object.keys(n.data?.inputsValues).length > 0
-            ) {
-              const configmap: Record<string, any> = {};
-              const parammap: Record<string, any> = {};
-              Object.keys(n.data.inputs.properties).forEach((key) => {
-                switch (key) {
-                  case 'userPrompt':
-                    configmap['messages'] = [
-                      {
-                        role: 'user',
-                        content: (n.data.inputsValues as any)[key].content,
-                      },
-                    ];
-                    break;
-                  case 'temperature':
-                  case 'responseFormat':
-                  case 'topP':
-                  case 'maxTokens':
-                    parammap[key] = (n.data.inputsValues as any)[key].content;
-                    break;
-                  default:
-                    configmap[key] = (n.data.inputsValues as any)[key].content;
-                }
-                configmap['params'] = parammap;
-              });
-              base.configuration = configmap;
-            }
-            break;
-          }
-          case 'switch':
-            if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
-              const formatValue = (v: any) => {
-                const val = v?.content;
-                const isNum =
-                  typeof val === 'number' ||
-                  (typeof val === 'string' && /^-?\d+(?:\.\d+)?$/.test(val));
-                return isNum ? String(val) : JSON.stringify(String(val ?? ''));
-              };
-
-              const formatRow = (row: any) => {
-                if (!row) return '';
-                if (row.content && String(row.content).trim().length > 0) {
-                  return String(row.content).trim();
-                }
-                if (row.type === 'expression') {
-                  const left = row.left?.content ?? '';
-                  const op = row.operator ?? '';
-                  const right = formatValue(row.right ?? {});
-                  if (left && op && right) {
-                    return `${left} ${op} ${right}`;
-                  }
-                }
-                return '';
-              };
-
-              const formatGroup = (g: any) => {
-                const rows = Array.isArray(g?.rows) ? g.rows : [];
-                const exprs = rows.map(formatRow).filter((s: string) => s && s.length > 0);
-                const joiner = g?.operator === 'or' ? ' || ' : ' && ';
-                if (exprs.length === 0) return '';
-                const joined = exprs.join(joiner);
-                return exprs.length > 1 ? `(${joined})` : joined;
-              };
-
-              const cases = (n.data.cases as any[])
-                .map((c: any) => {
-                  const groups = Array.isArray(c?.groups) ? c.groups : [];
-                  const groupExprs = groups
-                    .map(formatGroup)
-                    .filter((s: string) => s && s.length > 0);
-                  const fullExpr = groupExprs.join(' || ');
-                  return { case: fullExpr, then: String(c.key ?? '') };
-                })
-                .filter((item) => item.case && item.then);
-
-              base.configuration = { cases };
-            }
-            break;
-          case 'transform':
-          case 'log':
-          case 'jsFilter':
-            if (n.data?.script) {
-              const matchName =
-                n.type === 'transform'
-                  ? 'Transform'
-                  : n.type === 'log'
-                  ? 'String'
-                  : n.type === 'jsFilter'
-                  ? 'Filter'
-                  : '';
-              const scriptText: string = String(n.data?.script?.content ?? '');
-              const fnIdx = scriptText.indexOf(`function ${matchName}`);
-              const braceStart = fnIdx >= 0 ? scriptText.indexOf('{', fnIdx) : -1;
-              if (braceStart >= 0) {
-                let i = braceStart + 1;
-                let depth = 1;
-                let end = scriptText.length;
-                let inSingle = false;
-                let inDouble = false;
-                let inTemplate = false;
-                let inLineComment = false;
-                let inBlockComment = false;
-                for (; i < scriptText.length; i++) {
-                  const ch = scriptText[i];
-                  const prev = scriptText[i - 1];
-                  if (inLineComment) {
-                    if (ch === '\n') inLineComment = false;
-                    continue;
-                  }
-                  if (inBlockComment) {
-                    if (ch === '*' && scriptText[i + 1] === '/') {
-                      inBlockComment = false;
-                      i++;
-                    }
-                    continue;
-                  }
-                  if (!inSingle && !inDouble && !inTemplate) {
-                    if (ch === '/' && scriptText[i + 1] === '/') {
-                      inLineComment = true;
-                      i++;
-                      continue;
-                    }
-                    if (ch === '/' && scriptText[i + 1] === '*') {
-                      inBlockComment = true;
-                      i++;
-                      continue;
-                    }
-                    if (ch === "'" && prev !== '\\') {
-                      inSingle = true;
-                      continue;
-                    }
-                    if (ch === '"' && prev !== '\\') {
-                      inDouble = true;
-                      continue;
-                    }
-                    if (ch === '`' && prev !== '\\') {
-                      inTemplate = true;
-                      continue;
-                    }
-                  } else {
-                    if (inSingle && ch === "'" && prev !== '\\') {
-                      inSingle = false;
-                      continue;
-                    }
-                    if (inDouble && ch === '"' && prev !== '\\') {
-                      inDouble = false;
-                      continue;
-                    }
-                    if (inTemplate && ch === '`' && prev !== '\\') {
-                      inTemplate = false;
-                      continue;
-                    }
-                    // 在字符串/模板内不计入括号匹配
-                    continue;
-                  }
-                  if (ch === '{') depth++;
-                  else if (ch === '}') {
-                    depth--;
-                    if (depth === 0) {
-                      end = i;
-                      break;
-                    }
-                  }
-                }
-                const body = scriptText.slice(braceStart + 1, end).trim();
-                base.configuration = { jsScript: body };
-              }
-            }
-            break;
-          default: {
-            // 保持默认逻辑
-            if (
-              n.data?.inputs &&
-              Object.keys(n.data?.inputs).length > 0 &&
-              n.data?.inputsValues &&
-              Object.keys(n.data?.inputsValues).length > 0
-            ) {
-              const parammap: Record<string, any> = {};
-              Object.keys(n.data.inputs.properties).forEach((key) => {
-                parammap[key] = (n.data.inputsValues as any)[key].content;
-              });
-              base.configuration = parammap;
-            }
-            break;
-          }
-        }
-        return base;
-      });
-
-      // 汇总连接：顶层 edges + loop 内 edges
-      const connectionsRC: NodeConnectionRC[] = [];
-      const pushEdge = (e: any) => {
-        if (!e) return;
-        connectionsRC.push({
-          fromId: e.sourceNodeID ?? e.fromId ?? e.from?.id ?? '',
-          toId: e.targetNodeID ?? e.toId ?? e.to?.id ?? '',
-          type: e.sourcePortID ?? 'SUCCESS',
-          label: e.sourcePortID ?? e.label,
-        });
-      };
-      (raw.edges ?? []).forEach(pushEdge);
-      raw.nodes.forEach((n: any) => {
-        (n.edges ?? []).forEach(pushEdge);
-      });
-
-      const startIndex = nodesRC.findIndex((n) => n.type === 'start');
-      const ruleChain: RuleChainRC = {
-        ruleChain: {
-          id: raw.id ?? 'workflow',
-          name: raw.name ?? 'Workflow',
-          debugMode: false,
-          root: true,
-          disabled: false,
-          configuration: {},
-          additionalInfo: {},
-        },
-        metadata: {
-          firstNodeIndex: startIndex >= 0 ? startIndex : 0,
-          endpoints: [],
-          nodes: nodesRC,
-          connections: connectionsRC,
-          ruleChainConnections: [],
-        },
-      };
-
-      return JSON.stringify(ruleChain, null, 2);
-    } catch (e) {
-      console.error(e);
-      Toast.error('导出失败：RuleChain 序列化异常');
-      return '';
-    }
-  }, [workflowDocument]);
+        return JSON.stringify(ruleChain, null, 2);
+      } catch (e) {
+        console.error(e);
+        Toast.error('导出失败：RuleChain 序列化异常');
+        return '';
+      }
+    },
+    [workflowDocument]
+  );
 
   const openRuleChainExport = useCallback(() => {
-    const text = buildRuleChainJSON();
+    const baseInfo = getRuleBaseInfo();
+    const text = buildRuleChainJSON(baseInfo);
     setRuleChainText(text);
     setRuleChainVisible(true);
   }, [buildRuleChainJSON]);

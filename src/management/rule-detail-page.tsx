@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Spin, Typography } from '@douyinfe/semi-ui';
 
+import { setRuleBaseInfo } from '../services/rule-base-info';
 import { getRuleDetail } from '../services/api-rules';
 import { RuleDetail, RuleDetailData } from './rule-detail';
 
@@ -25,7 +26,12 @@ export const RuleDetailPage: React.FC<{ id: string; tab?: 'workflow' | 'design' 
       setError(undefined);
       try {
         const json = await getRuleDetail(id);
-        if (mounted) setData(json as RuleDetailData);
+        if (mounted) {
+          setData(json as RuleDetailData);
+          try {
+            setRuleBaseInfo((json as any)?.ruleChain);
+          } catch {}
+        }
       } catch (e) {
         if (mounted) setError(String((e as Error)?.message ?? e));
       } finally {

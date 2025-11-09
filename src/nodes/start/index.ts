@@ -35,7 +35,7 @@ export const StartNodeRegistry: FlowNodeRegistry = {
    */
   onAdd() {
     return {
-      id: `${/* id */ (Math.random().toString(36).slice(2))}`,
+      id: `${/* id */ Math.random().toString(36).slice(2)}`,
       type: WorkflowNodeType.Start,
       data: {
         title: 'Start',

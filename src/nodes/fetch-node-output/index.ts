@@ -9,8 +9,6 @@ import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
 import iconCollectLaptop from '../../assets/icon_collect-laptop.svg';
 
-
-
 let index = 0;
 
 export const FetchNodeOutputRegistry: FlowNodeRegistry = {

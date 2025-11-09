@@ -8,6 +8,7 @@ import React, { useMemo, useState } from 'react';
 import { Button, Input, Nav, Switch, Typography, Toast } from '@douyinfe/semi-ui';
 
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
+import { setRuleBaseInfo } from '../services/rule-base-info';
 import { createRuleBase, getRuleDetail } from '../services/api-rules';
 import { WorkflowNodeType } from '../nodes';
 import { Editor } from '../editor';
@@ -259,6 +260,9 @@ export const RuleDetail: React.FC<{
                             const rc = json?.ruleChain || {};
                             setName(String(rc?.name ?? name));
                             setDesc(String(rc?.additionalInfo?.description ?? desc ?? ''));
+                            try {
+                              setRuleBaseInfo(rc);
+                            } catch {}
                             setSaving(false);
                             Toast.success({ content: '保存成功并已刷新' });
                           } catch (e) {
