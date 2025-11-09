@@ -22,7 +22,7 @@ export const ForkNodeRegistry: FlowNodeRegistry = {
     defaultPorts: [
       { type: 'input', location: 'left' },
       { type: 'output', location: 'right', portID: OutPutPortType.SuccessPort },
-            { type: 'output', location: 'bottom', portID: OutPutPortType.FailurePort },
+      { type: 'output', location: 'bottom', portID: OutPutPortType.FailurePort },
     ],
     size: {
       width: 360,

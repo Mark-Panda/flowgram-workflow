@@ -233,11 +233,11 @@ export function CaseInputs() {
               }}
             </Field>
           ))}
-          <FormItem name="else" type="boolean" required={true} labelWidth={100}>
+          <FormItem name="ELSE" type="boolean" required={true} labelWidth={100}>
             <div style={{ color: 'rgba(6, 7, 9, 0.65)', fontSize: 12, marginBottom: 4 }}>
               ELSE 用于定义当 if 条件不满足时执行的逻辑。
             </div>
-            <ConditionPort data-port-id="else" data-port-type="output" />
+            <ConditionPort data-port-id="Default" data-port-type="output" />
           </FormItem>
           {!readonly && (
             <div>

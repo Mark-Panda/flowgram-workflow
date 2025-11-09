@@ -8,7 +8,7 @@ import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import iconSwitch from '../../assets/icon_switch.svg';
 import { formMeta } from './form-meta';
-import { WorkflowNodeType } from '../constants';
+import { WorkflowNodeType, OutPutPortType } from '../constants';
 
 export const CaseConditionNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.CaseCondition,
@@ -17,7 +17,10 @@ export const CaseConditionNodeRegistry: FlowNodeRegistry = {
     description: '按 CASE 分组（IF / ELSE IF / ELSE）的条件节点，支持 AND/OR 组合。',
   },
   meta: {
-    defaultPorts: [{ type: 'input' }],
+    defaultPorts: [
+      { type: 'input', location: 'left' },
+      { type: 'output', location: 'bottom', portID: OutPutPortType.FailurePort },
+    ],
     useDynamicPort: true,
     expandable: false,
     size: {

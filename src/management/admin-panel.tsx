@@ -439,26 +439,30 @@ export const AdminPanel: React.FC = () => {
                               border: '1px solid rgba(6,7,9,0.06)',
                             }}
                           />
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Typography.Text strong>{String(chain?.name ?? '-')}</Typography.Text>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        {chain?.root ? (
-                          <Tag size="small" color="green">根规则链</Tag>
-                        ) : (
-                          <Tag size="small" color="grey">子规则链</Tag>
-                        )}
-                        {debug ? (
-                          <Tag size="small" color="blue">
-                            调试开启
-                          </Tag>
-                        ) : (
+                          <div style={{ flex: 1 }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                              }}
+                            >
+                              <Typography.Text strong>{String(chain?.name ?? '-')}</Typography.Text>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                {chain?.root ? (
+                                  <Tag size="small" color="green">
+                                    根规则链
+                                  </Tag>
+                                ) : (
+                                  <Tag size="small" color="grey">
+                                    子规则链
+                                  </Tag>
+                                )}
+                                {debug ? (
+                                  <Tag size="small" color="blue">
+                                    调试开启
+                                  </Tag>
+                                ) : (
                                   <Tag size="small" color="grey">
                                     调试关闭
                                   </Tag>
@@ -469,11 +473,11 @@ export const AdminPanel: React.FC = () => {
                                   </Tag>
                                 ) : (
                                   <Tag size="small" color="green">
-                            启用中
-                          </Tag>
-                        )}
-                      </div>
-                    </div>
+                                    启用中
+                                  </Tag>
+                                )}
+                              </div>
+                            </div>
                             <div style={{ marginTop: 6 }}>
                               <Typography.Text type="tertiary">
                                 ID: {String(chain?.id ?? '-')}

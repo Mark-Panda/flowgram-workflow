@@ -8,7 +8,7 @@ import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import iconStart from '../../assets/icon-start.jpg';
 import { formMeta } from './form-meta';
-import { WorkflowNodeType,OutPutPortType } from '../constants';
+import { WorkflowNodeType, OutPutPortType } from '../constants';
 
 export const StartNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.Start,

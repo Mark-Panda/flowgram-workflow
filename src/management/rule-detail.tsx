@@ -9,7 +9,12 @@ import { Button, Input, Nav, Switch, Typography, Toast, Tag } from '@douyinfe/se
 
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
 import { setRuleBaseInfo } from '../services/rule-base-info';
-import { createRuleBase, getRuleDetail, startRuleChain, stopRuleChain } from '../services/api-rules';
+import {
+  createRuleBase,
+  getRuleDetail,
+  startRuleChain,
+  stopRuleChain,
+} from '../services/api-rules';
 import { WorkflowNodeType } from '../nodes';
 import { Editor } from '../editor';
 
