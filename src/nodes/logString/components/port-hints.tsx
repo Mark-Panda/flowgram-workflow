@@ -39,8 +39,8 @@ export function LogStringPortHints() {
   if (isSidebar) return null;
   return (
     <>
-      <RightHint>success</RightHint>
-      <BottomHint>failed</BottomHint>
+      <RightHint>Success</RightHint>
+      <BottomHint>Failure</BottomHint>
     </>
   );
 }

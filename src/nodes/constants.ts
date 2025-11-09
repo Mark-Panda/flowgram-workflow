@@ -7,7 +7,7 @@ export enum WorkflowNodeType {
   Start = 'start',
   End = 'end',
   LLM = 'llm',
-  HTTP = 'http',
+  HTTP = 'restApiCall',
   Code = 'code',
   Variable = 'variable',
   Condition = 'condition',
@@ -27,4 +27,9 @@ export enum WorkflowNodeType {
   JsFilter = 'jsFilter',
   DBClient = 'dbClient',
   Cron = 'endpoint/schedule',
+}
+
+export enum OutPutPortType {
+  SuccessPort = 'Success',
+  FailurePort = 'Failure',
 }

@@ -5,7 +5,7 @@
 
 import { nanoid } from 'nanoid';
 
-import { WorkflowNodeType } from '../constants';
+import { WorkflowNodeType, OutPutPortType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
 import iconDB from '../../assets/icon_database-search.svg';
 
@@ -21,8 +21,8 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
     // 设置端口：一个输入，两个输出（success / failed）
     defaultPorts: [
       { type: 'input', location: 'left' },
-      { type: 'output', location: 'right', portID: 'success' },
-      { type: 'output', location: 'bottom', portID: 'failed' },
+      { type: 'output', location: 'right', portID: OutPutPortType.SuccessPort },
+      { type: 'output', location: 'bottom', portID: OutPutPortType.FailurePort },
     ],
     size: {
       width: 360,

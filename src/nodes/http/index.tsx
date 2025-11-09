@@ -5,7 +5,7 @@
 
 import { nanoid } from 'nanoid';
 
-import { WorkflowNodeType } from '../constants';
+import { WorkflowNodeType, OutPutPortType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
 import iconHTTP from '../../assets/icon-http.svg';
 import { formMeta } from './form-meta';
@@ -22,8 +22,8 @@ export const HTTPNodeRegistry: FlowNodeRegistry = {
     // 设置端口：一个输入，两个输出（success / failed）
     defaultPorts: [
       { type: 'input', location: 'left' },
-      { type: 'output', location: 'right', portID: 'success' },
-      { type: 'output', location: 'bottom', portID: 'failed' },
+      { type: 'output', location: 'right', portID: OutPutPortType.SuccessPort },
+      { type: 'output', location: 'bottom', portID: OutPutPortType.FailurePort },
     ],
     size: {
       width: 360,
@@ -33,7 +33,7 @@ export const HTTPNodeRegistry: FlowNodeRegistry = {
   onAdd() {
     return {
       id: `${nanoid(16)}`,
-      type: 'restApiCall',
+      type: WorkflowNodeType.HTTP,
       data: {
         title: `HTTP_${++index}`,
         positionType: 'middle',

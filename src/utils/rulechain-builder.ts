@@ -363,7 +363,7 @@ export function buildRuleChainJSONFromDocument(
     connectionsRC.push({
       fromId: e.sourceNodeID ?? e.fromId ?? e.from?.id ?? '',
       toId: e.targetNodeID ?? e.toId ?? e.to?.id ?? '',
-      type: e.sourcePortID ?? 'SUCCESS',
+      type: e.sourcePortID ?? 'Success',
       label: e.sourcePortID ?? e.label,
     });
   };
