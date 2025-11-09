@@ -31,6 +31,8 @@ export interface RuleDetailData {
     firstNodeIndex?: number;
     nodes?: any[] | null;
     connections?: any[] | null;
+    // 若后端已保存 FreeLayout 编辑器的原始文档，则优先使用该字段进行渲染
+    flowgramUI?: FlowDocumentJSON | any;
   };
 }
 
@@ -56,49 +58,21 @@ export const RuleDetail: React.FC<{
     []
   );
 
-  // 将接口返回的metadata转换为FlowDocumentJSON；如无数据则使用全新画布
+  // 将接口返回的 metadata 转换为 FlowDocumentJSON：
+  // 优先使用 metadata.flowgramUI；若无则按“新界面”处理
   const convertMetadataToDoc = (md?: RuleDetailData['metadata']): FlowDocumentJSON | undefined => {
-    if (!md || !Array.isArray(md.nodes) || md.nodes.length === 0) {
-      // 新画布：使用规则链ID作为起始节点ID
-      const startNode: FlowNodeJSON = {
-        id: String(data?.ruleChain?.id ?? 'start_' + Math.random().toString(36).slice(2, 8)),
-        type: WorkflowNodeType.Start,
-        meta: { position: { x: 180, y: 180 } },
-        data: { title: data?.ruleChain?.name ?? 'Start' },
-      } as any;
-      return { nodes: [startNode], edges: [] };
+    // 1) 若后端提供了原始的编辑器文档（flowgramUI），直接使用
+    if (md && md.flowgramUI && Array.isArray((md.flowgramUI as any)?.nodes)) {
+      return md.flowgramUI as FlowDocumentJSON;
     }
-    // 简单转换：按层级摆放，若无连接信息则仅平铺
-    const ids = md.nodes.map((n: any) => String(n.id));
-    const spacingX = 440,
-      spacingY = 180;
-    const startX = 180,
-      startY = 180;
-    const nodes: FlowNodeJSON[] = ids.map(
-      (id, idx) =>
-        ({
-          id,
-          type: String((md.nodes as any[])[idx]?.type ?? WorkflowNodeType.Transform),
-          meta: {
-            position: {
-              x: startX + (idx % 4) * spacingX,
-              y: startY + Math.floor(idx / 4) * spacingY,
-            },
-          },
-          data: {
-            title: String((md.nodes as any[])[idx]?.name ?? id),
-            ...((md.nodes as any[])[idx]?.configuration ?? {}),
-          },
-        } as any)
-    );
-    const edges = Array.isArray(md.connections)
-      ? md.connections.map((e: any) => ({
-          sourceNodeID: String(e.fromId ?? e.from?.id ?? ''),
-          targetNodeID: String(e.toId ?? e.to?.id ?? ''),
-          sourcePortID: e.type ?? e.label ?? undefined,
-        }))
-      : [];
-    return { nodes, edges };
+    // 2) 否则视为新界面：只创建一个起始节点
+    const startNode: FlowNodeJSON = {
+      id: String(data?.ruleChain?.id ?? 'start_' + Math.random().toString(36).slice(2, 8)),
+      type: WorkflowNodeType.Start,
+      meta: { position: { x: 180, y: 180 } },
+      data: { title: data?.ruleChain?.name ?? 'Start' },
+    } as any;
+    return { nodes: [startNode], edges: [] };
   };
 
   const designDoc: FlowDocumentJSON | undefined = convertMetadataToDoc(data?.metadata);
