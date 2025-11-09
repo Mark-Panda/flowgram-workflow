@@ -23,7 +23,6 @@ interface RuleNodeRC {
   name: string;
   debugMode: boolean;
   configuration: Record<string, any>;
-  flowgramConfig: Record<string, any>;
 }
 
 interface NodeConnectionRC {
@@ -65,6 +64,7 @@ interface RuleMetadataRC {
   nodes: RuleNodeRC[];
   connections: NodeConnectionRC[];
   ruleChainConnections?: Array<{ fromId: string; toId: string; type: string }>;
+  flowgramUI?: any;
 }
 
 interface RuleChainRC {
@@ -99,7 +99,6 @@ export function buildRuleChainJSONFromDocument(
         name: n.data?.title ?? nodeType,
         debugMode: false,
         configuration: {},
-        flowgramConfig: n,
       };
       switch (nodeType) {
         case 'endpoint/schedule':
@@ -141,7 +140,6 @@ export function buildRuleChainJSONFromDocument(
         configuration: {
           ...(n.data ?? {}),
         },
-        flowgramConfig: n,
       };
 
       switch (nodeType) {
@@ -391,6 +389,7 @@ export function buildRuleChainJSONFromDocument(
       nodes: nodesRC,
       connections: connectionsRC,
       ruleChainConnections: [],
+      flowgramUI: raw,
     },
   };
 
