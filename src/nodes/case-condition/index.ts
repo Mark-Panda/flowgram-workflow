@@ -6,14 +6,14 @@
 import { nanoid } from 'nanoid';
 
 import { FlowNodeRegistry } from '../../typings';
-import iconCondition from '../../assets/icon-condition.svg';
+import iconSwitch from '../../assets/icon_switch.svg';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
 
 export const CaseConditionNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.CaseCondition,
   info: {
-    icon: iconCondition,
+    icon: iconSwitch,
     description: '按 CASE 分组（IF / ELSE IF / ELSE）的条件节点，支持 AND/OR 组合。',
   },
   meta: {
