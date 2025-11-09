@@ -144,12 +144,24 @@ export function buildRuleChainJSONFromDocument(
 
       switch (nodeType) {
         case 'endpoint/schedule':
+        case 'block-start':
+        case 'block-end':
           // 按要求：endpoint/schedule 不加入 nodesRC
           return null as any;
         case 'group': {
           if (n.data) {
             base.configuration = { nodeIds: n.data?.blockIDs };
             base.type = 'groupAction';
+          }
+          break;
+        }
+        case 'for': {
+          if (n.data) {
+            base.configuration = {
+              range: n.data?.note.content,
+              do: n.data?.nodeId.content,
+              mode: n.data?.operationMode.content,
+            };
           }
           break;
         }
@@ -228,7 +240,7 @@ export function buildRuleChainJSONFromDocument(
           }
           break;
         }
-        case 'case-condition': {
+        case 'switch': {
           if (Array.isArray(n.data?.cases) && n.data.cases.length > 0) {
             const formatValue = (v: any) => {
               const val = v?.content;
@@ -270,10 +282,20 @@ export function buildRuleChainJSONFromDocument(
           }
           break;
         }
-        case 'jsTransform': {
+        case 'jsTransform':
+        case 'log':
+        case 'jsFilter': {
           if (n.data?.script) {
+            const matchName =
+              n.type === 'jsTransform'
+                ? 'Transform'
+                : n.type === 'log'
+                ? 'String'
+                : n.type === 'jsFilter'
+                ? 'Filter'
+                : '';
             const scriptText: string = String(n.data?.script?.content ?? '');
-            const fnIdx = scriptText.indexOf('function Transform');
+            const fnIdx = scriptText.indexOf(`function ${matchName}`);
             const braceStart = fnIdx >= 0 ? scriptText.indexOf('{', fnIdx) : -1;
             if (braceStart >= 0) {
               let i = braceStart + 1;
