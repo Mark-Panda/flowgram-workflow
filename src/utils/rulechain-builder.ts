@@ -373,6 +373,22 @@ export function buildRuleChainJSONFromDocument(
           }
           break;
         }
+        default: {
+          // 保持默认逻辑
+          if (
+            n.data?.inputs &&
+            Object.keys(n.data?.inputs).length > 0 &&
+            n.data?.inputsValues &&
+            Object.keys(n.data?.inputsValues).length > 0
+          ) {
+            const parammap: Record<string, any> = {};
+            Object.keys(n.data.inputs.properties).forEach((key) => {
+              parammap[key] = (n.data.inputsValues as any)[key].content;
+            });
+            base.configuration = parammap;
+          }
+          break;
+        }
       }
       return base;
     })
