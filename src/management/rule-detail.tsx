@@ -5,11 +5,11 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { Button, Input, Nav, Switch, Typography, Toast } from '@douyinfe/semi-ui';
+import { Button, Input, Nav, Switch, Typography, Toast, Tag } from '@douyinfe/semi-ui';
 
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
 import { setRuleBaseInfo } from '../services/rule-base-info';
-import { createRuleBase, getRuleDetail } from '../services/api-rules';
+import { createRuleBase, getRuleDetail, startRuleChain, stopRuleChain } from '../services/api-rules';
 import { WorkflowNodeType } from '../nodes';
 import { Editor } from '../editor';
 
@@ -47,6 +47,7 @@ export const RuleDetail: React.FC<{
   const [root] = useState<boolean>(!!data?.ruleChain?.root);
   const [activeKey, setActiveKey] = useState<string>(initialTab ?? 'workflow');
   const [saving, setSaving] = useState<boolean>(false);
+  const [operating, setOperating] = useState<boolean>(false);
   React.useEffect(() => {
     if (initialTab) setActiveKey(initialTab);
   }, [initialTab]);
@@ -116,21 +117,84 @@ export const RuleDetail: React.FC<{
             style={{ marginLeft: 8 }}
           />
         </div>
-        <Typography.Title
-          heading={5}
+        <div
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
             margin: 0,
-            maxWidth: 420,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            textAlign: 'center',
+            maxWidth: 560,
             justifySelf: 'center',
           }}
         >
-          {name || data?.ruleChain?.id}
-        </Typography.Title>
-        <div />
+          <Typography.Title
+            heading={5}
+            style={{
+              margin: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {name || data?.ruleChain?.id}
+          </Typography.Title>
+          <Tag size="small" color={root ? 'green' : 'grey'}>
+            {root ? '根规则链' : '子规则链'}
+          </Tag>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Button
+            type="danger"
+            disabled={operating}
+            loading={operating}
+            onClick={async () => {
+              const id = String(data?.ruleChain?.id ?? '');
+              if (!id) return;
+              try {
+                setOperating(true);
+                await stopRuleChain(id);
+                Toast.success({ content: '已下线该规则链' });
+                // 下线后刷新详情
+                const json = await getRuleDetail(id);
+                try {
+                  setRuleBaseInfo((json as any)?.ruleChain);
+                } catch {}
+              } catch (e) {
+                Toast.error({ content: String((e as Error)?.message ?? e) });
+              } finally {
+                setOperating(false);
+              }
+            }}
+          >
+            下线
+          </Button>
+          <Button
+            theme="solid"
+            type="primary"
+            disabled={operating}
+            loading={operating}
+            onClick={async () => {
+              const id = String(data?.ruleChain?.id ?? '');
+              if (!id) return;
+              try {
+                setOperating(true);
+                await startRuleChain(id);
+                Toast.success({ content: '已部署该规则链' });
+                const json = await getRuleDetail(id);
+                try {
+                  setRuleBaseInfo((json as any)?.ruleChain);
+                } catch {}
+              } catch (e) {
+                Toast.error({ content: String((e as Error)?.message ?? e) });
+              } finally {
+                setOperating(false);
+              }
+            }}
+          >
+            部署
+          </Button>
+        </div>
       </div>
       {activeKey === 'design' ? (
         <div style={{ height: '100%', display: 'flex' }}>
@@ -224,7 +288,6 @@ export const RuleDetail: React.FC<{
                               name,
                               debugMode: !!debug,
                               root: !!root,
-                              disabled: !!data?.ruleChain?.disabled,
                               additionalInfo: { description: desc ?? '' },
                               configuration: { vars: {} },
                             };

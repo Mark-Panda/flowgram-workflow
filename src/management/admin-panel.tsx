@@ -24,7 +24,7 @@ import { IconPlus, IconChevronLeft } from '@douyinfe/semi-icons';
 import { Editor } from '../editor';
 import { RuleDetail, RuleDetailData } from './rule-detail';
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
-import { getRuleList, createRuleBase } from '../services/api-rules';
+import { getRuleList, createRuleBase, startRuleChain, stopRuleChain } from '../services/api-rules';
 import { nodeRegistries } from '../nodes';
 
 type MenuKey = 'workflow' | 'component';
@@ -41,13 +41,16 @@ export const AdminPanel: React.FC = () => {
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const [keywords, setKeywords] = useState('');
-  const [rootOnly, setRootOnly] = useState(false);
+  // 链类型筛选：全部 / 根规则链 / 子规则链
+  const [chainFilter, setChainFilter] = useState<'all' | 'root' | 'sub'>('all');
   const [total, setTotal] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createName, setCreateName] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [createRoot, setCreateRoot] = useState(true);
   const [createSubmitting, setCreateSubmitting] = useState(false);
+  // 列表项操作（部署/下线）加载态：按规则链ID记录
+  const [operatingIds, setOperatingIds] = useState<Set<string>>(new Set());
   const [createId, setCreateId] = useState<string>(() => {
     try {
       // lazy nanoid import to avoid bundle if not used
@@ -73,21 +76,9 @@ export const AdminPanel: React.FC = () => {
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {!showEditor ? (
-            <>
-              <Typography.Title heading={4} style={{ margin: 0 }}>
-                工作流设置
-              </Typography.Title>
-              <Button
-                icon={<IconPlus />}
-                theme="solid"
-                type="primary"
-                onClick={() => {
-                  setShowCreateModal(true);
-                }}
-              >
-                新建工作流
-              </Button>
-            </>
+            <Typography.Title heading={4} style={{ margin: 0 }}>
+              工作流管理
+            </Typography.Title>
           ) : (
             <>
               <Button
@@ -112,6 +103,30 @@ export const AdminPanel: React.FC = () => {
         组件管理
       </Typography.Title>
     );
+  };
+
+  // 刷新当前列表（保持分页与筛选参数）
+  const refreshList = async () => {
+    if (activeMenu !== 'workflow' || showEditor) return;
+    setLoading(true);
+    setError(undefined);
+    const rootParam = chainFilter === 'root' ? true : chainFilter === 'sub' ? false : undefined;
+    try {
+      const data = await getRuleList({
+        page,
+        size,
+        keywords: keywords.trim() || undefined,
+        root: rootParam,
+      });
+      const items = Array.isArray(data.items) ? data.items : [];
+      setRules(items);
+      const t = Number(data.total ?? data.count ?? items.length);
+      setTotal(Number.isFinite(t) ? t : items.length);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 将 RuleChain 响应项转换为 FlowDocumentJSON（带 DAG 分层 + barycenter 优化）
@@ -251,7 +266,8 @@ export const AdminPanel: React.FC = () => {
     if (activeMenu !== 'workflow' || showEditor) return;
     setLoading(true);
     setError(undefined);
-    getRuleList({ page, size, keywords: keywords.trim() || undefined, root: rootOnly || undefined })
+    const rootParam = chainFilter === 'root' ? true : chainFilter === 'sub' ? false : undefined;
+    getRuleList({ page, size, keywords: keywords.trim() || undefined, root: rootParam })
       .then((data) => {
         const items = Array.isArray(data.items) ? data.items : [];
         setRules(items);
@@ -260,7 +276,7 @@ export const AdminPanel: React.FC = () => {
       })
       .catch((err) => setError(String(err)))
       .finally(() => setLoading(false));
-  }, [activeMenu, showEditor, page, size, keywords, rootOnly]);
+  }, [activeMenu, showEditor, page, size, keywords, chainFilter]);
 
   const renderContent = () => {
     if (activeMenu === 'workflow') {
@@ -291,6 +307,7 @@ export const AdminPanel: React.FC = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'space-between',
               gap: 12,
               marginBottom: 12,
               background: '#fff',
@@ -300,25 +317,43 @@ export const AdminPanel: React.FC = () => {
               padding: '10px 12px',
             }}
           >
-            <Input
-              value={keywords}
-              onChange={(v) => {
-                setKeywords(v);
-                setPage(1);
-              }}
-              placeholder="搜索名称或ID"
-              showClear
-              style={{ maxWidth: 320 }}
-            />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Switch
-                checked={rootOnly}
-                onChange={(checked) => {
-                  setRootOnly(!!checked);
+            {/* 左侧：搜索框 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Input
+                value={keywords}
+                onChange={(v) => {
+                  setKeywords(v);
                   setPage(1);
                 }}
+                placeholder="搜索名称或ID"
+                showClear
+                style={{ maxWidth: 320 }}
               />
-              <Typography.Text type="tertiary">仅根链</Typography.Text>
+            </div>
+            {/* 右侧：下拉筛选 + 新建按钮 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Select
+                value={chainFilter}
+                style={{ width: 160 }}
+                onChange={(v) => {
+                  setChainFilter(v as 'all' | 'root' | 'sub');
+                  setPage(1);
+                }}
+              >
+                <Select.Option value="all">全部</Select.Option>
+                <Select.Option value="root">根规则链</Select.Option>
+                <Select.Option value="sub">子规则链</Select.Option>
+              </Select>
+              <Button
+                icon={<IconPlus />}
+                theme="solid"
+                type="primary"
+                onClick={() => {
+                  setShowCreateModal(true);
+                }}
+              >
+                新建工作流
+              </Button>
             </div>
           </div>
           {loading ? (
@@ -404,21 +439,26 @@ export const AdminPanel: React.FC = () => {
                               border: '1px solid rgba(6,7,9,0.06)',
                             }}
                           />
-                          <div style={{ flex: 1 }}>
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                              }}
-                            >
-                              <Typography.Text strong>{String(chain?.name ?? '-')}</Typography.Text>
-                              <div style={{ display: 'flex', gap: 6 }}>
-                                {debug ? (
-                                  <Tag size="small" color="blue">
-                                    调试开启
-                                  </Tag>
-                                ) : (
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <Typography.Text strong>{String(chain?.name ?? '-')}</Typography.Text>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {chain?.root ? (
+                          <Tag size="small" color="green">根规则链</Tag>
+                        ) : (
+                          <Tag size="small" color="grey">子规则链</Tag>
+                        )}
+                        {debug ? (
+                          <Tag size="small" color="blue">
+                            调试开启
+                          </Tag>
+                        ) : (
                                   <Tag size="small" color="grey">
                                     调试关闭
                                   </Tag>
@@ -429,11 +469,11 @@ export const AdminPanel: React.FC = () => {
                                   </Tag>
                                 ) : (
                                   <Tag size="small" color="green">
-                                    启用中
-                                  </Tag>
-                                )}
-                              </div>
-                            </div>
+                            启用中
+                          </Tag>
+                        )}
+                      </div>
+                    </div>
                             <div style={{ marginTop: 6 }}>
                               <Typography.Text type="tertiary">
                                 ID: {String(chain?.id ?? '-')}
@@ -442,6 +482,59 @@ export const AdminPanel: React.FC = () => {
                           </div>
                         </div>
                         <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button
+                            style={{ marginRight: 8 }}
+                            type="danger"
+                            disabled={operatingIds.has(String(chain?.id ?? ''))}
+                            loading={operatingIds.has(String(chain?.id ?? ''))}
+                            onClick={async () => {
+                              const id = String(chain?.id ?? '');
+                              if (!id) return;
+                              const next = new Set(operatingIds);
+                              next.add(id);
+                              setOperatingIds(next);
+                              try {
+                                await stopRuleChain(id);
+                                Toast.success({ content: '已下线该规则链' });
+                                await refreshList();
+                              } catch (e) {
+                                Toast.error({ content: String((e as Error)?.message ?? e) });
+                              } finally {
+                                const done = new Set(operatingIds);
+                                done.delete(id);
+                                setOperatingIds(done);
+                              }
+                            }}
+                          >
+                            下线
+                          </Button>
+                          <Button
+                            style={{ marginRight: 8 }}
+                            theme="solid"
+                            type="primary"
+                            disabled={operatingIds.has(String(chain?.id ?? ''))}
+                            loading={operatingIds.has(String(chain?.id ?? ''))}
+                            onClick={async () => {
+                              const id = String(chain?.id ?? '');
+                              if (!id) return;
+                              const next = new Set(operatingIds);
+                              next.add(id);
+                              setOperatingIds(next);
+                              try {
+                                await startRuleChain(id);
+                                Toast.success({ content: '已部署该规则链' });
+                                await refreshList();
+                              } catch (e) {
+                                Toast.error({ content: String((e as Error)?.message ?? e) });
+                              } finally {
+                                const done = new Set(operatingIds);
+                                done.delete(id);
+                                setOperatingIds(done);
+                              }
+                            }}
+                          >
+                            部署
+                          </Button>
                           <Button
                             onClick={() => {
                               const id = String(chain?.id ?? '');
@@ -632,7 +725,7 @@ export const AdminPanel: React.FC = () => {
         <Nav
           mode="vertical"
           items={[
-            { itemKey: 'workflow', text: '工作流设置' },
+            { itemKey: 'workflow', text: '工作流管理' },
             { itemKey: 'component', text: '组件管理' },
           ]}
           selectedKeys={[activeMenu]}

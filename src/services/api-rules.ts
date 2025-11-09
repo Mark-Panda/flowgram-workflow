@@ -19,3 +19,11 @@ export const getRuleDetail = async (id: string) => requestJSON(`/rules/${encodeU
 
 export const updateRule = async (id: string, body: any) =>
   requestJSON(`/rules/${encodeURIComponent(id)}`, { method: 'POST', body });
+
+// 部署（启动）规则链
+export const startRuleChain = async (id: string) =>
+  requestJSON(`/rules/${encodeURIComponent(id)}/operate/start`, { method: 'POST' });
+
+// 下线（停止）规则链
+export const stopRuleChain = async (id: string) =>
+  requestJSON(`/rules/${encodeURIComponent(id)}/operate/stop`, { method: 'POST' });
