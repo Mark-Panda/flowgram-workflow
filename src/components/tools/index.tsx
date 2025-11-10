@@ -26,7 +26,7 @@ import { AutoLayout } from './auto-layout';
 import { ProblemButton } from '../problem-panel';
 import { ExportImport } from './export-import';
 
-export const DemoTools = () => {
+export const DemoTools = ({ showBottomActions = true }: { showBottomActions?: boolean }) => {
   const { history, playground } = useClientContext();
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -78,12 +78,16 @@ export const DemoTools = () => {
         <ProblemButton />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <AddNode disabled={playground.config.readonly} />
-        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <ExportImport disabled={playground.config.readonly} />
-        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <SaveButton disabled={playground.config.readonly} />
-        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <TestRunButton disabled={playground.config.readonly} />
+        {showBottomActions && (
+          <>
+            <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+            <ExportImport disabled={playground.config.readonly} />
+            <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+            <SaveButton disabled={playground.config.readonly} />
+            <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+            <TestRunButton disabled={playground.config.readonly} />
+          </>
+        )}
       </ToolSection>
     </ToolContainer>
   );

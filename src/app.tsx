@@ -16,6 +16,24 @@ import { AdminPanel } from './management/admin-panel';
  */
 unstableSetCreateRoot(createRoot);
 
+/**
+ * 忽略 ResizeObserver loop 警告
+ * 这是一个已知的浏览器问题，不会影响功能
+ * 参考：https://github.com/WICG/resize-observer/issues/38
+ */
+const resizeObserverErrorHandler = (e: ErrorEvent) => {
+  if (
+    e.message === 'ResizeObserver loop completed with undelivered notifications.' ||
+    e.message === 'ResizeObserver loop limit exceeded'
+  ) {
+    e.stopImmediatePropagation();
+    return true;
+  }
+  return false;
+};
+
+window.addEventListener('error', resizeObserverErrorHandler);
+
 const app = createRoot(document.getElementById('root')!);
 
 function Router() {

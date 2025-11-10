@@ -57,10 +57,12 @@ export function TestRunButton(props: { disabled: boolean }) {
       <Button
         disabled={props.disabled}
         onClick={onTestRun}
-        icon={<IconPlay size="small" />}
+        icon={<IconPlay size="default" />}
         className={styles.testrunSuccessButton}
+        size="small"
+        theme="solid"
       >
-        Test Run
+        测试运行
       </Button>
     ) : (
       <Badge count={errorCount} position="rightTop" type="danger">
@@ -68,10 +70,12 @@ export function TestRunButton(props: { disabled: boolean }) {
           type="danger"
           disabled={props.disabled}
           onClick={onTestRun}
-          icon={<IconPlay size="small" />}
+          icon={<IconPlay size="default" />}
           className={styles.testrunErrorButton}
+          size="small"
+          theme="solid"
         >
-            Test Run
+          测试运行
         </Button>
       </Badge>
     );

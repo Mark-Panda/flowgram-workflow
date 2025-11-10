@@ -12,8 +12,8 @@ import {
   ASTFactory,
 } from '@flowgram.ai/free-layout-editor';
 import { JsonSchemaUtils } from '@flowgram.ai/form-materials';
-import { Button, Modal, TextArea, Toast, Space, Tooltip } from '@douyinfe/semi-ui';
-import { IconDownload, IconUpload, IconCopy } from '@douyinfe/semi-icons';
+import { Button, Modal, TextArea, Toast, Space, Dropdown } from '@douyinfe/semi-ui';
+import { IconDownload, IconUpload, IconCopy, IconChevronDown } from '@douyinfe/semi-icons';
 
 import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
@@ -672,35 +672,49 @@ export function ExportImport(props: { disabled?: boolean }) {
 
   const disabled = props.disabled;
 
+  const menuItems = [
+    {
+      node: 'item',
+      name: '导出 JSON',
+      icon: <IconDownload size="large" />,
+      onClick: openExport,
+    },
+    {
+      node: 'item',
+      name: '导出 RuleChain',
+      icon: <IconDownload size="large" />,
+      onClick: openRuleChainExport,
+    },
+    {
+      node: 'divider',
+    },
+    {
+      node: 'item',
+      name: '导入 JSON',
+      icon: <IconUpload size="large" />,
+      onClick: () => setImportVisible(true),
+    },
+  ];
+
   return (
     <>
-      <Space>
-        <Tooltip content="导出为 JSON">
-          <Button theme="light" icon={<IconDownload />} disabled={disabled} onClick={openExport}>
-            导出JSON
-          </Button>
-        </Tooltip>
-        <Tooltip content="导出为 RuleChain JSON">
-          <Button
-            theme="light"
-            icon={<IconDownload />}
-            disabled={disabled}
-            onClick={openRuleChainExport}
-          >
-            导出RuleChain
-          </Button>
-        </Tooltip>
-        <Tooltip content="从 JSON 导入">
-          <Button
-            theme="light"
-            icon={<IconUpload />}
-            disabled={disabled}
-            onClick={() => setImportVisible(true)}
-          >
-            导入JSON
-          </Button>
-        </Tooltip>
-      </Space>
+      <Dropdown
+        trigger="click"
+        position="bottomRight"
+        menu={menuItems}
+        disabled={disabled}
+      >
+        <Button
+          theme="light"
+          size="small"
+          disabled={disabled}
+          icon={<IconDownload size="default" />}
+          iconPosition="left"
+        >
+          导出/导入
+          <IconChevronDown size="small" style={{ marginLeft: 4 }} />
+        </Button>
+      </Dropdown>
 
       <Modal
         title="导出工作流 JSON"

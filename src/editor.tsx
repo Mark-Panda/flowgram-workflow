@@ -12,17 +12,22 @@ import { nodeRegistries } from './nodes';
 import { initialData } from './initial-data';
 import { useEditorProps } from './hooks';
 import { DemoTools } from './components/tools';
+import { TopToolbar } from './components/tools/top-toolbar';
 
-export const Editor: React.FC<{ initialDoc?: FlowDocumentJSON }> = ({ initialDoc }) => {
+export const Editor: React.FC<{ initialDoc?: FlowDocumentJSON; showTopToolbar?: boolean }> = ({ 
+  initialDoc, 
+  showTopToolbar = false 
+}) => {
   const data = initialDoc ?? initialData;
   const editorProps = useEditorProps(data, nodeRegistries);
   return (
-    <div className="doc-free-feature-overview">
+    <div className="doc-free-feature-overview" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <FreeLayoutEditorProvider {...editorProps}>
+        {showTopToolbar && <TopToolbar />}
         <div className="demo-container">
           <EditorRenderer className="demo-editor" />
         </div>
-        <DemoTools />
+        <DemoTools showBottomActions={!showTopToolbar} />
       </FreeLayoutEditorProvider>
     </div>
   );

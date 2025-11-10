@@ -38,7 +38,7 @@ export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   return (
     <Tooltip content="保存画布">
       <Button
-        icon={<IconSave />}
+        icon={<IconSave size="default" />}
         type="primary"
         theme="solid"
         size="small"

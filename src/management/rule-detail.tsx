@@ -94,6 +94,7 @@ export const RuleDetail: React.FC<{
           position: 'sticky',
           top: 0,
           zIndex: 99,
+          minHeight: '56px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -142,12 +143,15 @@ export const RuleDetail: React.FC<{
             {root ? '根规则链' : '子规则链'}
           </Tag>
         </div>
-        {/* 下线和部署按钮已移至工作流管理列表页面 */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}></div>
+        {/* 保存、测试、导出按钮通过 Portal 渲染到这里 */}
+        <div 
+          id="top-toolbar-portal-container" 
+          style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}
+        ></div>
       </div>
       {activeKey === 'design' ? (
         <div style={{ height: '100%', display: 'flex' }}>
-          <Editor initialDoc={designDoc} />
+          <Editor initialDoc={designDoc} showTopToolbar={true} />
         </div>
       ) : (
         <div style={{ padding: 16 }}>
