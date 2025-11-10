@@ -19,6 +19,7 @@ import {
 } from '@flowgram.ai/free-layout-editor';
 import { Toast } from '@douyinfe/semi-ui';
 
+import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { WorkflowNodeType } from '../../nodes';
 // hook to get panel position from mouse event - 从鼠标事件获取面板位置的 hook
 const useGetPanelPosition = () => {
@@ -91,6 +92,21 @@ export const useAddNode = () => {
               return;
             }
             const { nodeType, nodeJSON } = panelParams;
+
+            // 获取当前规则链信息
+            const ruleBaseInfo = getRuleBaseInfo();
+            const isChildRuleChain = ruleBaseInfo?.root === false;
+
+            // 限制：子规则链中不允许添加除 start 之外的 header 类型节点
+            const isHeaderCandidate =
+              nodeJSON?.data?.positionType === 'header' || nodeType === WorkflowNodeType.Start;
+            const isStartNode = nodeType === WorkflowNodeType.Start;
+
+            if (isChildRuleChain && isHeaderCandidate && !isStartNode) {
+              Toast.error('子规则链中不允许添加 Header 类型的节点（start 节点除外）');
+              return;
+            }
+
             // 限制：画布中只能有一个 header 类型的节点（创建前校验）
             const rawBefore = workflowDocument.toJSON();
             const existsHeaderBefore = Array.isArray(rawBefore.nodes)
@@ -98,8 +114,6 @@ export const useAddNode = () => {
                   (n: any) => n?.data?.positionType === 'header' || String(n?.type) === 'start'
                 )
               : false;
-            const isHeaderCandidate =
-              nodeJSON?.data?.positionType === 'header' || nodeType === WorkflowNodeType.Start;
             if (existsHeaderBefore && isHeaderCandidate) {
               Toast.error('画布中只能存在一个 Header 类型的节点');
               return;

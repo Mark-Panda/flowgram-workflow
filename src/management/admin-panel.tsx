@@ -398,100 +398,206 @@ export const AdminPanel: React.FC = () => {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                    gap: 12,
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                    gap: 16,
                   }}
                 >
                   {rules.map((it: any) => {
                     const chain = it?.ruleChain ?? {};
                     const disabled = Boolean(chain?.disabled);
                     const debug = Boolean(chain?.debugMode);
-                    const statusColor = disabled ? '#E5E6EB' : debug ? '#E8F3FF' : '#F2F3F5';
+                    const isRoot = Boolean(chain?.root);
+
+                    // 根据状态设置不同的主题色
+                    const getStatusStyle = () => {
+                      if (disabled)
+                        return {
+                          iconBg: 'linear-gradient(135deg, #E5E6EB 0%, #D1D4DB 100%)',
+                          iconColor: '#8F959E',
+                          borderColor: 'rgba(6,7,9,0.08)',
+                        };
+                      if (debug)
+                        return {
+                          iconBg: 'linear-gradient(135deg, #4776E6 0%, #8E54E9 100%)',
+                          iconColor: '#fff',
+                          borderColor: 'rgba(71, 118, 230, 0.2)',
+                        };
+                      return {
+                        iconBg: 'linear-gradient(135deg, #11998E 0%, #38EF7D 100%)',
+                        iconColor: '#fff',
+                        borderColor: 'rgba(17, 153, 142, 0.2)',
+                      };
+                    };
+
+                    const statusStyle = getStatusStyle();
+
                     return (
                       <div
                         key={String(chain?.id ?? Math.random())}
                         style={{
                           background: '#fff',
-                          borderRadius: 12,
-                          border: '1px solid rgba(6,7,9,0.06)',
-                          boxShadow: '0 2px 10px rgba(6,7,9,0.06)',
-                          padding: 12,
-                          transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+                          borderRadius: 16,
+                          border: `1px solid ${statusStyle.borderColor}`,
+                          boxShadow: '0 4px 12px rgba(6,7,9,0.04)',
+                          padding: 16,
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          cursor: 'pointer',
+                          position: 'relative',
+                          overflow: 'hidden',
                         }}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLDivElement).style.boxShadow =
-                            '0 6px 16px rgba(6,7,9,0.12)';
-                          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+                            '0 8px 24px rgba(6,7,9,0.12)';
+                          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
                         }}
                         onMouseLeave={(e) => {
                           (e.currentTarget as HTMLDivElement).style.boxShadow =
-                            '0 2px 10px rgba(6,7,9,0.06)';
+                            '0 4px 12px rgba(6,7,9,0.04)';
                           (e.currentTarget as HTMLDivElement).style.transform = 'none';
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {/* 顶部装饰渐变条 */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 3,
+                            background: statusStyle.iconBg,
+                          }}
+                        />
+
+                        {/* 卡片头部 */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 14,
+                            marginTop: 4,
+                          }}
+                        >
                           <div
                             style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background: statusColor,
-                              border: '1px solid rgba(6,7,9,0.06)',
+                              width: 48,
+                              height: 48,
+                              borderRadius: 12,
+                              background: statusStyle.iconBg,
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 20,
+                              fontWeight: 600,
+                              color: statusStyle.iconColor,
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                              flexShrink: 0,
                             }}
-                          />
-                          <div style={{ flex: 1 }}>
+                          >
+                            {String(chain?.name ?? '-')
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
                             <div
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'space-between',
+                                gap: 8,
+                                marginBottom: 6,
                               }}
                             >
-                              <Typography.Text strong>{String(chain?.name ?? '-')}</Typography.Text>
-                              <div style={{ display: 'flex', gap: 6 }}>
-                                {chain?.root ? (
-                                  <Tag size="small" color="green">
-                                    根规则链
-                                  </Tag>
-                                ) : (
-                                  <Tag size="small" color="grey">
-                                    子规则链
-                                  </Tag>
-                                )}
-                                {debug ? (
-                                  <Tag size="small" color="blue">
-                                    调试开启
-                                  </Tag>
-                                ) : (
-                                  <Tag size="small" color="grey">
-                                    调试关闭
-                                  </Tag>
-                                )}
-                                {disabled ? (
-                                  <Tag size="small" color="orange">
-                                    已禁用
-                                  </Tag>
-                                ) : (
-                                  <Tag size="small" color="green">
-                                    启用中
-                                  </Tag>
-                                )}
-                              </div>
-                            </div>
-                            <div style={{ marginTop: 6 }}>
-                              <Typography.Text type="tertiary">
-                                ID: {String(chain?.id ?? '-')}
+                              <Typography.Text
+                                strong
+                                style={{
+                                  fontSize: 16,
+                                  color: '#1C2029',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {String(chain?.name ?? '-')}
                               </Typography.Text>
+                              {isRoot && (
+                                <Tag
+                                  size="small"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #11998E 0%, #38EF7D 100%)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  根规则链
+                                </Tag>
+                              )}
                             </div>
+
+                            <Typography.Text
+                              type="tertiary"
+                              style={{
+                                fontSize: 12,
+                                display: 'block',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              ID: {String(chain?.id ?? '-')}
+                            </Typography.Text>
                           </div>
                         </div>
-                        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+
+                        {/* 状态标签区 */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: 6,
+                            marginTop: 12,
+                            paddingTop: 12,
+                            borderTop: '1px solid rgba(6,7,9,0.06)',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          {!isRoot && (
+                            <Tag size="small" color="cyan" style={{ borderRadius: 6 }}>
+                              子规则链
+                            </Tag>
+                          )}
+                          <Tag
+                            size="small"
+                            color={debug ? 'blue' : 'grey'}
+                            style={{ borderRadius: 6 }}
+                          >
+                            {debug ? '🔍 调试开启' : '调试关闭'}
+                          </Tag>
+                          <Tag
+                            size="small"
+                            color={disabled ? 'orange' : 'green'}
+                            style={{ borderRadius: 6 }}
+                          >
+                            {disabled ? '⏸ 已禁用' : '✓ 启用中'}
+                          </Tag>
+                        </div>
+
+                        {/* 操作按钮区 */}
+                        <div
+                          style={{
+                            marginTop: 14,
+                            display: 'flex',
+                            gap: 8,
+                            justifyContent: 'flex-end',
+                          }}
+                        >
                           <Button
-                            style={{ marginRight: 8 }}
-                            type="danger"
+                            size="small"
+                            type="tertiary"
                             disabled={operatingIds.has(String(chain?.id ?? ''))}
                             loading={operatingIds.has(String(chain?.id ?? ''))}
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.stopPropagation();
                               const id = String(chain?.id ?? '');
                               if (!id) return;
                               const next = new Set(operatingIds);
@@ -513,12 +619,12 @@ export const AdminPanel: React.FC = () => {
                             下线
                           </Button>
                           <Button
-                            style={{ marginRight: 8 }}
-                            theme="solid"
-                            type="primary"
+                            size="small"
+                            type="secondary"
                             disabled={operatingIds.has(String(chain?.id ?? ''))}
                             loading={operatingIds.has(String(chain?.id ?? ''))}
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.stopPropagation();
                               const id = String(chain?.id ?? '');
                               if (!id) return;
                               const next = new Set(operatingIds);
@@ -540,13 +646,15 @@ export const AdminPanel: React.FC = () => {
                             部署
                           </Button>
                           <Button
-                            onClick={() => {
+                            size="small"
+                            theme="solid"
+                            type="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
                               const id = String(chain?.id ?? '');
                               if (!id) return;
                               window.location.hash = `#/workflow/${encodeURIComponent(id)}`;
                             }}
-                            theme="solid"
-                            type="primary"
                           >
                             打开
                           </Button>

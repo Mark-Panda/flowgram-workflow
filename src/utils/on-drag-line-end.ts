@@ -18,6 +18,7 @@ import {
 } from '@flowgram.ai/free-layout-editor';
 import { Toast } from '@douyinfe/semi-ui';
 
+import { getRuleBaseInfo } from '../services/rule-base-info';
 import { WorkflowNodeType } from '../nodes';
 
 /**
@@ -88,6 +89,20 @@ export const onDragLineEnd = async (ctx: FreeLayoutPluginContext, params: onDrag
 
   // get selected node type and data - 获取选择的节点类型和数据
   const { nodeType, nodeJSON } = result;
+
+  // 获取当前规则链信息
+  const ruleBaseInfo = getRuleBaseInfo();
+  const isChildRuleChain = ruleBaseInfo?.root === false;
+
+  // 限制：子规则链中不允许添加除 start 之外的 header 类型节点
+  const isHeaderCandidate =
+    nodeJSON?.data?.positionType === 'header' || nodeType === WorkflowNodeType.Start;
+  const isStartNode = nodeType === WorkflowNodeType.Start;
+
+  if (isChildRuleChain && isHeaderCandidate && !isStartNode) {
+    Toast.error('子规则链中不允许添加 Header 类型的节点（start 节点除外）');
+    return;
+  }
 
   // calculate position for the new node - 计算新节点的位置
   const nodePosition = WorkflowNodePanelUtils.adjustNodePosition({
