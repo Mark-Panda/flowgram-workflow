@@ -15,7 +15,7 @@ import {
 
 import { canContainNode } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
-import { nodeRegistries } from '../../nodes';
+import { nodeRegistries, getNodeTypeName } from '../../nodes';
 
 const NodeWrap = styled.div`
   width: 100%;
@@ -33,8 +33,9 @@ const NodeWrap = styled.div`
 `;
 
 const NodeLabel = styled.div`
-  font-size: 12px;
+  font-size: 13px;
   margin-left: 10px;
+  white-space: nowrap;
 `;
 
 interface NodeProps {
@@ -84,7 +85,7 @@ export const NodeList: FC<NodeListProps> = (props) => {
   };
   console.log('>>> fromNode', fromPort?.node);
   return (
-    <NodesWrap style={{ width: 80 * 2 + 20 }}>
+    <NodesWrap style={{ width: 180 }}>
       {nodeRegistries
         .filter((register) => register.meta.nodePanelVisible !== false)
         .filter((register) => {
@@ -107,7 +108,7 @@ export const NodeList: FC<NodeListProps> = (props) => {
             icon={
               <img style={{ width: 10, height: 10, borderRadius: 4 }} src={registry.info?.icon} />
             }
-            label={registry.type as string}
+            label={getNodeTypeName(registry.type as string)}
             onClick={(e) => handleClick(e, registry)}
           />
         ))}
