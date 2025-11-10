@@ -308,48 +308,68 @@ export const AdminPanel: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 12,
-              marginBottom: 12,
+              gap: 16,
+              marginBottom: 20,
               background: '#fff',
-              borderRadius: 10,
+              borderRadius: 14,
               border: '1px solid rgba(6,7,9,0.06)',
-              boxShadow: '0 1px 4px rgba(6,7,9,0.06)',
-              padding: '10px 12px',
+              boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
+              padding: '14px 18px',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(6,7,9,0.08)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(6,7,9,0.04)';
             }}
           >
             {/* 左侧：搜索框 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
               <Input
+                prefix={<span style={{ color: '#667EEA', fontSize: 16 }}>🔍</span>}
                 value={keywords}
                 onChange={(v) => {
                   setKeywords(v);
                   setPage(1);
                 }}
-                placeholder="搜索名称或ID"
+                placeholder="搜索工作流名称或 ID..."
                 showClear
-                style={{ maxWidth: 320 }}
+                style={{
+                  maxWidth: 420,
+                  borderRadius: 10,
+                  border: '1px solid rgba(102, 126, 234, 0.2)',
+                }}
               />
             </div>
             {/* 右侧：下拉筛选 + 新建按钮 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Select
+                prefix={<span style={{ fontSize: 14 }}>📊</span>}
                 value={chainFilter}
-                style={{ width: 160 }}
+                style={{ width: 180, borderRadius: 10 }}
                 onChange={(v) => {
                   setChainFilter(v as 'all' | 'root' | 'sub');
                   setPage(1);
                 }}
               >
-                <Select.Option value="all">全部</Select.Option>
-                <Select.Option value="root">根规则链</Select.Option>
-                <Select.Option value="sub">子规则链</Select.Option>
+                <Select.Option value="all">全部类型</Select.Option>
+                <Select.Option value="root">🌳 根规则链</Select.Option>
+                <Select.Option value="sub">🔗 子规则链</Select.Option>
               </Select>
               <Button
                 icon={<IconPlus />}
                 theme="solid"
                 type="primary"
+                size="large"
                 onClick={() => {
                   setShowCreateModal(true);
+                }}
+                style={{
+                  borderRadius: 10,
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  background: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)',
+                  border: 'none',
                 }}
               >
                 新建工作流
@@ -360,8 +380,8 @@ export const AdminPanel: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: 12,
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: 16,
               }}
             >
               {Array.from({ length: 6 }).map((_, idx) => (
@@ -369,30 +389,47 @@ export const AdminPanel: React.FC = () => {
                   key={idx}
                   style={{
                     background: '#fff',
-                    borderRadius: 12,
+                    borderRadius: 16,
                     border: '1px solid rgba(6,7,9,0.06)',
-                    boxShadow: '0 2px 10px rgba(6,7,9,0.06)',
-                    padding: 12,
+                    boxShadow: '0 4px 12px rgba(6,7,9,0.04)',
+                    padding: 16,
+                    animation: 'pulse 1.5s ease-in-out infinite',
                   }}
                 >
-                  <Skeleton.Title style={{ width: '60%' }} />
-                  <Skeleton.Paragraph rows={2} style={{ marginTop: 8 }} />
+                  <div style={{ display: 'flex', gap: 14, marginBottom: 12 }}>
+                    <Skeleton.Avatar size="large" />
+                    <div style={{ flex: 1 }}>
+                      <Skeleton.Title style={{ width: '70%', marginBottom: 8 }} />
+                      <Skeleton.Paragraph rows={1} style={{ width: '50%' }} />
+                    </div>
+                  </div>
+                  <Skeleton.Paragraph rows={2} style={{ marginTop: 12 }} />
                 </div>
               ))}
             </div>
           ) : (
             <div
               style={{
-                background: '#fff',
-                borderRadius: 12,
-                border: '1px solid rgba(6,7,9,0.06)',
-                boxShadow: '0 2px 10px rgba(6,7,9,0.06)',
-                padding: 12,
+                background: 'transparent',
               }}
             >
               {rules.length === 0 ? (
-                <div style={{ padding: 24, textAlign: 'center' }}>
-                  <Typography.Text type="tertiary">暂无工作流数据</Typography.Text>
+                <div
+                  style={{
+                    background: '#fff',
+                    borderRadius: 16,
+                    padding: 60,
+                    textAlign: 'center',
+                    boxShadow: '0 4px 12px rgba(6,7,9,0.04)',
+                  }}
+                >
+                  <div style={{ fontSize: 64, marginBottom: 16 }}>📋</div>
+                  <Typography.Title heading={5} style={{ marginBottom: 8, color: '#1C2029' }}>
+                    暂无工作流数据
+                  </Typography.Title>
+                  <Typography.Text type="tertiary" style={{ fontSize: 14 }}>
+                    点击右上角&ldquo;新建工作流&rdquo;按钮开始创建
+                  </Typography.Text>
                 </div>
               ) : (
                 <div
@@ -670,40 +707,48 @@ export const AdminPanel: React.FC = () => {
                 return (
                   <div
                     style={{
-                      marginTop: 16,
-                      position: 'sticky',
-                      bottom: 0,
+                      marginTop: 20,
                       background: '#fff',
-                      borderTop: '1px solid rgba(6,7,9,0.06)',
-                      boxShadow: '0 -1px 6px rgba(6,7,9,0.06)',
-                      padding: '10px 12px',
+                      borderRadius: 14,
+                      border: '1px solid rgba(6,7,9,0.06)',
+                      boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
+                      padding: '14px 18px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       gap: 12,
                     }}
                   >
-                    <Typography.Text type="tertiary">共 {total} 条</Typography.Text>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Select
-                          value={size}
-                          style={{ width: 100 }}
-                          onChange={(v) => {
-                            setSize(Number(v));
-                            setPage(1);
-                          }}
-                        >
-                          <Select.Option value={10}>10 / 页</Select.Option>
-                          <Select.Option value={20}>20 / 页</Select.Option>
-                          <Select.Option value={50}>50 / 页</Select.Option>
-                        </Select>
-                      </div>
+                      <Typography.Text style={{ color: '#667EEA', fontWeight: 500 }}>
+                        📊 共 {total} 条
+                      </Typography.Text>
+                      <Typography.Text type="tertiary" style={{ fontSize: 12 }}>
+                        显示 {start}-{end} 条
+                      </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <Select
+                        value={size}
+                        style={{ width: 110, borderRadius: 8 }}
+                        onChange={(v) => {
+                          setSize(Number(v));
+                          setPage(1);
+                        }}
+                      >
+                        <Select.Option value={10}>10 / 页</Select.Option>
+                        <Select.Option value={20}>20 / 页</Select.Option>
+                        <Select.Option value={50}>50 / 页</Select.Option>
+                      </Select>
                       <Pagination
                         total={total}
                         pageSize={size}
                         currentPage={page}
                         onChange={(p: number) => setPage(p)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
                       />
                     </div>
                   </div>
@@ -750,10 +795,16 @@ export const AdminPanel: React.FC = () => {
 
   const renderCreateModal = () => (
     <Modal
-      title="新建工作流"
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 24 }}>✨</span>
+          <span style={{ fontSize: 18, fontWeight: 600 }}>新建工作流</span>
+        </div>
+      }
       visible={showCreateModal}
       onCancel={() => setShowCreateModal(false)}
       confirmLoading={createSubmitting}
+      style={{ borderRadius: 16 }}
       onOk={async () => {
         if (!createName.trim()) {
           Toast.warning({ content: '请输入工作流名称' });
@@ -791,78 +842,186 @@ export const AdminPanel: React.FC = () => {
         }
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <Input value={createName} onChange={setCreateName} placeholder="工作流名称" />
-        <Input value={createDesc} onChange={setCreateDesc} placeholder="工作流描述" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Switch checked={createRoot} onChange={(v) => setCreateRoot(!!v)} />
-          <Typography.Text>根规则链</Typography.Text>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div>
+          <Typography.Text strong style={{ display: 'block', marginBottom: 8, color: '#1C2029' }}>
+            工作流名称 *
+          </Typography.Text>
+          <Input
+            value={createName}
+            onChange={setCreateName}
+            placeholder="请输入工作流名称"
+            size="large"
+            style={{ borderRadius: 10 }}
+          />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Typography.Text type="tertiary">工作流ID</Typography.Text>
-          <Input value={createId} onChange={setCreateId} placeholder="自动生成，可修改" />
+
+        <div>
+          <Typography.Text strong style={{ display: 'block', marginBottom: 8, color: '#1C2029' }}>
+            工作流描述
+          </Typography.Text>
+          <Input
+            value={createDesc}
+            onChange={setCreateDesc}
+            placeholder="请输入工作流描述（可选）"
+            size="large"
+            style={{ borderRadius: 10 }}
+          />
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '12px 14px',
+            background: 'rgba(102, 126, 234, 0.08)',
+            borderRadius: 10,
+            border: '1px solid rgba(102, 126, 234, 0.15)',
+          }}
+        >
+          <Switch checked={createRoot} onChange={(v) => setCreateRoot(!!v)} />
+          <div>
+            <Typography.Text strong style={{ display: 'block', color: '#1C2029' }}>
+              根规则链
+            </Typography.Text>
+            <Typography.Text type="tertiary" style={{ fontSize: 12 }}>
+              是否设置为根规则链
+            </Typography.Text>
+          </div>
+        </div>
+
+        <div>
+          <Typography.Text strong style={{ display: 'block', marginBottom: 8, color: '#1C2029' }}>
+            工作流 ID
+          </Typography.Text>
+          <Input
+            value={createId}
+            onChange={setCreateId}
+            placeholder="自动生成，可修改"
+            size="large"
+            style={{ borderRadius: 10, fontFamily: 'monospace' }}
+          />
+          <Typography.Text type="tertiary" style={{ fontSize: 11, marginTop: 4, display: 'block' }}>
+            💡 提示：ID 用于唯一标识工作流，建议使用默认生成的随机 ID
+          </Typography.Text>
         </div>
       </div>
     </Modal>
   );
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      {/* 左侧菜单栏 */}
+    <div style={{ display: 'flex', height: '100vh', background: '#F7F8FA' }}>
+      {/* 左侧菜单栏 - 优化版 */}
       <div
         style={{
-          width: 240,
+          width: 260,
           borderRight: '1px solid rgba(6,7,9,0.08)',
-          background: '#F7F8FA',
-          padding: '16px 12px',
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%)',
+          padding: '20px 16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 12,
+          gap: 16,
+          boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
+        }}
+      >
+        {/* Logo 区域 */}
+        <div
+          style={{
+            padding: '16px 14px',
+            borderRadius: 12,
+            background: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: -20,
+              right: -20,
+              width: 100,
+              height: 100,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.1)',
+            }}
+          />
+          <Typography.Title heading={5} style={{ margin: 0, color: '#fff', position: 'relative' }}>
+            ⚡ Flowgram
+          </Typography.Title>
+          <Typography.Text
+            style={{
+              color: 'rgba(255,255,255,0.85)',
+              fontSize: 12,
+              position: 'relative',
+            }}
+          >
+            控制台 · 管理与组件
+          </Typography.Text>
+        </div>
+
+        {/* 导航菜单 */}
+        <div style={{ flex: 1 }}>
+          <Nav
+            mode="vertical"
+            items={[
+              { itemKey: 'workflow', text: '🔄 工作流管理' },
+              { itemKey: 'component', text: '🧩 组件管理' },
+            ]}
+            selectedKeys={[activeMenu]}
+            onSelect={(data) => {
+              const key = data.itemKey as MenuKey;
+              setActiveMenu(key);
+              if (key === 'workflow') window.location.hash = '#/';
+              if (key === 'component') window.location.hash = '#/components';
+            }}
+            style={{
+              background: 'transparent',
+            }}
+          />
+        </div>
+
+        {/* 底部版本信息 */}
+        <div
+          style={{
+            padding: '12px 14px',
+            borderRadius: 10,
+            background: 'rgba(102, 126, 234, 0.08)',
+            border: '1px solid rgba(102, 126, 234, 0.15)',
+          }}
+        >
+          <Typography.Text
+            type="tertiary"
+            style={{ fontSize: 11, display: 'block', fontWeight: 500 }}
+          >
+            💎 v1.0.0 Demo
+          </Typography.Text>
+          <Typography.Text type="tertiary" style={{ fontSize: 10 }}>
+            Powered by Flowgram.ai
+          </Typography.Text>
+        </div>
+      </div>
+      {/* 右侧内容区 */}
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#F7F8FA',
         }}
       >
         <div
           style={{
-            padding: '10px 12px',
-            borderRadius: 8,
-            background: '#fff',
-            border: '1px solid rgba(6,7,9,0.06)',
-            boxShadow: '0 1px 4px rgba(6,7,9,0.06)',
-          }}
-        >
-          <Typography.Title heading={5} style={{ margin: 0 }}>
-            Flowgram 控制台
-          </Typography.Title>
-          <Typography.Text type="tertiary">管理与组件</Typography.Text>
-        </div>
-        <Nav
-          mode="vertical"
-          items={[
-            { itemKey: 'workflow', text: '工作流管理' },
-            { itemKey: 'component', text: '组件管理' },
-          ]}
-          selectedKeys={[activeMenu]}
-          onSelect={(data) => {
-            const key = data.itemKey as MenuKey;
-            setActiveMenu(key);
-            if (key === 'workflow') window.location.hash = '#/';
-            if (key === 'component') window.location.hash = '#/components';
-          }}
-        />
-        <div style={{ marginTop: 'auto', padding: '0 4px' }}>
-          <Typography.Text type="tertiary">v1.0.0 Demo</Typography.Text>
-        </div>
-      </div>
-      {/* 右侧内容区 */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <div
-          style={{
             borderBottom: '1px solid rgba(6,7,9,0.06)',
-            padding: '10px 12px',
+            padding: '16px 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             background: '#fff',
-            boxShadow: '0 1px 6px rgba(6,7,9,0.06)',
+            boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
+            backdropFilter: 'blur(8px)',
           }}
         >
           {renderHeader()}
