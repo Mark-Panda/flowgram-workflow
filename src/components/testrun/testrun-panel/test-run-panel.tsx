@@ -5,16 +5,19 @@
 
 import { FC, useState, useEffect } from 'react';
 
+import { nanoid } from 'nanoid';
 import classnames from 'classnames';
 import { WorkflowInputs, WorkflowOutputs } from '@flowgram.ai/runtime-interface';
 import { type PanelFactory, usePanelManager } from '@flowgram.ai/panel-manager-plugin';
 import { useService } from '@flowgram.ai/free-layout-editor';
-import { Button, Switch } from '@douyinfe/semi-ui';
+import { Button } from '@douyinfe/semi-ui';
 import { IconClose, IconPlay, IconSpin } from '@douyinfe/semi-icons';
 
 import { TestRunJsonInput } from '../testrun-json-input';
 import { TestRunForm } from '../testrun-form';
 import { NodeStatusGroup } from '../node-status-bar/group';
+import { executeTestRun, fetchRunLogs } from '../../../services/test-run-http';
+import { getRuleBaseInfo } from '../../../services/rule-base-info';
 import { WorkflowRuntimeService } from '../../../plugins/runtime-plugin/runtime-service';
 import { IconCancel } from '../../../assets/icon-cancel';
 
@@ -27,7 +30,11 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
 
   const panelManager = usePanelManager();
   const [isRunning, setRunning] = useState(false);
-  const [values, setValues] = useState<Record<string, unknown>>({});
+  const [values, setValues] = useState<Record<string, unknown>>({
+    headers: { 'Content-Type': 'application/json' },
+    body: { temperature: 68 },
+    metadata: 'key1=value1&key2=value2',
+  });
   const [errors, setErrors] = useState<string[]>();
   const [result, setResult] = useState<
     | {
@@ -36,17 +43,7 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
       }
     | undefined
   >();
-
-  // en - Use localStorage to persist the JSON mode state
-  const [inputJSONMode, _setInputJSONMode] = useState(() => {
-    const savedMode = localStorage.getItem('testrun-input-json-mode');
-    return savedMode ? JSON.parse(savedMode) : false;
-  });
-
-  const setInputJSONMode = (checked: boolean) => {
-    _setInputJSONMode(checked);
-    localStorage.setItem('testrun-input-json-mode', JSON.stringify(checked));
-  };
+  const [logsData, setLogsData] = useState<any | undefined>();
 
   const onTestRun = async () => {
     if (isRunning) {
@@ -55,9 +52,52 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
     }
     setResult(undefined);
     setErrors(undefined);
-    const taskID = await runtimeService.taskRun(values);
-    if (taskID) {
-      setRunning(true);
+    const mt = values.msgType;
+    if (typeof mt !== 'string' || mt.trim().length === 0) {
+      setErrors(['消息类型为必填']);
+      return;
+    }
+    const base = getRuleBaseInfo();
+    const ruleId = String(base?.id ?? '');
+    if (!ruleId) {
+      setErrors(['缺少规则链ID']);
+      return;
+    }
+    const msgType = String(mt);
+    setRunning(true);
+    try {
+      const msgId = nanoid(24) + '11';
+      const resp = await executeTestRun({
+        ruleId,
+        msgType,
+        metadata: String(values.metadata ?? '').trim(),
+        headers: (values.headers || {}) as any,
+        body: (values.body as any) ?? {},
+        debugMode: true,
+        msgId,
+      });
+      setResult({ inputs: (values as any) ?? {}, outputs: (resp.data as any) ?? {} });
+      if (resp.ok) {
+        const poll = async () => {
+          const logs = await fetchRunLogs(msgId);
+          setLogsData(logs?.logs);
+        };
+        // initial fetch and then start interval
+        await poll();
+        const id = setInterval(poll, 1500);
+        // stop polling when panel closes or rerun
+        const stop = () => clearInterval(id);
+        // attach to runtimeService reset
+        const disposer = runtimeService.onReset(() => stop());
+        // also stop when component unmounts
+        setTimeout(() => {
+          // no-op placeholder
+        }, 0);
+      }
+    } catch (e) {
+      setErrors([String((e as Error)?.message ?? e)]);
+    } finally {
+      setRunning(false);
     }
   };
 
@@ -77,20 +117,7 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
 
   const renderForm = (
     <div className={styles['testrun-panel-form']}>
-      <div className={styles['testrun-panel-input']}>
-        <div className={styles.title}>Input Form</div>
-        <div>JSON Mode</div>
-        <Switch
-          checked={inputJSONMode}
-          onChange={(checked: boolean) => setInputJSONMode(checked)}
-          size="small"
-        />
-      </div>
-      {inputJSONMode ? (
-        <TestRunJsonInput values={values} setValues={setValues} />
-      ) : (
-        <TestRunForm values={values} setValues={setValues} />
-      )}
+      <TestRunForm values={values} setValues={setValues} />
       {errors?.map((e) => (
         <div className={styles.error} key={e}>
           {e}
@@ -98,6 +125,7 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
       ))}
       <NodeStatusGroup title="Inputs Result" data={result?.inputs} optional disableCollapse />
       <NodeStatusGroup title="Outputs Result" data={result?.outputs} optional disableCollapse />
+      <NodeStatusGroup title="Logs" data={formatLogs(logsData)} optional disableCollapse />
     </div>
   );
 
@@ -110,7 +138,7 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
         [styles.default]: !isRunning,
       })}
     >
-      {isRunning ? 'Cancel' : 'Test Run'}
+      {isRunning ? 'Cancel' : '试运行'}
     </Button>
   );
 
@@ -137,7 +165,7 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
   return (
     <div className={styles['testrun-panel-container']}>
       <div className={styles['testrun-panel-header']}>
-        <div className={styles['testrun-panel-title']}>Test Run</div>
+        <div className={styles['testrun-panel-title']}>试运行</div>
         <Button
           className={styles['testrun-panel-title']}
           type="tertiary"
@@ -154,6 +182,22 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
     </div>
   );
 };
+
+function formatLogs(logs: any[]): any {
+  if (!Array.isArray(logs)) return undefined;
+  const byNode: Record<string, any> = {};
+  logs.forEach((item) => {
+    const nodeId = item?.nodeId;
+    if (!nodeId) return;
+    byNode[nodeId] = {
+      inMsg: item?.inMsg,
+      outMsg: item?.outMsg,
+      relationType: item?.relationType,
+      err: item?.err,
+    };
+  });
+  return byNode;
+}
 
 export const testRunPanelFactory: PanelFactory<TestRunSidePanelProps> = {
   key: 'test-run-panel',

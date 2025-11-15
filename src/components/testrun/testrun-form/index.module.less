@@ -68,7 +68,12 @@
   padding: 8px 8px 8px 4px;
   border-radius: 8px;
   border: 1px solid #7f92cd40;
-  width: 348px;
+  width: 100%;
+  box-sizing: border-box;
+
+  :global(.gedit-m-code-editor-container) {
+    width: 100% !important;
+  }
 
   :global(.cm-editor) {
     height: 100% !important;

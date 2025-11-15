@@ -12,8 +12,8 @@ import { formMeta } from './form-meta';
 
 let index = 0;
 const defaultCode = `// 函数签名不可修改
-async function String(msg, metadata, msgType, dataType) {
-  return 'Incoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);
+async function ToString(msg, metadata, msgType, dataType) {
+  return 'Incoming message:' + JSON.stringify(msg) + 'Incoming metadata:' + JSON.stringify(metadata);
 }`;
 
 export const LogStringNodeRegistry: FlowNodeRegistry = {

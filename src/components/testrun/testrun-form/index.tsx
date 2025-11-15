@@ -90,41 +90,90 @@ export const TestRunForm: FC<TestRunFormProps> = ({ values, setValues }) => {
     }
   };
 
-  // Show empty state if no fields
-  if (fields.length === 0) {
-    return (
-      <div className={styles.formContainer}>
-        <div className={styles.emptyState}>
-          <div className={styles.emptyText}>Empty</div>
-          <div className={styles.emptyText}>No inputs found in start node</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.formContainer}>
-      {fields.map((field) => (
-        <div key={field.name} className={styles.fieldGroup}>
-          <label htmlFor={field.name} className={styles.fieldLabel}>
-            {field.name}
-            {field.required && <span className={styles.requiredIndicator}>*</span>}
-            <span className={styles.fieldTypeIndicator}>
-              <DisplaySchemaTag
-                value={{
-                  type: field.type,
-                  items: field.itemsType
-                    ? {
-                        type: field.itemsType,
-                      }
-                    : undefined,
-                }}
-              />
-            </span>
-          </label>
-          {renderField(field)}
+      <div className={styles.fieldGroup}>
+        <label htmlFor={'msgType'} className={styles.fieldLabel}>
+          消息类型<span className={styles.requiredIndicator}>*</span>
+        </label>
+        <div className={styles.fieldInput}>
+          <Input
+            value={String(values.msgType ?? '')}
+            onChange={(v) => setValues({ ...values, msgType: v })}
+            placeholder="请输入消息类型"
+          />
         </div>
-      ))}
+      </div>
+
+      <div className={styles.fieldGroup}>
+        <label htmlFor={'metadata'} className={styles.fieldLabel}>
+          元数据
+          <span className={styles.fieldTypeIndicator}>
+            <DisplaySchemaTag value={{ type: 'string' }} />
+          </span>
+        </label>
+        <div className={styles.fieldInput}>
+          <Input
+            value={String(values.metadata ?? '')}
+            onChange={(v) => setValues({ ...values, metadata: v })}
+            placeholder="请输入元数据"
+          />
+        </div>
+      </div>
+
+      <div className={styles.fieldGroup}>
+        <label htmlFor={'headers'} className={styles.fieldLabel}>
+          请求头
+          <span className={styles.fieldTypeIndicator}>
+            <DisplaySchemaTag value={{ type: 'object' }} />
+          </span>
+        </label>
+        <div className={classNames(styles.fieldInput, styles.codeEditorWrapper)}>
+          <JsonValueEditor
+            value={values.headers as any}
+            onChange={(val) => setValues({ ...values, headers: val })}
+          />
+        </div>
+      </div>
+
+      <div className={styles.fieldGroup}>
+        <label htmlFor={'body'} className={styles.fieldLabel}>
+          请求体
+          <span className={styles.fieldTypeIndicator}>
+            <DisplaySchemaTag value={{ type: 'object' }} />
+          </span>
+        </label>
+        <div className={classNames(styles.fieldInput, styles.codeEditorWrapper)}>
+          <JsonValueEditor
+            value={values.body as any}
+            onChange={(val) => setValues({ ...values, body: val })}
+          />
+        </div>
+      </div>
+
+      {fields.length === 0
+        ? null
+        : fields.map((field) => (
+            <div key={field.name} className={styles.fieldGroup}>
+              <label htmlFor={field.name} className={styles.fieldLabel}>
+                {field.name}
+                {field.required && <span className={styles.requiredIndicator}>*</span>}
+                <span className={styles.fieldTypeIndicator}>
+                  <DisplaySchemaTag
+                    value={{
+                      type: field.type,
+                      items: field.itemsType
+                        ? {
+                            type: field.itemsType,
+                          }
+                        : undefined,
+                    }}
+                  />
+                </span>
+              </label>
+              {renderField(field)}
+            </div>
+          ))}
     </div>
   );
 };

@@ -273,7 +273,7 @@ function buildRuleChainMetaNodes(
       base.configuration = newconfig;
       break;
     }
-    case 'llm': {
+    case 'ai/llm': {
       if (
         n.data?.inputs &&
         Object.keys(n.data?.inputs).length > 0 &&
@@ -356,7 +356,7 @@ function buildRuleChainMetaNodes(
           n.type === 'jsTransform'
             ? 'Transform'
             : n.type === 'log'
-            ? 'String'
+            ? 'ToString'
             : n.type === 'jsFilter'
             ? 'Filter'
             : '';
@@ -660,12 +660,12 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
           };
           break;
         }
-        case 'llm': {
+        case 'ai/llm': {
           const cfg = n.configuration ?? {};
           const msg = Array.isArray(cfg.messages) ? cfg.messages[0]?.content : '';
           const params = cfg.params ?? {};
           base.data = {
-            title: n.name ?? 'llm',
+            title: n.name ?? 'ai/llm',
             positionType: 'middle',
             inputsValues: {
               model: { type: 'constant', content: String(cfg.model ?? '') },
@@ -735,7 +735,7 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
             positionType: 'middle',
             script: {
               language: 'javascript',
-              content: `// 函数签名不可修改\nasync function String(msg, metadata, msgType, dataType) {\n${body}\n}`,
+              content: `// 函数签名不可修改\nasync function ToString(msg, metadata, msgType, dataType) {\n${body}\n}`,
             },
           };
           break;

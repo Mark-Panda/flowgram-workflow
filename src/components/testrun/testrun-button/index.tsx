@@ -66,7 +66,7 @@ export function TestRunButton(props: { disabled: boolean }) {
         size="small"
         theme="solid"
       >
-        测试运行
+        试运行
       </Button>
     ) : (
       <Badge count={errorCount} position="rightTop" type="danger">
@@ -79,7 +79,7 @@ export function TestRunButton(props: { disabled: boolean }) {
           size="small"
           theme="solid"
         >
-          测试运行
+          试运行
         </Button>
       </Badge>
     );

@@ -22,7 +22,7 @@ export const FormRender = ({ form }: FormRenderProps<LogStringNodeJSON>) => (
 );
 
 const SIGNATURE_REG =
-  /^(?:\s*async\s+)?function\s+String\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
+  /^(?:\s*async\s+)?function\s+ToString\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
 
 export const formMeta: FormMeta = {
   render: (props) => <FormRender {...props} />,

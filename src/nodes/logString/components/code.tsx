@@ -22,10 +22,10 @@ export function LogStringCode() {
       <Divider />
       <Field<string> name="script.content">
         {({ field }) => {
-          const FIXED_HEADER = 'async function String(msg, metadata, msgType, dataType) {';
-          const SIGNATURE_STRING = /^(?:\s*async\s+)?function\s+String\s*\([^)]*\)\s*\{/m;
+          const FIXED_HEADER = 'async function ToString(msg, metadata, msgType, dataType) {';
+          const SIGNATURE_STRING = /^(?:\s*async\s+)?function\s+ToString\s*\([^)]*\)\s*\{/m;
           const SIGNATURE_STRICT =
-            /^(?:\s*async\s+)?function\s+String\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
+            /^(?:\s*async\s+)?function\s+ToString\s*\(\s*msg\s*,\s*metadata\s*,\s*msgType\s*,\s*dataType\s*\)\s*\{/m;
 
           const enforceSignature = (src: string): string => {
             if (SIGNATURE_STRICT.test(src)) return src; // already correct

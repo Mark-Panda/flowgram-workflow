@@ -384,7 +384,7 @@ export const initialData: FlowDocumentJSON = {
         },
         {
           id: 'llm_ZqKlP',
-          type: 'llm',
+          type: 'ai/llm',
           meta: {
             position: {
               x: 804,
