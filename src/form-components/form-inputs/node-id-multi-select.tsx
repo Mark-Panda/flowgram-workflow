@@ -47,7 +47,9 @@ export const NodeIdMultiSelect: React.FC<NodeIdMultiSelectProps> = ({
 
   const selectedValues =
     (value?.type === 'constant'
-      ? (Array.isArray(value.content) ? (value.content as string[]) : [])
+      ? Array.isArray(value.content)
+        ? (value.content as string[])
+        : []
       : []) ?? [];
 
   return (

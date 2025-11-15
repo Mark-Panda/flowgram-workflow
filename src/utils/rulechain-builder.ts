@@ -886,6 +886,30 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
           };
           break;
         }
+        case 'transform/multiNodeOutput': {
+          const cfg = n.configuration ?? {};
+          const arr = Array.isArray((cfg as any).nodeIds) ? (cfg as any).nodeIds : [];
+          base.data = {
+            title: n.name ?? '获取多节点输出',
+            positionType: 'middle',
+            inputs: {
+              type: 'object',
+              required: ['nodeIds'],
+              properties: {
+                nodeIds: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  extra: { formComponent: 'node-selector-multi', label: '节点列表' },
+                },
+              },
+            },
+            inputsValues: {
+              nodeIds: { type: 'constant', content: arr },
+            },
+            outputs: { type: 'object', properties: {} },
+          } as any;
+          break;
+        }
         case 'for': {
           const cfg = n.configuration ?? {};
           base.data = {
