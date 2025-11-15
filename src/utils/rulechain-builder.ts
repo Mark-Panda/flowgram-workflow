@@ -6,6 +6,7 @@
 import { nanoid } from 'nanoid';
 import { WorkflowDocument, WorkflowNodeEntity } from '@flowgram.ai/free-layout-editor';
 
+import { FlowDocumentJSON, FlowNodeJSON } from '../typings/node';
 import { WorkflowNodeType } from '../nodes/constants';
 
 export interface RuleChainBaseInfo {
@@ -208,12 +209,11 @@ function buildRuleChainMetaNodes(
       if (n.blocks && n.blocks.length > 0) {
         const forBlocks: any = [];
         for (const b of n.blocks) {
+          forBlocks.push(b);
           const nodeType = String(b.type);
-          if (nodeType === 'block-start' || nodeType === 'block-end') {
-            forBlocks.push(b);
-            continue;
+          if (nodeType !== 'block-start' && nodeType !== 'block-end') {
+            buildRuleChainMetaNodes(b, nodesRC, connectionsRC);
           }
-          buildRuleChainMetaNodes(b, nodesRC, connectionsRC);
         }
         base.configuration.extra.blocks = forBlocks;
       }
@@ -222,16 +222,15 @@ function buildRuleChainMetaNodes(
         for (const e of n.edges) {
           const sourceId = e.sourceNodeID ?? '';
           const targetId = e.targetNodeID ?? '';
+          forEdges.push(e);
           if (
-            String(sourceId).startsWith('block_start') ||
-            String(targetId).startsWith('block_end')
+            !String(sourceId).startsWith('block_start') &&
+            !String(targetId).startsWith('block_end')
           ) {
-            forEdges.push(e);
-            continue;
-          }
-          const connection = buildRuleChainMetaConnection(e);
-          if (connection) {
-            connectionsRC.push(connection);
+            const connection = buildRuleChainMetaConnection(e);
+            if (connection) {
+              connectionsRC.push(connection);
+            }
           }
         }
         base.configuration.extra.edges = forEdges;
@@ -491,4 +490,356 @@ function buildRuleChainMetaConnection(n: any): NodeConnectionRC | null {
     type: n.sourcePortID ?? 'Success',
     label: n.sourcePortID ?? n.label,
   };
+}
+
+export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowDocumentJSON {
+  const rc: RuleChainRC = typeof raw === 'string' ? (JSON.parse(raw) as any) : (raw as any);
+  const spacingX = 440;
+  const spacingY = 180;
+  const startX = 180;
+  const startY = 180;
+  const rcNodes: any[] = Array.isArray(rc?.metadata?.nodes) ? (rc as any).metadata.nodes : [];
+  const rcConns: any[] = Array.isArray(rc?.metadata?.connections)
+    ? (rc as any).metadata.connections
+    : [];
+
+  const nestedChildIds = new Set<string>();
+  rcNodes.forEach((n: any) => {
+    const extra = (n?.configuration as any)?.extra;
+    if (extra && Array.isArray(extra.blocks)) {
+      for (const b of extra.blocks) nestedChildIds.add(String(b.id));
+    }
+  });
+  const ids = rcNodes.map((n: any) => String(n.id)).filter((id) => !nestedChildIds.has(id));
+  const adjacency = new Map<string, string[]>();
+  const indegree = new Map<string, number>();
+  ids.forEach((id) => {
+    adjacency.set(id, []);
+    indegree.set(id, 0);
+  });
+  const topLevelConns = rcConns.filter((c: any) => {
+    const fromId = String(c.fromId ?? c.from?.id ?? '');
+    const toId = String(c.toId ?? c.to?.id ?? '');
+    return !nestedChildIds.has(fromId) && !nestedChildIds.has(toId);
+  });
+  for (const c of topLevelConns) {
+    const fromId = String(c.fromId ?? c.from?.id ?? '');
+    const toId = String(c.toId ?? c.to?.id ?? '');
+    if (!fromId || !toId) continue;
+    if (!adjacency.has(fromId)) adjacency.set(fromId, []);
+    adjacency.get(fromId)!.push(toId);
+    indegree.set(toId, (indegree.get(toId) ?? 0) + 1);
+  }
+
+  let rootIds: string[] = [];
+  const firstIdx = (rc as any)?.metadata?.firstNodeIndex;
+  if (typeof firstIdx === 'number' && rcNodes[firstIdx]) {
+    rootIds = [String(rcNodes[firstIdx].id)];
+  } else {
+    rootIds = ids.filter((id) => (indegree.get(id) ?? 0) === 0);
+    if (rootIds.length === 0 && ids.length > 0) rootIds = [ids[0]];
+  }
+
+  const level: Record<string, number> = {};
+  ids.forEach((id) => (level[id] = 0));
+  const visited = new Set<string>();
+  const queue: string[] = [];
+  for (const r of rootIds) {
+    level[r] = 0;
+    queue.push(r);
+    visited.add(r);
+  }
+  while (queue.length) {
+    const curr = queue.shift()!;
+    const nexts = adjacency.get(curr) ?? [];
+    for (const nb of nexts) {
+      const nextLevel = level[curr] + 1;
+      if (level[nb] < nextLevel) level[nb] = nextLevel;
+      if (!visited.has(nb)) {
+        visited.add(nb);
+        queue.push(nb);
+      }
+    }
+  }
+  const maxLevel = Math.max(0, ...Object.values(level));
+  ids.forEach((id) => {
+    if (!visited.has(id)) level[id] = maxLevel + 1;
+  });
+  const buckets = new Map<number, string[]>();
+  ids.forEach((id) => {
+    const lv = level[id];
+    if (!buckets.has(lv)) buckets.set(lv, []);
+    buckets.get(lv)!.push(id);
+  });
+  const reverseAdjacency = new Map<string, string[]>();
+  ids.forEach((id) => reverseAdjacency.set(id, []));
+  for (const [from, tos] of adjacency.entries()) {
+    for (const to of tos) {
+      if (!reverseAdjacency.has(to)) reverseAdjacency.set(to, []);
+      reverseAdjacency.get(to)!.push(from);
+    }
+  }
+  const sortByBarycenter = (
+    layerIds: string[],
+    neighborPos: Map<string, number>,
+    getNeighbors: (id: string) => string[]
+  ) => {
+    const originalIndex = new Map<string, number>();
+    layerIds.forEach((id, i) => originalIndex.set(id, i));
+    return [...layerIds]
+      .map((id) => {
+        const ns = (getNeighbors(id) || []).filter((n) => neighborPos.has(n));
+        if (ns.length === 0) {
+          return { id, bc: originalIndex.get(id) ?? 0 };
+        }
+        const bc = ns.reduce((sum, n) => sum + (neighborPos.get(n) ?? 0), 0) / ns.length;
+        return { id, bc };
+      })
+      .sort((a, b) => a.bc - b.bc)
+      .map((x) => x.id);
+  };
+  const layerKeys = Array.from(buckets.keys()).sort((a, b) => a - b);
+  for (let i = 1; i < layerKeys.length; i++) {
+    const prevLayer = buckets.get(layerKeys[i - 1]) ?? [];
+    const currLayer = buckets.get(layerKeys[i]) ?? [];
+    const posPrev = new Map<string, number>();
+    prevLayer.forEach((id, idx) => posPrev.set(id, idx));
+    const reordered = sortByBarycenter(currLayer, posPrev, (id) => reverseAdjacency.get(id) ?? []);
+    buckets.set(layerKeys[i], reordered);
+  }
+  for (let i = layerKeys.length - 2; i >= 0; i--) {
+    const nextLayer = buckets.get(layerKeys[i + 1]) ?? [];
+    const currLayer = buckets.get(layerKeys[i]) ?? [];
+    const posNext = new Map<string, number>();
+    nextLayer.forEach((id, idx) => posNext.set(id, idx));
+    const reordered = sortByBarycenter(currLayer, posNext, (id) => adjacency.get(id) ?? []);
+    buckets.set(layerKeys[i], reordered);
+  }
+
+  const nodeById = new Map<string, any>();
+  rcNodes.forEach((n) => nodeById.set(String(n.id), n));
+  const nodes: FlowNodeJSON[] = ids
+    .map((id) => {
+      const n = nodeById.get(id) ?? {};
+      const lv = level[id] ?? 0;
+      const layerNodes = buckets.get(lv) ?? [];
+      const idxInLayer = layerNodes.indexOf(id);
+      const fallbackX = startX + lv * spacingX;
+      const fallbackY = startY + (idxInLayer >= 0 ? idxInLayer : 0) * spacingY;
+      const pos = (n?.additionalInfo?.meta?.position as any) || { x: fallbackX, y: fallbackY };
+      const t = String(n.type ?? 'default');
+      if (t === 'groupAction') return null as any;
+      const base: any = {
+        id,
+        type: t,
+        meta: { position: { x: pos.x, y: pos.y } },
+        data: { title: n.name ?? String(t) },
+      };
+      switch (t) {
+        case 'restApiCall': {
+          const cfg = n.configuration ?? {};
+          base.data = {
+            title: n.name ?? 'restApiCall',
+            positionType: 'middle',
+            api: {
+              method: cfg.requestMethod ?? 'GET',
+              url: cfg.restEndpointUrlPattern
+                ? { type: 'template', content: String(cfg.restEndpointUrlPattern) }
+                : undefined,
+            },
+            headers: {},
+            headersValues: Object.keys(cfg.headers || {}).reduce((acc: any, k) => {
+              acc[k] = { type: 'constant', content: (cfg.headers as any)[k] };
+              return acc;
+            }, {}),
+            params: {},
+            paramsValues: Object.keys(cfg.params || {}).reduce((acc: any, k) => {
+              acc[k] = { type: 'constant', content: (cfg.params as any)[k] };
+              return acc;
+            }, {}),
+            body: {
+              bodyType: 'JSON',
+              json: cfg.body ? { type: 'template', content: cfg.body } : undefined,
+            },
+            timeout: { retryTimes: 0, timeout: cfg.readTimeoutMs ?? 0 },
+          };
+          break;
+        }
+        case 'llm': {
+          const cfg = n.configuration ?? {};
+          const msg = Array.isArray(cfg.messages) ? cfg.messages[0]?.content : '';
+          const params = cfg.params ?? {};
+          base.data = {
+            title: n.name ?? 'llm',
+            positionType: 'middle',
+            inputsValues: {
+              userPrompt: { type: 'template', content: String(msg ?? '') },
+              temperature: { type: 'constant', content: params.temperature ?? 0.5 },
+              responseFormat: { type: 'constant', content: params.responseFormat ?? 'text' },
+              topP: { type: 'constant', content: params.topP ?? 0.5 },
+              maxTokens: { type: 'constant', content: params.maxTokens ?? null },
+            },
+            inputs: { type: 'object', properties: {} },
+          };
+          break;
+        }
+        case 'jsTransform': {
+          const body = String((n.configuration ?? {}).jsScript ?? '');
+          base.data = {
+            title: n.name ?? 'jsTransform',
+            positionType: 'middle',
+            script: {
+              language: 'javascript',
+              content: `// 函数签名不可修改\nasync function Transform(msg, metadata, msgType, dataType) {\n${body}\n}`,
+            },
+          };
+          break;
+        }
+        case 'log': {
+          const body = String((n.configuration ?? {}).jsScript ?? '');
+          base.data = {
+            title: n.name ?? 'log',
+            positionType: 'middle',
+            script: {
+              language: 'javascript',
+              content: `// 函数签名不可修改\nasync function String(msg, metadata, msgType, dataType) {\n${body}\n}`,
+            },
+          };
+          break;
+        }
+        case 'jsFilter': {
+          const body = String((n.configuration ?? {}).jsScript ?? '');
+          base.data = {
+            title: n.name ?? 'jsFilter',
+            positionType: 'middle',
+            script: {
+              language: 'javascript',
+              content: `// 函数签名不可修改\nasync function Filter(msg, metadata, msgType, dataType) {\n${body}\n}`,
+            },
+          };
+          break;
+        }
+        case 'switch': {
+          const cfg = n.configuration ?? {};
+          const cases = Array.isArray(cfg.cases) ? cfg.cases : [];
+          base.data = {
+            title: n.name ?? 'switch',
+            cases: cases.map((c: any) => ({
+              key: String(c.then ?? ''),
+              groups: [
+                { operator: 'and', rows: [{ type: 'expression', content: String(c.case ?? '') }] },
+              ],
+            })),
+            ELSE: true,
+          };
+          break;
+        }
+        case 'flow': {
+          const cfg = n.configuration ?? {};
+          base.data = {
+            title: n.name ?? 'flow',
+            positionType: 'middle',
+            inputsValues: {
+              targetId: { type: 'constant', content: String(cfg.targetId ?? '') },
+              extend: { type: 'constant', content: !!cfg.extend },
+            },
+          };
+          break;
+        }
+        case 'for': {
+          const cfg = n.configuration ?? {};
+          base.data = {
+            title: n.name ?? 'for',
+            positionType: 'middle',
+            note: { type: 'constant', content: String(cfg.range ?? '') },
+            nodeId: { type: 'constant', content: String(cfg.do ?? '') },
+            operationMode: { type: 'constant', content: Number(cfg.mode ?? 0) },
+          };
+          const extra = (cfg as any).extra ?? {};
+          const blocks: any[] = Array.isArray(extra.blocks)
+            ? extra.blocks
+            : [
+                {
+                  id: `block_start_${Math.random().toString(36).slice(2, 7)}`,
+                  type: 'block-start',
+                  meta: { position: { x: 32, y: 0 } },
+                  data: { positionType: 'middle' },
+                },
+                {
+                  id: `block_end_${Math.random().toString(36).slice(2, 7)}`,
+                  type: 'block-end',
+                  meta: { position: { x: 192, y: 0 } },
+                  data: { positionType: 'middle' },
+                },
+              ];
+          const bs = blocks.find((b) => String(b.type) === 'block-start');
+          const be = blocks.find((b) => String(b.type) === 'block-end');
+          let innerEdges: any[] = Array.isArray(extra.edges) ? extra.edges : [];
+          if (!innerEdges || innerEdges.length === 0) {
+            const targetId = String(cfg.do ?? '') || String(base.data?.nodeId?.content ?? '');
+            if (bs && targetId) {
+              innerEdges = [
+                { sourceNodeID: String(bs.id), targetNodeID: targetId },
+                be ? { sourceNodeID: targetId, targetNodeID: String(be.id) } : undefined,
+              ].filter(Boolean) as any[];
+            }
+          }
+          base.blocks = blocks;
+          base.edges = innerEdges;
+          break;
+        }
+        default: {
+          const cfg = n.configuration ?? {};
+          const inputsValues = Object.keys(cfg).reduce((acc: any, k) => {
+            acc[k] = { type: 'constant', content: (cfg as any)[k] };
+            return acc;
+          }, {});
+          base.data = { title: n.name ?? t, inputsValues };
+          break;
+        }
+      }
+      return base as FlowNodeJSON;
+    })
+    .filter(Boolean) as FlowNodeJSON[];
+
+  const edges = topLevelConns.map((e: any) => ({
+    sourceNodeID: String(e.fromId ?? e.from?.id ?? ''),
+    targetNodeID: String(e.toId ?? e.to?.id ?? ''),
+    sourcePortID: e.type ?? e.label ?? undefined,
+  }));
+
+  const endpoints: any[] = Array.isArray(rc?.metadata?.endpoints)
+    ? (rc as any).metadata.endpoints
+    : [];
+  for (const ep of endpoints) {
+    if (String(ep.type) === 'endpoint/schedule') {
+      const cron = ep?.routers?.[0]?.from?.path ?? '';
+      const toPath = ep?.routers?.[0]?.to?.path ?? '';
+      const targetId =
+        typeof toPath === 'string' && toPath.includes(':') ? toPath.split(':')[1] : undefined;
+      const x = startX - spacingX;
+      const y = startY;
+      const cronNode: any = {
+        id: String(ep.id ?? `cron_${Math.random().toString(36).slice(2, 8)}`),
+        type: 'endpoint/schedule',
+        meta: { position: { x, y } },
+        data: {
+          title: ep.name ?? '定时任务',
+          positionType: 'header',
+          inputsValues: { cron: { type: 'constant', content: String(cron ?? '') } },
+          inputs: { type: 'object', properties: {} },
+        },
+      };
+      nodes.unshift(cronNode);
+      if (targetId) {
+        edges.unshift({
+          sourceNodeID: String(cronNode.id),
+          targetNodeID: String(targetId),
+          sourcePortID: 'Success',
+        });
+      }
+    }
+  }
+
+  return { nodes, edges } as any;
 }
