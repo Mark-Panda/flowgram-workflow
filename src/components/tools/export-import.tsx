@@ -149,6 +149,15 @@ export function ExportImport(props: { disabled?: boolean }) {
         return;
       }
 
+      try {
+        const existingNodes = workflowDocument.getAllNodes();
+        existingNodes.forEach((n) => {
+          if (workflowDocument.canRemove(n)) {
+            n.dispose();
+          }
+        });
+      } catch {}
+
       workflowDocument.fromJSON({ nodes: doc.nodes, edges: doc.edges });
 
       if ((doc as any).globalVariable) {

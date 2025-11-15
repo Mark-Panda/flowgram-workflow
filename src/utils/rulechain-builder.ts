@@ -673,13 +673,41 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
             title: n.name ?? 'llm',
             positionType: 'middle',
             inputsValues: {
+              model: { type: 'constant', content: String(cfg.model ?? '') },
+              key: { type: 'constant', content: String(cfg.key ?? '') },
+              url: { type: 'constant', content: String(cfg.url ?? '') },
+              systemPrompt: { type: 'template', content: String(cfg.systemPrompt ?? '') },
               userPrompt: { type: 'template', content: String(msg ?? '') },
               temperature: { type: 'constant', content: params.temperature ?? 0.5 },
-              responseFormat: { type: 'constant', content: params.responseFormat ?? 'text' },
               topP: { type: 'constant', content: params.topP ?? 0.5 },
-              maxTokens: { type: 'constant', content: params.maxTokens ?? null },
+              maxTokens: { type: 'constant', content: params.maxTokens ?? 0 },
+              responseFormat: { type: 'constant', content: params.responseFormat ?? 'text' },
             },
-            inputs: { type: 'object', properties: {} },
+            inputs: {
+              type: 'object',
+              required: [
+                'model',
+                'key',
+                'url',
+                'temperature',
+                'userPrompt',
+                'topP',
+                'maxTokens',
+                'responseFormat',
+              ],
+              properties: {
+                model: { type: 'string', extra: { label: '模型名称' } },
+                key: { type: 'string' },
+                url: { type: 'string' },
+                systemPrompt: { type: 'string', extra: { label: '系统提示词', formComponent: 'prompt-editor' } },
+                userPrompt: { type: 'string', extra: { label: '用户提示词', formComponent: 'prompt-editor' } },
+                maxTokens: { type: 'number', extra: { label: '最大输出长度' } },
+                responseFormat: { type: 'string', enum: ['text', 'json_object', 'json_schema'], extra: { label: '输出格式', formComponent: 'enum-select' } },
+                temperature: { type: 'number' },
+                topP: { type: 'number' },
+              },
+            },
+            outputs: { type: 'object', properties: {} },
           };
           break;
         }
@@ -722,14 +750,52 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
         case 'switch': {
           const cfg = n.configuration ?? {};
           const cases = Array.isArray(cfg.cases) ? cfg.cases : [];
+          const splitTopLevel = (expr: string, delim: '||' | '&&') => {
+            const parts: string[] = [];
+            let buf = '';
+            let depth = 0;
+            let inSingle = false;
+            let inDouble = false;
+            let inTemplate = false;
+            for (let i = 0; i < expr.length; i++) {
+              const ch = expr[i];
+              const prev = expr[i - 1];
+              if (!inSingle && !inDouble && !inTemplate) {
+                if (ch === '(') depth++;
+                else if (ch === ')') depth = Math.max(0, depth - 1);
+                else if (ch === "'" && prev !== '\\') inSingle = true;
+                else if (ch === '"' && prev !== '\\') inDouble = true;
+                else if (ch === '`' && prev !== '\\') inTemplate = true;
+                const isDelim = delim === '||' ? expr.slice(i, i + 2) === '||' : expr.slice(i, i + 2) === '&&';
+                if (isDelim && depth === 0) {
+                  parts.push(buf.trim());
+                  buf = '';
+                  i++;
+                  continue;
+                }
+              } else {
+                if (inSingle && ch === "'" && prev !== '\\') inSingle = false;
+                else if (inDouble && ch === '"' && prev !== '\\') inDouble = false;
+                else if (inTemplate && ch === '`' && prev !== '\\') inTemplate = false;
+              }
+              buf += ch;
+            }
+            if (buf.trim()) parts.push(buf.trim());
+            return parts.filter((p) => p.length > 0);
+          };
+          const parseRow = (rowExpr: string) => ({ type: 'expression', content: rowExpr.trim() });
           base.data = {
             title: n.name ?? 'switch',
-            cases: cases.map((c: any) => ({
-              key: String(c.then ?? ''),
-              groups: [
-                { operator: 'and', rows: [{ type: 'expression', content: String(c.case ?? '') }] },
-              ],
-            })),
+            positionType: 'middle',
+            cases: cases.map((c: any) => {
+              const expr = String(c.case ?? '');
+              const groupsExpr = splitTopLevel(expr, '||');
+              const groups = groupsExpr.map((ge) => {
+                const rowsExpr = splitTopLevel(ge, '&&');
+                return { operator: 'and', rows: rowsExpr.map(parseRow) };
+              });
+              return { key: String(c.then ?? ''), groups };
+            }),
             ELSE: true,
           };
           break;
@@ -808,6 +874,16 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
     sourcePortID: e.type ?? e.label ?? undefined,
   }));
 
+  const typeById = new Map<string, string>();
+  nodes.forEach((n: any) => typeById.set(String(n.id), String(n.type)));
+  edges.forEach((e: any) => {
+    const srcType = typeById.get(String(e.sourceNodeID));
+    const tgtType = typeById.get(String(e.targetNodeID));
+    if (e.sourcePortID === 'Success' && srcType === 'for' && tgtType === 'log') {
+      delete e.sourcePortID;
+    }
+  });
+
   const endpoints: any[] = Array.isArray(rc?.metadata?.endpoints)
     ? (rc as any).metadata.endpoints
     : [];
@@ -815,10 +891,9 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
     if (String(ep.type) === 'endpoint/schedule') {
       const cron = ep?.routers?.[0]?.from?.path ?? '';
       const toPath = ep?.routers?.[0]?.to?.path ?? '';
-      const targetId =
-        typeof toPath === 'string' && toPath.includes(':') ? toPath.split(':')[1] : undefined;
-      const x = startX - spacingX;
-      const y = startY;
+      const pos = (ep?.additionalInfo as any)?.meta?.position;
+      const x = typeof pos?.x === 'number' ? pos.x : startX - spacingX;
+      const y = typeof pos?.y === 'number' ? pos.y : startY;
       const cronNode: any = {
         id: String(ep.id ?? `cron_${Math.random().toString(36).slice(2, 8)}`),
         type: 'endpoint/schedule',
@@ -831,15 +906,29 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
         },
       };
       nodes.unshift(cronNode);
-      if (targetId) {
+      const targetId =
+        typeof toPath === 'string' && toPath.includes(':') ? toPath.split(':')[1] : undefined;
+      const exists = edges.some(
+        (e: any) => e.sourceNodeID === String(cronNode.id) && e.targetNodeID === String(targetId)
+      );
+      if (targetId && targetId !== String(cronNode.id) && !exists) {
         edges.unshift({
           sourceNodeID: String(cronNode.id),
           targetNodeID: String(targetId),
-          sourcePortID: 'Success',
+          // 默认端口不写入，保持与示例 b.json 一致
+          // sourcePortID: 'Success',
         });
       }
     }
   }
+
+  const globalVariable = {
+    type: 'object',
+    required: [],
+    properties: { userId: { type: 'string' } },
+  } as any;
+
+  return { nodes, edges, globalVariable } as any;
 
   return { nodes, edges } as any;
 }
