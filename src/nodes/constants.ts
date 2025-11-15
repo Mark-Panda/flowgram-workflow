@@ -27,6 +27,7 @@ export enum WorkflowNodeType {
   JsFilter = 'jsFilter',
   DBClient = 'dbClient',
   Cron = 'endpoint/schedule',
+  Flow = 'flow',
 }
 
 export enum OutPutPortType {

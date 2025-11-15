@@ -35,6 +35,7 @@ export const NODE_TYPE_NAMES: Record<string, string> = {
   [WorkflowNodeType.LLM]: 'LLM大模型',
   [WorkflowNodeType.DBClient]: '数据库',
   [WorkflowNodeType.Cron]: '定时任务',
+  [WorkflowNodeType.Flow]: '子规则链',
 
   // 辅助节点
   [WorkflowNodeType.LogString]: '日志输出',

@@ -446,6 +446,17 @@ function buildRuleChainMetaNodes(
       }
       break;
     }
+    case 'flow': {
+      if (n.data?.inputs && n.data?.inputsValues) {
+        const tId = n.data?.inputsValues?.targetId?.content;
+        const ext = n.data?.inputsValues?.extend?.content;
+        base.configuration = {
+          targetId: String(tId ?? ''),
+          extend: !!ext,
+        } as any;
+      }
+      break;
+    }
     default: {
       // 保持默认逻辑
       if (

@@ -10,7 +10,7 @@ import { FormItem } from '../form-item';
 import { Feedback } from '../feedback';
 import { JsonSchema } from '../../typings';
 import { useNodeRenderContext } from '../../hooks';
-import { ArrayEditor } from './array-editor';
+import { RuleSelect } from './rule-select';
 
 export function FormInputs() {
   const { readonly } = useNodeRenderContext();
@@ -66,6 +66,14 @@ export function FormInputs() {
                       schema={property}
                     />
                   )}
+                  {formComponent === 'rule-select' && (
+                    <RuleSelect
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                    />
+                  )}
                   {formComponent === 'array-editor' && (
                     <ArrayEditor
                       value={field.value}
@@ -96,3 +104,4 @@ export function FormInputs() {
 }
 import { NodeIdSelect } from './node-id-select';
 import { EnumSelect } from './enum-select';
+import { ArrayEditor } from './array-editor';
