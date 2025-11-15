@@ -38,8 +38,9 @@ export const NodeIdMultiSelect: React.FC<NodeIdMultiSelectProps> = ({
         const json = document.toNodeJSON(n) as any;
         const title = json?.data?.title;
         return {
-          label: title ? String(title) : n.id,
+          label: `${title ? String(title) : n.id} (${n.id})`,
           value: n.id,
+          key: n.id,
         };
       }),
     [nodes, document]

@@ -38,8 +38,9 @@ export const NodeIdSelect: React.FC<NodeIdSelectProps> = ({
         const json = document.toNodeJSON(n) as any;
         const title = json?.data?.title;
         return {
-          label: title ? String(title) : n.id,
+          label: `${title ? String(title) : n.id} (${n.id})`,
           value: n.id,
+          key: n.id,
         };
       }),
     [nodes, document]
@@ -47,6 +48,9 @@ export const NodeIdSelect: React.FC<NodeIdSelectProps> = ({
 
   const selectedValue =
     (value?.type === 'constant' ? (value.content as string) : undefined) ?? undefined;
+  const selectedLabel = options.find((opt) => opt.value === selectedValue)?.label as
+    | string
+    | undefined;
 
   return (
     <div style={{ width: '100%' }}>
@@ -58,6 +62,7 @@ export const NodeIdSelect: React.FC<NodeIdSelectProps> = ({
         disabled={readonly}
         insetLabel={hasError ? '!' : undefined}
         style={{ width: '100%' }}
+        renderSelectedItem={() => (selectedLabel ? selectedLabel : selectedValue)}
       />
     </div>
   );
