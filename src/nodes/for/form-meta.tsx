@@ -83,9 +83,11 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
   const textInput = (
     <Field<IFlowValue> name={`note`}>
       {({ field, fieldState }) => (
-        <FormItem name={'迭代值表达式'} type={'string'}>
+        <FormItem name={'迭代值表达式'} type={'string'} required>
           <Input
-            value={typeof field.value?.content === 'string' ? (field.value?.content as string) : ''}
+            value={
+              typeof field.value?.content === 'string' ? (field.value?.content as string) : '1..3'
+            }
             onChange={(val) => field.onChange({ type: 'constant', content: val })}
             disabled={readonly}
           />
