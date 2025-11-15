@@ -25,6 +25,7 @@ import { createContainerNodePlugin } from '@flowgram.ai/free-container-plugin';
 import { canContainNode, onDragLineEnd } from '../utils';
 import { FlowNodeRegistry, FlowDocumentJSON } from '../typings';
 import { shortcuts } from '../shortcuts';
+import { DirtyService } from '../services/dirty-service';
 import { CustomService } from '../services';
 import { GetGlobalVariableSchema } from '../plugins/variable-panel-plugin';
 import { WorkflowRuntimeService } from '../plugins/runtime-plugin/runtime-service';
@@ -247,6 +248,10 @@ export function useEditorProps(
           ...ctx.document.toJSON(),
           globalVariable: ctx.get<GetGlobalVariableSchema>(GetGlobalVariableSchema)(),
         });
+        try {
+          const svc = ctx.get(DirtyService);
+          svc.setDirty(true);
+        } catch {}
       }, 1000),
       /**
        * Running line
@@ -269,12 +274,17 @@ export function useEditorProps(
        */
       onBind: ({ bind }) => {
         bind(CustomService).toSelf().inSingletonScope();
+        bind(DirtyService).toSelf().inSingletonScope();
       },
       /**
        * Playground init
        */
       onInit(ctx) {
         console.log('--- Playground init ---');
+        try {
+          const svc = ctx.get(DirtyService);
+          svc.setDirty(false);
+        } catch {}
       },
       /**
        * Playground render

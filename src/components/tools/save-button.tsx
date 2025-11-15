@@ -14,12 +14,19 @@ import { problemPanelFactory } from '../problem-panel';
 import { collectWorkflowProblems } from '../../utils/workflow-validation';
 import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
 import { getRuleBaseInfo } from '../../services/rule-base-info';
+import { DirtyService } from '../../services/dirty-service';
 import { updateRule } from '../../services/api-rules';
 
 export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   const wfDocument = useService(WorkflowDocument);
   const { playground, document } = useClientContext();
   const panelManager = usePanelManager();
+  const dirtyService = useService(DirtyService);
+  const [isDirty, setDirty] = React.useState<boolean>(dirtyService.dirty);
+  React.useEffect(() => {
+    const disposer = dirtyService.onChange((d) => setDirty(d));
+    return () => disposer.dispose();
+  }, [dirtyService]);
 
   const onClick = async () => {
     try {
@@ -39,6 +46,9 @@ export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
       }
       await updateRule(id, payload);
       Toast.success({ content: '保存成功' });
+      try {
+        dirtyService.setDirty(false);
+      } catch {}
     } catch (e) {
       console.error(e);
       Toast.error({ content: `保存失败：${String((e as Error)?.message ?? e)}` });
@@ -52,7 +62,7 @@ export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
         type="primary"
         theme="solid"
         size="small"
-        disabled={disabled || playground.config.readonly}
+        disabled={disabled || playground.config.readonly || !isDirty}
         onClick={onClick}
       >
         保存
