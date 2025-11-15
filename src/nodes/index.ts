@@ -7,6 +7,7 @@ import { FlowNodeRegistry } from '../typings';
 import { TransformNodeRegistry } from './transform';
 import { StartNodeRegistry } from './start';
 import { MultiNodeOutputRegistry } from './multi-node-output';
+import { LuaTransformNodeRegistry } from './luaTransform';
 import { LogStringNodeRegistry } from './logString';
 import { LLMNodeRegistry } from './llm';
 import { JsFilterNodeRegistry } from './jsFilter';
@@ -30,6 +31,7 @@ export { NODE_TYPE_NAMES, getNodeTypeName, getNodeDisplayName } from './node-typ
 // 节点注册
 export const nodeRegistries: FlowNodeRegistry[] = [
   TransformNodeRegistry,
+  LuaTransformNodeRegistry,
   JsFilterNodeRegistry,
   LogStringNodeRegistry,
   CaseConditionNodeRegistry,

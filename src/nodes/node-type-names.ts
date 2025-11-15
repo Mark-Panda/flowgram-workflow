@@ -48,6 +48,7 @@ export const NODE_TYPE_NAMES: Record<string, string> = {
 
   // 多输出节点
   [WorkflowNodeType.MultiNodeOutput]: '获取多节点输出',
+  [WorkflowNodeType.LuaTransform]: 'Lua 脚本转换',
 
   // 分组节点
   group: '分组',

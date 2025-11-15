@@ -446,6 +446,24 @@ function buildRuleChainMetaNodes(
       }
       break;
     }
+    case 'luaTransform': {
+      if (n.data?.script) {
+        const scriptText: string = String(n.data?.script?.content ?? '');
+        const fnIdx = scriptText.indexOf('function Transform');
+        if (fnIdx >= 0) {
+          const lineEndIdx = scriptText.indexOf('\n', fnIdx);
+          const endIdx = scriptText.lastIndexOf('end');
+          const body = scriptText
+            .slice(
+              lineEndIdx >= 0 ? lineEndIdx + 1 : fnIdx,
+              endIdx >= 0 ? endIdx : scriptText.length
+            )
+            .trim();
+          base.configuration = { luaScript: body } as any;
+        }
+      }
+      break;
+    }
     case 'flow': {
       if (n.data?.inputs && n.data?.inputsValues) {
         const tId = n.data?.inputsValues?.targetId?.content;
@@ -759,6 +777,18 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
             script: {
               language: 'javascript',
               content: `// 函数签名不可修改\nasync function Transform(msg, metadata, msgType, dataType) {\n${body}\n}`,
+            },
+          };
+          break;
+        }
+        case 'luaTransform': {
+          const body = String((n.configuration ?? {}).luaScript ?? '');
+          base.data = {
+            title: n.name ?? 'luaTransform',
+            positionType: 'middle',
+            script: {
+              language: 'lua',
+              content: `-- 函数签名不可修改\nfunction Transform(msg, metadata, msgType, dataType)\n${body}\nend`,
             },
           };
           break;

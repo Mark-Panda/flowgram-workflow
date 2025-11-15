@@ -29,6 +29,7 @@ export enum WorkflowNodeType {
   DBClient = 'dbClient',
   Cron = 'endpoint/schedule',
   Flow = 'flow',
+  LuaTransform = 'luaTransform',
 }
 
 export enum OutPutPortType {
