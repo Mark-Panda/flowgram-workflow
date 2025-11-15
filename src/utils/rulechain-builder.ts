@@ -66,7 +66,6 @@ interface RuleMetadataRC {
   nodes: RuleNodeRC[];
   connections: NodeConnectionRC[];
   ruleChainConnections?: Array<{ fromId: string; toId: string; type: string }>;
-  flowgramUI?: any;
 }
 
 interface RuleChainRC {
@@ -86,6 +85,14 @@ export function buildRuleChainJSONFromDocument(
     flattened.push(n);
     if (Array.isArray(n.blocks)) {
       n.blocks.forEach((b: any) => flattened.push(b));
+    }
+  });
+  // 汇总连接：顶层 edges + loop 内 edges
+  const connectionsRC: NodeConnectionRC[] = [];
+  raw.edges.forEach((n: any) => {
+    const conn = buildRuleChainMetaConnection(n);
+    if (conn) {
+      connectionsRC.push(conn);
     }
   });
   const endpoiontNode = ['endpoint/schedule'];
@@ -130,12 +137,9 @@ export function buildRuleChainJSONFromDocument(
       return base;
     });
 
-  // 汇总连接：顶层 edges + loop 内 edges
-  const connectionsRC: NodeConnectionRC[] = [];
   const nodesRC: RuleNodeRC[] = [];
   flattened.map((n: any) => {
     buildRuleChainMetaNodes(n, nodesRC, connectionsRC);
-    buildRuleChainMetaConnections(n, connectionsRC);
     return;
   });
   console.log(nodesRC, connectionsRC);
@@ -157,7 +161,6 @@ export function buildRuleChainJSONFromDocument(
       nodes: nodesRC,
       connections: connectionsRC,
       ruleChainConnections: [],
-      // flowgramUI: raw,
     },
   };
 
@@ -479,24 +482,12 @@ function buildRuleChainMetaNodes(
   return [nodesRC, connectionsRC];
 }
 
-function buildRuleChainMetaConnections(n: any, connectionsRC: NodeConnectionRC[]) {
-  if (Array.isArray((n as any).edges)) {
-    (n.edges as any[]).forEach((e: any) => {
-      if (!e) return;
-      const connection = buildRuleChainMetaConnection(e);
-      if (connection) {
-        connectionsRC.push(connection);
-      }
-    });
-  }
-  return connectionsRC;
-}
 function buildRuleChainMetaConnection(n: any): NodeConnectionRC | null {
   const sourceId = n.sourceNodeID ?? '';
   const targetId = n.targetNodeID ?? '';
-  // if (String(sourceId).startsWith('block_start') || String(targetId).startsWith('block_end')) {
-  //   return null;
-  // }
+  if (String(sourceId).startsWith('block_start') || String(targetId).startsWith('block_end')) {
+    return null;
+  }
   return {
     fromId: sourceId,
     toId: targetId,
