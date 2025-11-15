@@ -83,21 +83,25 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
       });
       setResult({ inputs: (values as any) ?? {}, outputs: (resp.data as any) ?? {} });
       if (resp.ok) {
+        let timer: any;
         const poll = async () => {
           const logs = await fetchRunLogs(msgId);
-          setLogsData(logs?.logs);
+          const list = logs?.logs;
+          setLogsData(list);
+          if (Array.isArray(list) && list.length > 0 && timer) {
+            clearInterval(timer);
+            timer = null;
+          }
         };
-        // initial fetch and then start interval
         await poll();
-        const id = setInterval(poll, 1500);
-        // stop polling when panel closes or rerun
-        const stop = () => clearInterval(id);
-        // attach to runtimeService reset
-        const disposer = runtimeService.onReset(() => stop());
-        // also stop when component unmounts
-        setTimeout(() => {
-          // no-op placeholder
-        }, 0);
+        if (!timer) timer = setInterval(poll, 1500);
+        const stop = () => {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+        };
+        runtimeService.onReset(() => stop());
       }
     } catch (e) {
       setErrors([String((e as Error)?.message ?? e)]);
