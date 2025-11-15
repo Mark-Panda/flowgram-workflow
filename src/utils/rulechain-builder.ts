@@ -262,7 +262,14 @@ function buildRuleChainMetaNodes(
           parammap[key] = v?.content;
         }
         newconfig['params'] = parammap;
-        // TODO: 将params参数解析到URL上
+        const urlPattern = newconfig['restEndpointUrlPattern'];
+        if (urlPattern && typeof urlPattern === 'string' && Object.keys(parammap).length > 0) {
+          const qs = Object.entries(parammap)
+            .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v ?? ''))}`)
+            .join('&');
+          const sep = urlPattern.includes('?') ? '&' : '?';
+          newconfig['restEndpointUrlPattern'] = qs ? `${urlPattern}${sep}${qs}` : urlPattern;
+        }
       }
       if (n.data?.body && n.data?.body?.bodyType === 'JSON' && n.data?.body?.json?.content) {
         newconfig['body'] = n.data?.body.json.content;
@@ -632,7 +639,6 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
       };
       switch (t) {
         case 'start': {
-          const cfg = n.configuration ?? {};
           base.data = {
             title: n.name ?? 'Start',
           };
@@ -640,25 +646,47 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
         }
         case 'restApiCall': {
           const cfg = n.configuration ?? {};
+          const fullUrl = String(cfg.restEndpointUrlPattern ?? '');
+          let baseUrl = fullUrl;
+          const queryValues: Record<string, any> = {};
+          const qm = fullUrl.indexOf('?');
+          if (qm >= 0) {
+            baseUrl = fullUrl.slice(0, qm);
+            const qs = fullUrl.slice(qm + 1);
+            qs.split('&').forEach((pair) => {
+              if (!pair) return;
+              const [rawK, rawV] = pair.split('=');
+              if (!rawK) return;
+              const k = decodeURIComponent(rawK);
+              const v = rawV !== undefined ? decodeURIComponent(rawV) : '';
+              queryValues[k] = v;
+            });
+          }
+          const headerVals = Object.keys(cfg.headers || {}).reduce((acc: any, k) => {
+            acc[k] = { type: 'constant', content: (cfg.headers as any)[k] };
+            return acc;
+          }, {});
+          const paramValsFromCfg = Object.keys(cfg.params || {}).reduce((acc: any, k) => {
+            acc[k] = { type: 'constant', content: (cfg.params as any)[k] };
+            return acc;
+          }, {});
+          const paramValsFromUrl = Object.keys(queryValues).reduce((acc: any, k) => {
+            acc[k] = { type: 'constant', content: queryValues[k] };
+            return acc;
+          }, {});
+          const mergedParamVals = { ...paramValsFromUrl, ...paramValsFromCfg };
+
           base.data = {
             title: n.name ?? 'restApiCall',
             positionType: 'middle',
             api: {
               method: cfg.requestMethod ?? 'GET',
-              url: cfg.restEndpointUrlPattern
-                ? { type: 'template', content: String(cfg.restEndpointUrlPattern) }
-                : undefined,
+              url: baseUrl ? { type: 'template', content: baseUrl } : undefined,
             },
             headers: {},
-            headersValues: Object.keys(cfg.headers || {}).reduce((acc: any, k) => {
-              acc[k] = { type: 'constant', content: (cfg.headers as any)[k] };
-              return acc;
-            }, {}),
+            headersValues: headerVals,
             params: {},
-            paramsValues: Object.keys(cfg.params || {}).reduce((acc: any, k) => {
-              acc[k] = { type: 'constant', content: (cfg.params as any)[k] };
-              return acc;
-            }, {}),
+            paramsValues: mergedParamVals,
             body: {
               bodyType: 'JSON',
               json: cfg.body ? { type: 'template', content: cfg.body } : undefined,
