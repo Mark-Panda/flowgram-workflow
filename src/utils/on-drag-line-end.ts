@@ -96,6 +96,18 @@ export const onDragLineEnd = async (ctx: FreeLayoutPluginContext, params: onDrag
     return;
   }
 
+  // 画布只允许一个 Header 类型节点（创建前校验）
+  const rawBefore = document.toJSON();
+  const headerExists = Array.isArray(rawBefore.nodes)
+    ? rawBefore.nodes.some(
+        (n: any) => n?.data?.positionType === 'header' || String(n?.type) === 'start'
+      )
+    : false;
+  if (headerExists && isHeaderCandidate) {
+    Toast.error('画布中只能存在一个 Header 类型的节点');
+    return;
+  }
+
   // calculate position for the new node - 计算新节点的位置
   const nodePosition = WorkflowNodePanelUtils.adjustNodePosition({
     nodeType,
@@ -124,4 +136,17 @@ export const onDragLineEnd = async (ctx: FreeLayoutPluginContext, params: onDrag
     node,
     linesManager,
   });
+
+  // 二次校验：避免并发情况下出现多个 Header
+  const rawAfter = document.toJSON();
+  const headerCount = Array.isArray(rawAfter.nodes)
+    ? rawAfter.nodes.filter(
+        (n: any) => n?.data?.positionType === 'header' || String(n?.type) === 'start'
+      ).length
+    : 0;
+  if (isHeaderCandidate && headerCount > 1) {
+    node.dispose();
+    Toast.error('画布中只能存在一个 Header 类型的节点');
+    return;
+  }
 };
