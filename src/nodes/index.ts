@@ -16,6 +16,7 @@ import { ForkNodeRegistry } from './fork';
 import { ForNodeRegistry } from './for';
 import { FlowSubChainNodeRegistry } from './flow';
 import { FetchNodeOutputRegistry } from './fetch-node-output';
+import { MultiNodeOutputRegistry } from './multi-node-output';
 import { EndNodeRegistry } from './end';
 import { DBClientNodeRegistry } from './dbClient';
 import { CronNodeRegistry } from './cron';
@@ -39,6 +40,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   ForkNodeRegistry,
   JoinNodeRegistry,
   FetchNodeOutputRegistry,
+  MultiNodeOutputRegistry,
   CommentNodeRegistry,
   BlockStartNodeRegistry,
   BlockEndNodeRegistry,

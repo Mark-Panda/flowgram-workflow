@@ -11,6 +11,7 @@ import { Feedback } from '../feedback';
 import { JsonSchema } from '../../typings';
 import { useNodeRenderContext } from '../../hooks';
 import { RuleSelect } from './rule-select';
+import { NodeIdMultiSelect } from './node-id-multi-select';
 
 export function FormInputs() {
   const { readonly } = useNodeRenderContext();
@@ -51,6 +52,14 @@ export function FormInputs() {
                   )}
                   {formComponent === 'node-selector' && (
                     <NodeIdSelect
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                    />
+                  )}
+                  {formComponent === 'node-selector-multi' && (
+                    <NodeIdMultiSelect
                       value={field.value}
                       onChange={field.onChange}
                       readonly={readonly}

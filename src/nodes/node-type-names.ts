@@ -46,6 +46,9 @@ export const NODE_TYPE_NAMES: Record<string, string> = {
   [WorkflowNodeType.BlockStart]: '块开始',
   [WorkflowNodeType.BlockEnd]: '块结束',
 
+  // 多输出节点
+  [WorkflowNodeType.MultiNodeOutput]: '获取多节点输出',
+
   // 分组节点
   group: '分组',
 };
