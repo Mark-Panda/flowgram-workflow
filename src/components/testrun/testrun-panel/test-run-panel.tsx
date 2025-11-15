@@ -88,6 +88,9 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
           const logs = await fetchRunLogs(msgId);
           const list = logs?.logs;
           setLogsData(list);
+          try {
+            runtimeService.injectLogs(list || [], logs?.startTs, logs?.endTs);
+          } catch {}
           if (Array.isArray(list) && list.length > 0 && timer) {
             clearInterval(timer);
             timer = null;

@@ -167,7 +167,7 @@ export class WorkflowRuntimeService {
         if (isEmpty(schema, v)) requiredOk = false;
       });
       const blocks = Array.isArray(json?.blocks) ? json.blocks : [];
-      blocks.forEach((b) => validateNode(b));
+      blocks.forEach((b: any) => validateNode(b));
     };
     toJSONList.forEach(validateNode);
     return requiredOk;
@@ -209,6 +209,48 @@ export class WorkflowRuntimeService {
       }
     }
     this.updateReport(report);
+  }
+
+  public injectLogs(logs: any[], startTs?: number, endTs?: number): void {
+    const timeCost = typeof startTs === 'number' && typeof endTs === 'number' ? endTs - startTs : 0;
+    const toVal = (v: any) => {
+      if (v === null || v === undefined) return v;
+      if (typeof v === 'string') {
+        try {
+          const parsed = JSON.parse(v);
+          return parsed;
+        } catch {
+          return v;
+        }
+      }
+      return v;
+    };
+    (logs || []).forEach((item: any) => {
+      const id = String(item?.nodeId ?? '');
+      if (!id) return;
+      const inputs = item?.inMsg ? { ...item.inMsg, data: toVal(item.inMsg?.data) } : undefined;
+      const outputs = item?.outMsg ? { ...item.outMsg, data: toVal(item.outMsg?.data) } : undefined;
+      const branch = item?.relationType;
+      const error = item?.err;
+      const nodeReport: NodeReport = {
+        id,
+        status: error ? WorkflowStatus.Failed : WorkflowStatus.Succeeded,
+        timeCost,
+        snapshots: [
+          {
+            inputs,
+            outputs,
+            branch,
+            data: undefined,
+            error,
+          } as any,
+        ],
+      } as any;
+      this.reportEmitter.fire(nodeReport);
+    });
+    try {
+      this.document.linesManager.forceUpdate();
+    } catch {}
   }
 
   private updateReport(report: IReport): void {
