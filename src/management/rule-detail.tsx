@@ -7,6 +7,7 @@ import React, { useMemo, useState } from 'react';
 
 import { Button, Input, Nav, Switch, Typography, Toast, Tag } from '@douyinfe/semi-ui';
 
+import { buildDocumentFromRuleChainJSON } from '../utils/rulechain-builder';
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
 import { setRuleBaseInfo } from '../services/rule-base-info';
 import { createRuleBase, getRuleDetail } from '../services/api-rules';
@@ -59,13 +60,12 @@ export const RuleDetail: React.FC<{
   );
 
   // 将接口返回的 metadata 转换为 FlowDocumentJSON：
-  // 优先使用 metadata.flowgramUI；若无则按“新界面”处理
+  // 渲染逻辑与“导入 JSON”保持一致：优先使用 flowgramUI，其次将 RuleChain JSON 转换为编辑器文档
   const convertMetadataToDoc = (md?: RuleDetailData['metadata']): FlowDocumentJSON | undefined => {
-    // 1) 若后端提供了原始的编辑器文档（flowgramUI），直接使用
-    if (md && md.flowgramUI && Array.isArray((md.flowgramUI as any)?.nodes)) {
-      return md.flowgramUI as FlowDocumentJSON;
+    if (md && Array.isArray(md.nodes) && Array.isArray(md.connections)) {
+      const rc = { ruleChain: data.ruleChain, metadata: md } as any;
+      return buildDocumentFromRuleChainJSON(rc) as any;
     }
-    // 2) 否则视为新界面：只创建一个起始节点
     const startNode: FlowNodeJSON = {
       id: String(data?.ruleChain?.id ?? 'start_' + Math.random().toString(36).slice(2, 8)),
       type: WorkflowNodeType.Start,

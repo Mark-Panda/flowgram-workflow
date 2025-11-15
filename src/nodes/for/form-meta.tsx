@@ -12,6 +12,7 @@ import {
   DisplayOutputs,
   IFlowValue,
   IFlowRefValue,
+  validateFlowValue,
 } from '@flowgram.ai/form-materials';
 import { Input, Select } from '@douyinfe/semi-ui';
 
@@ -85,11 +86,10 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
       {({ field, fieldState }) => (
         <FormItem name={'迭代值表达式'} type={'string'} required>
           <Input
-            value={
-              typeof field.value?.content === 'string' ? (field.value?.content as string) : '1..3'
-            }
+            value={typeof field.value?.content === 'string' ? (field.value?.content as string) : ''}
             onChange={(val) => field.onChange({ type: 'constant', content: val })}
             disabled={readonly}
+            placeholder={'1..3'}
           />
           <Feedback errors={fieldState?.errors} />
         </FormItem>
@@ -100,7 +100,7 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
   const modeSelect = (
     <Field<IFlowValue> name={`operationMode`}>
       {({ field, fieldState }) => (
-        <FormItem name={'执行模式'} type={'number'}>
+        <FormItem name={'执行模式'} type={'number'} required>
           {(() => {
             const cur = field.value?.content as number | undefined;
             if (typeof cur !== 'number') {
@@ -175,6 +175,26 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
 export const formMeta: FormMeta = {
   ...defaultFormMeta,
   render: ForFormRender,
-  // 移除 forFor 的 effect 映射
+  validate: {
+    ...(defaultFormMeta as any).validate,
+    note: ({ value, context }) =>
+      validateFlowValue(value, {
+        node: context.node,
+        required: true,
+        errorMessages: { required: '迭代值表达式为必填' },
+      }),
+    operationMode: ({ value, context }) =>
+      validateFlowValue(value, {
+        node: context.node,
+        required: true,
+        errorMessages: { required: '执行模式为必填' },
+      }),
+    nodeId: ({ value, context }) =>
+      validateFlowValue(value, {
+        node: context.node,
+        required: true,
+        errorMessages: { required: '处理节点ID为必填' },
+      }),
+  },
   plugins: [createBatchOutputsFormPlugin({ outputKey: 'forOutputs', inferTargetKey: 'outputs' })],
 };

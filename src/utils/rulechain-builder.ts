@@ -80,23 +80,18 @@ export function buildRuleChainJSONFromDocument(
 ): string {
   const raw = document.toJSON() as any;
 
-  // 展平节点（包含 loop/group 等子块）
-  const flattened: any[] = [];
-  raw.nodes.forEach((n: any) => {
-    flattened.push(n);
-  });
-  // 汇总连接：顶层 edges + loop 内 edges
+  const flattened: any[] = Array.isArray(raw.nodes) ? raw.nodes.slice() : [];
+
   const connectionsRC: NodeConnectionRC[] = [];
-  raw.edges.forEach((n: any) => {
-    const conn = buildRuleChainMetaConnection(n);
-    if (conn) {
-      connectionsRC.push(conn);
+  if (Array.isArray(raw.edges)) {
+    for (const e of raw.edges as any[]) {
+      const conn = buildRuleChainMetaConnection(e);
+      if (conn) connectionsRC.push(conn);
     }
-  });
-  const endpoiontNode = ['endpoint/schedule'];
-  // 处理endpoiont节点信息
+  }
+  const endpointTypes = new Set(['endpoint/schedule']);
   const endpoiontsRc: EndpointDsl[] = flattened
-    .filter((n: any) => endpoiontNode.includes(String(n.type)))
+    .filter((n: any) => endpointTypes.has(String(n.type)))
     .map((n: any) => {
       const nodeType = String(n.type);
       const base: EndpointDsl = {
@@ -136,11 +131,9 @@ export function buildRuleChainJSONFromDocument(
     });
 
   const nodesRC: RuleNodeRC[] = [];
-  flattened.map((n: any) => {
+  for (const n of flattened) {
     buildRuleChainMetaNodes(n, nodesRC, connectionsRC);
-    return;
-  });
-  console.log(nodesRC, connectionsRC);
+  }
 
   const startIndex = nodesRC.findIndex((n) => n.type === 'start');
   const ruleChain: RuleChainRC = {
@@ -169,7 +162,7 @@ function buildRuleChainMetaNodes(
   n: any,
   nodesRC: RuleNodeRC[],
   connectionsRC: NodeConnectionRC[]
-): [RuleNodeRC[], NodeConnectionRC[]] {
+): void {
   const nodeType = String(n.type);
   const base: RuleNodeRC = {
     id: n.id,
@@ -185,8 +178,7 @@ function buildRuleChainMetaNodes(
     case 'endpoint/schedule':
     case 'block-start':
     case 'block-end':
-      // 按要求：endpoint/schedule 不加入 nodesRC
-      return null as any;
+      return;
     case 'group': {
       if (n.data) {
         base.configuration = { nodeIds: n.data?.blockIDs };
@@ -197,9 +189,9 @@ function buildRuleChainMetaNodes(
     case 'for': {
       if (n.data) {
         base.configuration = {
-          range: n.data?.note.content,
-          do: n.data?.nodeId.content,
-          mode: n.data?.operationMode.content,
+          range: n.data?.note?.content,
+          do: n.data?.nodeId?.content,
+          mode: n.data?.operationMode?.content,
           extra: {
             blocks: [],
             edges: [],
@@ -207,11 +199,11 @@ function buildRuleChainMetaNodes(
         };
       }
       if (n.blocks && n.blocks.length > 0) {
-        const forBlocks: any = [];
+        const forBlocks: any[] = [];
         for (const b of n.blocks) {
           forBlocks.push(b);
-          const nodeType = String(b.type);
-          if (nodeType !== 'block-start' && nodeType !== 'block-end') {
+          const t = String(b.type);
+          if (t !== 'block-start' && t !== 'block-end') {
             buildRuleChainMetaNodes(b, nodesRC, connectionsRC);
           }
         }
@@ -252,9 +244,10 @@ function buildRuleChainMetaNodes(
         Object.keys(n.data?.headers).length > 0
       ) {
         const headermap: Record<string, any> = {};
-        Object.keys(n.data.headers.properties).forEach((key: string) => {
-          headermap[key] = (n.data.headersValues as any)[key].content;
-        });
+        for (const key of Object.keys(n.data.headers.properties)) {
+          const v = (n.data.headersValues as any)[key];
+          headermap[key] = v?.content;
+        }
         newconfig['headers'] = headermap;
       }
       if (
@@ -264,9 +257,10 @@ function buildRuleChainMetaNodes(
         Object.keys(n.data?.params).length > 0
       ) {
         const parammap: Record<string, any> = {};
-        Object.keys(n.data.params.properties).forEach((key: string) => {
-          parammap[key] = (n.data.paramsValues as any)[key].content;
-        });
+        for (const key of Object.keys(n.data.params.properties)) {
+          const v = (n.data.paramsValues as any)[key];
+          parammap[key] = v?.content;
+        }
         newconfig['params'] = parammap;
         // TODO: 将params参数解析到URL上
       }
@@ -288,13 +282,13 @@ function buildRuleChainMetaNodes(
       ) {
         const configmap: Record<string, any> = {};
         const parammap: Record<string, any> = {};
-        Object.keys(n.data.inputs.properties).forEach((key: string) => {
+        for (const key of Object.keys(n.data.inputs.properties)) {
           switch (key) {
             case 'userPrompt':
               configmap['messages'] = [
                 {
                   role: 'user',
-                  content: (n.data.inputsValues as any)[key].content,
+                  content: (n.data.inputsValues as any)[key]?.content,
                 },
               ];
               break;
@@ -302,13 +296,13 @@ function buildRuleChainMetaNodes(
             case 'responseFormat':
             case 'topP':
             case 'maxTokens':
-              parammap[key] = (n.data.inputsValues as any)[key].content;
+              parammap[key] = (n.data.inputsValues as any)[key]?.content;
               break;
             default:
-              configmap[key] = (n.data.inputsValues as any)[key].content;
+              configmap[key] = (n.data.inputsValues as any)[key]?.content;
           }
-          configmap['params'] = parammap;
-        });
+        }
+        configmap['params'] = parammap;
         base.configuration = configmap;
       }
       break;
@@ -465,9 +459,10 @@ function buildRuleChainMetaNodes(
         Object.keys(n.data?.inputsValues).length > 0
       ) {
         const parammap: Record<string, any> = {};
-        Object.keys(n.data.inputs.properties).forEach((key) => {
-          parammap[key] = (n.data.inputsValues as any)[key].content;
-        });
+        for (const key of Object.keys(n.data.inputs.properties)) {
+          const v = (n.data.inputsValues as any)[key];
+          parammap[key] = v?.content;
+        }
         base.configuration = parammap;
       }
       break;
@@ -475,7 +470,7 @@ function buildRuleChainMetaNodes(
   }
 
   nodesRC.push(base);
-  return [nodesRC, connectionsRC];
+  return;
 }
 
 function buildRuleChainMetaConnection(n: any): NodeConnectionRC | null {
