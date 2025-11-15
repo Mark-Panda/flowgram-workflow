@@ -139,7 +139,38 @@ export class WorkflowRuntimeService {
     const formValidations = await Promise.all(allForms.map(async (form) => form?.validate()));
     const validations = formValidations.filter((validation) => validation !== undefined);
     const isValid = validations.every((validation) => validation);
-    return isValid;
+    if (!isValid) return false;
+    const nodes = this.document.getAllNodes();
+    const toJSONList = nodes.map((n) => this.document.toNodeJSON(n));
+    const getVal = (v: any) => {
+      if (!v) return undefined;
+      if (typeof v.content !== 'undefined') return v.content;
+      return v;
+    };
+    const isEmpty = (schema: any, val: any) => {
+      const t = schema?.type;
+      if (t === 'string') return !(typeof val === 'string' && val.trim().length > 0);
+      if (t === 'number') return !(typeof val === 'number');
+      if (t === 'boolean') return typeof val === 'boolean' ? false : true;
+      if (t === 'array') return Array.isArray(val) ? false : true;
+      if (t === 'object') return typeof val === 'object' && val !== null ? false : true;
+      return val === undefined || val === null;
+    };
+    let requiredOk = true;
+    const validateNode = (json: any) => {
+      const inputs = json?.data?.inputs;
+      const values = json?.data?.inputsValues;
+      const requiredKeys: string[] = Array.isArray(inputs?.required) ? inputs.required : [];
+      requiredKeys.forEach((k) => {
+        const schema = inputs?.properties?.[k];
+        const v = getVal(values?.[k]);
+        if (isEmpty(schema, v)) requiredOk = false;
+      });
+      const blocks = Array.isArray(json?.blocks) ? json.blocks : [];
+      blocks.forEach((b) => validateNode(b));
+    };
+    toJSONList.forEach(validateNode);
+    return requiredOk;
   }
 
   private reset(): void {

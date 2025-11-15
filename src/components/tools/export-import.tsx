@@ -64,12 +64,46 @@ export function ExportImport(props: { disabled?: boolean }) {
     const nodes = workflowDocument.getAllNodes();
     await Promise.all(nodes.map(async (n) => n.form?.validate()));
     const invalidNodes = nodes.filter((n) => n.form?.state.invalid);
-    if (invalidNodes.length > 0) {
-      const problems = invalidNodes.map((n) => {
-        const json: any = workflowDocument.toNodeJSON(n);
-        const title = json?.data?.title;
-        return { nodeId: n.id, title: title ? String(title) : n.id };
+    const toJSONList = nodes.map((n) => workflowDocument.toNodeJSON(n));
+    const getVal = (v: any) => {
+      if (!v) return undefined;
+      if (typeof v.content !== 'undefined') return v.content;
+      return v;
+    };
+    const isEmpty = (schema: any, val: any) => {
+      const t = schema?.type;
+      if (t === 'string') return !(typeof val === 'string' && val.trim().length > 0);
+      if (t === 'number') return !(typeof val === 'number');
+      if (t === 'boolean') return typeof val === 'boolean' ? false : true;
+      if (t === 'array') return Array.isArray(val) ? false : true;
+      if (t === 'object') return typeof val === 'object' && val !== null ? false : true;
+      return val === undefined || val === null;
+    };
+    const requiredInvalids: Array<{ nodeId: string; title?: string }> = [];
+    const validateNode = (json: any) => {
+      const inputs = json?.data?.inputs;
+      const values = json?.data?.inputsValues;
+      const requiredKeys: string[] = Array.isArray(inputs?.required) ? inputs.required : [];
+      requiredKeys.forEach((k) => {
+        const schema = inputs?.properties?.[k];
+        const v = getVal(values?.[k]);
+        if (isEmpty(schema, v)) {
+          requiredInvalids.push({ nodeId: json?.id, title: json?.data?.title });
+        }
       });
+      const blocks = Array.isArray(json?.blocks) ? json.blocks : [];
+      blocks.forEach((b: any) => validateNode(b));
+    };
+    toJSONList.forEach(validateNode);
+    if (invalidNodes.length > 0 || requiredInvalids.length > 0) {
+      const problems = [
+        ...invalidNodes.map((n) => {
+          const json: any = workflowDocument.toNodeJSON(n);
+          const title = json?.data?.title;
+          return { nodeId: n.id, title: title ? String(title) : n.id };
+        }),
+        ...requiredInvalids.map((r) => ({ nodeId: r.nodeId, title: r.title ?? r.nodeId })),
+      ];
       panelManager.open(problemPanelFactory.key, 'bottom', { props: { problems } });
       Toast.error('存在未填写的必填项');
       return;
@@ -83,12 +117,46 @@ export function ExportImport(props: { disabled?: boolean }) {
     const nodes = workflowDocument.getAllNodes();
     await Promise.all(nodes.map(async (n) => n.form?.validate()));
     const invalidNodes = nodes.filter((n) => n.form?.state.invalid);
-    if (invalidNodes.length > 0) {
-      const problems = invalidNodes.map((n) => {
-        const json: any = workflowDocument.toNodeJSON(n);
-        const title = json?.data?.title;
-        return { nodeId: n.id, title: title ? String(title) : n.id };
+    const toJSONList = nodes.map((n) => workflowDocument.toNodeJSON(n));
+    const getVal = (v: any) => {
+      if (!v) return undefined;
+      if (typeof v.content !== 'undefined') return v.content;
+      return v;
+    };
+    const isEmpty = (schema: any, val: any) => {
+      const t = schema?.type;
+      if (t === 'string') return !(typeof val === 'string' && val.trim().length > 0);
+      if (t === 'number') return !(typeof val === 'number');
+      if (t === 'boolean') return typeof val === 'boolean' ? false : true;
+      if (t === 'array') return Array.isArray(val) ? false : true;
+      if (t === 'object') return typeof val === 'object' && val !== null ? false : true;
+      return val === undefined || val === null;
+    };
+    const requiredInvalids: Array<{ nodeId: string; title?: string }> = [];
+    const validateNode = (json: any) => {
+      const inputs = json?.data?.inputs;
+      const values = json?.data?.inputsValues;
+      const requiredKeys: string[] = Array.isArray(inputs?.required) ? inputs.required : [];
+      requiredKeys.forEach((k) => {
+        const schema = inputs?.properties?.[k];
+        const v = getVal(values?.[k]);
+        if (isEmpty(schema, v)) {
+          requiredInvalids.push({ nodeId: json?.id, title: json?.data?.title });
+        }
       });
+      const blocks = Array.isArray(json?.blocks) ? json.blocks : [];
+      blocks.forEach((b: any) => validateNode(b));
+    };
+    toJSONList.forEach(validateNode);
+    if (invalidNodes.length > 0 || requiredInvalids.length > 0) {
+      const problems = [
+        ...invalidNodes.map((n) => {
+          const json: any = workflowDocument.toNodeJSON(n);
+          const title = json?.data?.title;
+          return { nodeId: n.id, title: title ? String(title) : n.id };
+        }),
+        ...requiredInvalids.map((r) => ({ nodeId: r.nodeId, title: r.title ?? r.nodeId })),
+      ];
       panelManager.open(problemPanelFactory.key, 'bottom', { props: { problems } });
       Toast.error('存在未填写的必填项');
       return;

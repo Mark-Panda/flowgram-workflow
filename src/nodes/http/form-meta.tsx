@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { FormMeta, FormRenderProps } from '@flowgram.ai/free-layout-editor';
+import { FormMeta, FormRenderProps, ValidateTrigger } from '@flowgram.ai/free-layout-editor';
 import { createInferInputsPlugin, DisplayOutputs } from '@flowgram.ai/form-materials';
 import { Divider } from '@douyinfe/semi-ui';
 
@@ -37,6 +37,14 @@ export const FormRender = ({ form }: FormRenderProps<HTTPNodeJSON>) => (
 
 export const formMeta: FormMeta = {
   render: (props) => <FormRender {...props} />,
+  validateTrigger: ValidateTrigger.onChange,
+  validate: {
+    'api.url': ({ value }: { value: any }) => {
+      const content =
+        typeof value?.content === 'string' ? value.content.trim() : String(value ?? '').trim();
+      return content.length > 0 ? undefined : 'URL 是必填项';
+    },
+  },
   effect: defaultFormMeta.effect,
   plugins: [
     createInferInputsPlugin({ sourceKey: 'headersValues', targetKey: 'headers' }),
