@@ -5,6 +5,7 @@
 
 import { useCallback, useState } from 'react';
 
+import { usePanelManager } from '@flowgram.ai/panel-manager-plugin';
 import {
   useClientContext,
   useService,
@@ -15,6 +16,7 @@ import { JsonSchemaUtils } from '@flowgram.ai/form-materials';
 import { Button, Modal, TextArea, Toast, Space, Dropdown } from '@douyinfe/semi-ui';
 import { IconDownload, IconUpload, IconCopy, IconChevronDown } from '@douyinfe/semi-icons';
 
+import { problemPanelFactory } from '../problem-panel';
 import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
 import { getRuleBaseInfo } from '../../services/rule-base-info';
@@ -24,6 +26,7 @@ import iconVariable from '../../assets/icon-variable.png';
 export function ExportImport(props: { disabled?: boolean }) {
   const { document: workflowDocument, get } = useClientContext();
   const globalScope = useService(GlobalScope);
+  const panelManager = usePanelManager();
 
   const [exportVisible, setExportVisible] = useState(false);
   const [importVisible, setImportVisible] = useState(false);
@@ -54,11 +57,24 @@ export function ExportImport(props: { disabled?: boolean }) {
     }
   }, [workflowDocument, get]);
 
-  const openExport = useCallback(() => {
+  const openExport = useCallback(async () => {
+    const nodes = workflowDocument.getAllNodes();
+    await Promise.all(nodes.map(async (n) => n.form?.validate()));
+    const invalidNodes = nodes.filter((n) => n.form?.state.invalid);
+    if (invalidNodes.length > 0) {
+      const problems = invalidNodes.map((n) => {
+        const json: any = workflowDocument.toNodeJSON(n);
+        const title = json?.data?.title;
+        return { nodeId: n.id, title: title ? String(title) : n.id };
+      });
+      panelManager.open(problemPanelFactory.key, 'bottom', { props: { problems } });
+      Toast.error('存在未填写的必填项');
+      return;
+    }
     const text = buildExportJSON();
     setExportText(text);
     setExportVisible(true);
-  }, [buildExportJSON]);
+  }, [buildExportJSON, workflowDocument]);
 
   /**
    * RuleChain 类型（对应用户提供的 Go 结构）
@@ -435,7 +451,20 @@ export function ExportImport(props: { disabled?: boolean }) {
     [workflowDocument]
   );
 
-  const openRuleChainExport = useCallback(() => {
+  const openRuleChainExport = useCallback(async () => {
+    const nodes = workflowDocument.getAllNodes();
+    await Promise.all(nodes.map(async (n) => n.form?.validate()));
+    const invalidNodes = nodes.filter((n) => n.form?.state.invalid);
+    if (invalidNodes.length > 0) {
+      const problems = invalidNodes.map((n) => {
+        const json: any = workflowDocument.toNodeJSON(n);
+        const title = json?.data?.title;
+        return { nodeId: n.id, title: title ? String(title) : n.id };
+      });
+      panelManager.open(problemPanelFactory.key, 'bottom', { props: { problems } });
+      Toast.error('存在未填写的必填项');
+      return;
+    }
     const baseInfo = getRuleBaseInfo();
     const text = buildRuleChainJSONFromDocument(workflowDocument, baseInfo);
     setRuleChainText(text);
@@ -698,7 +727,12 @@ export function ExportImport(props: { disabled?: boolean }) {
 
   return (
     <>
-      <Dropdown trigger="click" position="bottomRight" menu={menuItems} disabled={disabled}>
+      <Dropdown
+        trigger="click"
+        position="bottomRight"
+        menu={menuItems.map((item) => ({ ...item, node: 'item' as const }))}
+        disabled={disabled}
+      >
         <Button
           theme="light"
           size="small"

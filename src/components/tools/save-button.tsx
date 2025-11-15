@@ -5,20 +5,36 @@
 
 import React from 'react';
 
+import { usePanelManager } from '@flowgram.ai/panel-manager-plugin';
 import { useService, WorkflowDocument, useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Button, Toast, Tooltip } from '@douyinfe/semi-ui';
 import { IconSave } from '@douyinfe/semi-icons';
 
+import { problemPanelFactory } from '../problem-panel';
 import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
 import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { updateRule } from '../../services/api-rules';
 
 export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   const wfDocument = useService(WorkflowDocument);
-  const { playground } = useClientContext();
+  const { playground, document } = useClientContext();
+  const panelManager = usePanelManager();
 
   const onClick = async () => {
     try {
+      const nodes = document.getAllNodes();
+      await Promise.all(nodes.map(async (n) => n.form?.validate()));
+      const invalidNodes = nodes.filter((n) => n.form?.state.invalid);
+      if (invalidNodes.length > 0) {
+        const problems = invalidNodes.map((n) => {
+          const json: any = document.toNodeJSON(n);
+          const title = json?.data?.title;
+          return { nodeId: n.id, title: title ? String(title) : n.id };
+        });
+        panelManager.open(problemPanelFactory.key, 'bottom', { props: { problems } });
+        Toast.error({ content: '存在未填写的必填项' });
+        return;
+      }
       const baseInfo = getRuleBaseInfo();
       const text = buildRuleChainJSONFromDocument(wfDocument, baseInfo);
       const payload = JSON.parse(text);

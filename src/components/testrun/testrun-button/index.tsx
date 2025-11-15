@@ -11,6 +11,7 @@ import { Button, Badge } from '@douyinfe/semi-ui';
 import { IconPlay } from '@douyinfe/semi-icons';
 
 import { testRunPanelFactory } from '../testrun-panel/test-run-panel';
+import { problemPanelFactory } from '../../problem-panel';
 
 import styles from './index.module.less';
 
@@ -28,9 +29,18 @@ export function TestRunButton(props: { disabled: boolean }) {
    * Validate all node and Save
    */
   const onTestRun = useCallback(async () => {
-    const allForms = clientContext.document.getAllNodes().map((node) => node.form);
-    await Promise.all(allForms.map(async (form) => form?.validate()));
-    console.log('>>>>> save data: ', clientContext.document.toJSON());
+    const nodes = clientContext.document.getAllNodes();
+    await Promise.all(nodes.map(async (n) => n.form?.validate()));
+    const invalidNodes = nodes.filter((n) => n.form?.state.invalid);
+    if (invalidNodes.length > 0) {
+      const problems = invalidNodes.map((n) => {
+        const json: any = clientContext.document.toNodeJSON(n);
+        const title = json?.data?.title;
+        return { nodeId: n.id, title: title ? String(title) : n.id };
+      });
+      panelManager.open(problemPanelFactory.key, 'bottom', { props: { problems } });
+      return;
+    }
     panelManager.open(testRunPanelFactory.key, 'right');
   }, [clientContext]);
 
