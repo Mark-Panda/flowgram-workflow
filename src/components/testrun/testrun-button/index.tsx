@@ -7,12 +7,13 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { usePanelManager } from '@flowgram.ai/panel-manager-plugin';
 import { useClientContext, FlowNodeEntity } from '@flowgram.ai/free-layout-editor';
-import { Button, Badge } from '@douyinfe/semi-ui';
+import { Button, Badge, Toast } from '@douyinfe/semi-ui';
 import { IconPlay } from '@douyinfe/semi-icons';
 
 import { testRunPanelFactory } from '../testrun-panel/test-run-panel';
 import { problemPanelFactory } from '../../problem-panel';
 import { collectWorkflowProblems } from '../../../utils/workflow-validation';
+import { getRuleBaseInfo } from '../../../services/rule-base-info';
 
 import styles from './index.module.less';
 
@@ -30,6 +31,11 @@ export function TestRunButton(props: { disabled: boolean }) {
    * Validate all node and Save
    */
   const onTestRun = useCallback(async () => {
+    const base = getRuleBaseInfo();
+    if (base?.disabled) {
+      Toast.warning('当前规则链未部署');
+      return;
+    }
     const problems = await collectWorkflowProblems(clientContext.document);
     if (problems.length > 0) {
       panelManager.open(problemPanelFactory.key, 'bottom', { props: { problems } });

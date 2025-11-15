@@ -628,60 +628,64 @@ export const AdminPanel: React.FC = () => {
                             justifyContent: 'flex-end',
                           }}
                         >
-                          <Button
-                            size="small"
-                            type="tertiary"
-                            disabled={operatingIds.has(String(chain?.id ?? ''))}
-                            loading={operatingIds.has(String(chain?.id ?? ''))}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const id = String(chain?.id ?? '');
-                              if (!id) return;
-                              const next = new Set(operatingIds);
-                              next.add(id);
-                              setOperatingIds(next);
-                              try {
-                                await stopRuleChain(id);
-                                Toast.success({ content: '已下线该规则链' });
-                                await refreshList();
-                              } catch (e) {
-                                Toast.error({ content: String((e as Error)?.message ?? e) });
-                              } finally {
-                                const done = new Set(operatingIds);
-                                done.delete(id);
-                                setOperatingIds(done);
-                              }
-                            }}
-                          >
-                            下线
-                          </Button>
-                          <Button
-                            size="small"
-                            type="secondary"
-                            disabled={operatingIds.has(String(chain?.id ?? ''))}
-                            loading={operatingIds.has(String(chain?.id ?? ''))}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const id = String(chain?.id ?? '');
-                              if (!id) return;
-                              const next = new Set(operatingIds);
-                              next.add(id);
-                              setOperatingIds(next);
-                              try {
-                                await startRuleChain(id);
-                                Toast.success({ content: '已部署该规则链' });
-                                await refreshList();
-                              } catch (e) {
-                                Toast.error({ content: String((e as Error)?.message ?? e) });
-                              } finally {
-                                const done = new Set(operatingIds);
-                                done.delete(id);
-                                setOperatingIds(done);
-                              }
-                            }}
-                          >
-                            部署
-                          </Button>
+                          {!disabled && (
+                            <Button
+                              size="small"
+                              type="tertiary"
+                              disabled={operatingIds.has(String(chain?.id ?? ''))}
+                              loading={operatingIds.has(String(chain?.id ?? ''))}
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const id = String(chain?.id ?? '');
+                                if (!id) return;
+                                const next = new Set(operatingIds);
+                                next.add(id);
+                                setOperatingIds(next);
+                                try {
+                                  await stopRuleChain(id);
+                                  Toast.success({ content: '已下线该规则链' });
+                                  await refreshList();
+                                } catch (e) {
+                                  Toast.error({ content: String((e as Error)?.message ?? e) });
+                                } finally {
+                                  const done = new Set(operatingIds);
+                                  done.delete(id);
+                                  setOperatingIds(done);
+                                }
+                              }}
+                            >
+                              下线
+                            </Button>
+                          )}
+                          {disabled && (
+                            <Button
+                              size="small"
+                              type="secondary"
+                              disabled={operatingIds.has(String(chain?.id ?? ''))}
+                              loading={operatingIds.has(String(chain?.id ?? ''))}
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const id = String(chain?.id ?? '');
+                                if (!id) return;
+                                const next = new Set(operatingIds);
+                                next.add(id);
+                                setOperatingIds(next);
+                                try {
+                                  await startRuleChain(id);
+                                  Toast.success({ content: '已部署该规则链' });
+                                  await refreshList();
+                                } catch (e) {
+                                  Toast.error({ content: String((e as Error)?.message ?? e) });
+                                } finally {
+                                  const done = new Set(operatingIds);
+                                  done.delete(id);
+                                  setOperatingIds(done);
+                                }
+                              }}
+                            >
+                              部署
+                            </Button>
+                          )}
                           <Button
                             size="small"
                             theme="solid"

@@ -52,6 +52,11 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
     }
     setResult(undefined);
     setErrors(undefined);
+    const base0 = getRuleBaseInfo();
+    if (base0?.disabled) {
+      setErrors(['当前规则链未部署']);
+      return;
+    }
     const mt = values.msgType;
     if (typeof mt !== 'string' || mt.trim().length === 0) {
       setErrors(['消息类型为必填']);
