@@ -74,3 +74,20 @@ export const ConditionPort = styled.div`
   right: -12px;
   top: 50%;
 `;
+
+// 条件行：上下布局的两个输入框，右侧中间放操作符选择
+export const ConditionRow = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 132px; // 为右侧操作符选择预留空间
+`;
+
+export const OperatorSelectWrapper = styled.div`
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 120px;
+`;

@@ -49,25 +49,6 @@ export const CaseConditionNodeRegistry: FlowNodeRegistry = {
             groups: [
               {
                 operator: 'and',
-                rows: [
-                  { type: 'expression', content: '' },
-                  { type: 'expression', content: '' },
-                ],
-              },
-              {
-                operator: 'and',
-                rows: [
-                  { type: 'expression', content: '' },
-                  { type: 'expression', content: '' },
-                ],
-              },
-            ],
-          },
-          {
-            key: caseId(2),
-            groups: [
-              {
-                operator: 'and',
                 rows: [{ type: 'expression', content: '' }],
               },
             ],

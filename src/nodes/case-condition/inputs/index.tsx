@@ -22,6 +22,8 @@ import {
   CaseHeader,
   CaseTitle,
   ConditionPort,
+  ConditionRow,
+  OperatorSelectWrapper,
 } from './styles';
 
 interface CaseGroupValue {
@@ -102,6 +104,20 @@ export function CaseInputs() {
                       const displayRows = rows.map(
                         (r) => r ?? ({ type: 'expression', content: '' } as ConditionRowValueType)
                       );
+                      const deleteRow = (giToDel: number, rToDel: number) => {
+                        const nextGroups = groups.map(ensureGroup);
+                        const target = nextGroups[giToDel];
+                        const nextRows = [...(target.rows ?? [])];
+                        nextRows.splice(rToDel, 1);
+                        if (nextRows.length === 0) {
+                          nextRows.push({
+                            type: 'expression',
+                            content: '',
+                          } as ConditionRowValueType);
+                        }
+                        nextGroups[giToDel] = { ...target, rows: nextRows } as any;
+                        setGroups(nextGroups);
+                      };
                       return (
                         <div key={`group-${gi}`}>
                           {gi > 0 && (
@@ -122,7 +138,7 @@ export function CaseInputs() {
                                 required={true}
                                 labelWidth={50}
                               >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <ConditionRow>
                                   <Input
                                     disabled={readonly}
                                     placeholder="左值：手动输入"
@@ -149,39 +165,6 @@ export function CaseInputs() {
                                       nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
                                       setGroups(nextGroups);
                                     }}
-                                    style={{ flex: 1 }}
-                                  />
-                                  <Select
-                                    disabled={readonly}
-                                    style={{ width: 120 }}
-                                    value={(row as any)?.operator ?? '=='}
-                                    onChange={(op) => {
-                                      const nextGroups = groups.map(ensureGroup);
-                                      const nextRows = [...nextGroups[gi].rows];
-                                      const base = (row ??
-                                        ({
-                                          type: 'expression',
-                                          content: '',
-                                        } as ConditionRowValueType)) as any;
-                                      const nextRow: any = {
-                                        ...base,
-                                        operator: op,
-                                        left: base.left ?? { type: 'constant', content: '' },
-                                        right: base.right ?? { type: 'constant', content: '' },
-                                      };
-                                      nextRows[rIndex] = nextRow as ConditionRowValueType;
-                                      nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
-                                      setGroups(nextGroups);
-                                    }}
-                                    optionList={[
-                                      { label: '等于', value: '==' },
-                                      { label: '不等于', value: '!=' },
-                                      { label: '大于', value: '>' },
-                                      { label: '大于等于', value: '>=' },
-                                      { label: '小于', value: '<' },
-                                      { label: '小于等于', value: '<=' },
-                                      { label: '包含', value: 'contains' },
-                                    ]}
                                   />
                                   <Input
                                     disabled={readonly}
@@ -209,9 +192,50 @@ export function CaseInputs() {
                                       nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
                                       setGroups(nextGroups);
                                     }}
-                                    style={{ flex: 1 }}
                                   />
-                                </div>
+                                  <OperatorSelectWrapper>
+                                    <Select
+                                      disabled={readonly}
+                                      value={(row as any)?.operator ?? '=='}
+                                      onChange={(op) => {
+                                        const nextGroups = groups.map(ensureGroup);
+                                        const nextRows = [...nextGroups[gi].rows];
+                                        const base = (row ??
+                                          ({
+                                            type: 'expression',
+                                            content: '',
+                                          } as ConditionRowValueType)) as any;
+                                        const nextRow: any = {
+                                          ...base,
+                                          operator: op,
+                                          left: base.left ?? { type: 'constant', content: '' },
+                                          right: base.right ?? { type: 'constant', content: '' },
+                                        };
+                                        nextRows[rIndex] = nextRow as ConditionRowValueType;
+                                        nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
+                                        setGroups(nextGroups);
+                                      }}
+                                      optionList={[
+                                        { label: '等于', value: '==' },
+                                        { label: '不等于', value: '!=' },
+                                        { label: '大于', value: '>' },
+                                        { label: '大于等于', value: '>=' },
+                                        { label: '小于', value: '<' },
+                                        { label: '小于等于', value: '<=' },
+                                        { label: '包含', value: 'contains' },
+                                      ]}
+                                    />
+                                    {!readonly && (
+                                      <Button
+                                        theme="borderless"
+                                        icon={<IconCrossCircleStroked />}
+                                        size="small"
+                                        onClick={() => deleteRow(gi, rIndex)}
+                                        style={{ marginTop: 6 }}
+                                      />
+                                    )}
+                                  </OperatorSelectWrapper>
+                                </ConditionRow>
                               </FormItem>
                             ))}
                             {!readonly && (
