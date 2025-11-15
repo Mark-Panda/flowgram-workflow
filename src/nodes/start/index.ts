@@ -42,10 +42,6 @@ export const StartNodeRegistry: FlowNodeRegistry = {
       data: {
         title: 'Start',
         positionType: 'header',
-        outputs: {
-          type: 'object',
-          properties: {},
-        },
       },
     } as any;
   },

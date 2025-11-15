@@ -631,6 +631,13 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
         data: { title: n.name ?? String(t) },
       };
       switch (t) {
+        case 'start': {
+          const cfg = n.configuration ?? {};
+          base.data = {
+            title: n.name ?? 'Start',
+          };
+          break;
+        }
         case 'restApiCall': {
           const cfg = n.configuration ?? {};
           base.data = {
