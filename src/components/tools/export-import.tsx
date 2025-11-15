@@ -698,12 +698,7 @@ export function ExportImport(props: { disabled?: boolean }) {
 
   return (
     <>
-      <Dropdown
-        trigger="click"
-        position="bottomRight"
-        menu={menuItems}
-        disabled={disabled}
-      >
+      <Dropdown trigger="click" position="bottomRight" menu={menuItems} disabled={disabled}>
         <Button
           theme="light"
           size="small"

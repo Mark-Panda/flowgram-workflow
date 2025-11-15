@@ -172,17 +172,8 @@ export function useEditorProps(
         if (!isForContainer) {
           return allowByType;
         }
-        const children = ctx.document
-          .getAllNodes()
-          .filter((n) => n.parent?.id === dropNode?.id)
-          .filter(
-            (n) =>
-              ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
-                n.flowNodeType as WorkflowNodeType
-              )
-          );
-        // 只允许一个业务子节点
-        if (children.length >= 1) {
+        const dragType = params.dragNodeType as any;
+        if ([WorkflowNodeType.Start, WorkflowNodeType.Cron].includes(dragType)) {
           return false;
         }
         return allowByType;

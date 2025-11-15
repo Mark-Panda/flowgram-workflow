@@ -40,22 +40,6 @@ export const usePortClick = () => {
     if (port.portType === 'input') return;
     const mousePos = playground.config.getPosFromMouseEvent(e);
     const containerNode = port.node.parent;
-    // For容器内只允许连接一个子节点
-    if (containerNode?.flowNodeType === WorkflowNodeType.For) {
-      const children = document
-        .getAllNodes()
-        .filter((n) => n.parent?.id === containerNode.id)
-        .filter(
-          (n) =>
-            ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
-              n.flowNodeType as WorkflowNodeType
-            )
-        );
-      if (children.length >= 1) {
-        Toast.warning({ content: 'For 子画布只允许连接一个节点' });
-        return;
-      }
-    }
     // open node selection panel - 打开节点选择面板
     const result = await nodePanelService.singleSelectNodePanel({
       position: mousePos,
@@ -73,6 +57,15 @@ export const usePortClick = () => {
 
     // get selected node type and data - 获取选择的节点类型和数据
     const { nodeType, nodeJSON } = result;
+    if (
+      containerNode?.flowNodeType === WorkflowNodeType.For &&
+      (nodeJSON?.data?.positionType === 'header' ||
+        nodeType === WorkflowNodeType.Start ||
+        nodeType === WorkflowNodeType.Cron)
+    ) {
+      Toast.error('For 子画布不允许连接 Header 类型的节点');
+      return;
+    }
 
     // 获取当前规则链信息
     const ruleBaseInfo = getRuleBaseInfo();

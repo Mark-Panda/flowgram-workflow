@@ -49,23 +49,6 @@ export const LineAddButton = (props: LineRenderProps) => {
     // get container node for the new node - 获取新节点的容器节点
     const containerNode = fromPort!.node.parent;
 
-    // For 容器只允许一个业务子节点，若已存在则阻止新增
-    if (containerNode?.flowNodeType === WorkflowNodeType.For) {
-      const children = document
-        .getAllNodes()
-        .filter((n) => n.parent?.id === containerNode.id)
-        .filter(
-          (n) =>
-            ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
-              n.flowNodeType as WorkflowNodeType
-            )
-        );
-      if (children.length >= 1) {
-        Toast.warning({ content: 'For 子画布只允许连接一个节点' });
-        return;
-      }
-    }
-
     // show node selection panel - 显示节点选择面板
     const result = await nodePanelService.singleSelectNodePanel({
       position,
@@ -80,6 +63,15 @@ export const LineAddButton = (props: LineRenderProps) => {
     }
 
     const { nodeType, nodeJSON } = result;
+    if (
+      containerNode?.flowNodeType === WorkflowNodeType.For &&
+      (nodeJSON?.data?.positionType === 'header' ||
+        nodeType === WorkflowNodeType.Start ||
+        nodeType === WorkflowNodeType.Cron)
+    ) {
+      Toast.error('For 子画布不允许连接 Header 类型的节点');
+      return;
+    }
 
     // adjust position for the new node - 调整新节点的位置
     const nodePosition = WorkflowNodePanelUtils.adjustNodePosition({

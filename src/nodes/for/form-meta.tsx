@@ -35,20 +35,44 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
     <Field<IFlowValue> name={`nodeId`}>
       {({ field, fieldState }) => {
         const children = document.getAllNodes().filter((n) => n.parent?.id === node.id);
-        const validChildren = children.filter(
-          (n) =>
-            ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
-              n.flowNodeType as WorkflowNodeType
-            )
-        );
-        const firstChildId = validChildren[0]?.id ?? '';
-        if ((field.value?.content as string) !== firstChildId) {
-          // 联动填充为子画布中的第一个子节点ID
-          field.onChange({ type: 'constant', content: firstChildId });
+        const blockStart = children.find((n) => n.flowNodeType === WorkflowNodeType.BlockStart);
+        const getDisplayName = (n: any) => {
+          const json = document.toNodeJSON(n) as any;
+          const title = json?.data?.title;
+          return title ? String(title) : n.id;
+        };
+        let targetNodeId = '';
+        let targetNodeLabel = '';
+        if (blockStart) {
+          const outLines = (blockStart as any).lines?.outputLines ?? [];
+          const firstBusinessLine = outLines.find((line: any) => {
+            const toNode = line?.to;
+            return (
+              toNode &&
+              toNode.parent?.id === node.id &&
+              ![WorkflowNodeType.BlockStart, WorkflowNodeType.BlockEnd].includes(
+                toNode.flowNodeType as WorkflowNodeType
+              )
+            );
+          });
+          const toNode = firstBusinessLine?.to;
+          if (toNode) {
+            targetNodeId = toNode.id;
+            targetNodeLabel = getDisplayName(toNode);
+          }
+        }
+        const currentVal =
+          typeof field.value?.content === 'string' ? (field.value?.content as string) : '';
+        if (targetNodeId && currentVal !== targetNodeId) {
+          field.onChange({ type: 'constant', content: targetNodeId });
         }
         return (
           <FormItem name={'处理节点ID'} type={'string'} required>
-            <Input value={firstChildId} disabled placeholder="请选择在子画布中连接的单个节点" />
+            <Input
+              value={targetNodeLabel || ''}
+              disabled
+              placeholder={'请在子画布中将 block-start 连线到处理节点'}
+            />
             <Feedback errors={fieldState?.errors} />
           </FormItem>
         );

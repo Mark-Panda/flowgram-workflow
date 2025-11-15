@@ -144,8 +144,8 @@ export const RuleDetail: React.FC<{
           </Tag>
         </div>
         {/* 保存、测试、导出按钮通过 Portal 渲染到这里 */}
-        <div 
-          id="top-toolbar-portal-container" 
+        <div
+          id="top-toolbar-portal-container"
           style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}
         ></div>
       </div>
