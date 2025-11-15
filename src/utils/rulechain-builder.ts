@@ -83,9 +83,6 @@ export function buildRuleChainJSONFromDocument(
   const flattened: any[] = [];
   raw.nodes.forEach((n: any) => {
     flattened.push(n);
-    if (Array.isArray(n.blocks)) {
-      n.blocks.forEach((b: any) => flattened.push(b));
-    }
   });
   // 汇总连接：顶层 edges + loop 内 edges
   const connectionsRC: NodeConnectionRC[] = [];
@@ -223,8 +220,8 @@ function buildRuleChainMetaNodes(
       if (n.edges && n.edges.length > 0) {
         const forEdges: any = [];
         for (const e of n.edges) {
-          const sourceId = n.sourceNodeID ?? '';
-          const targetId = n.targetNodeID ?? '';
+          const sourceId = e.sourceNodeID ?? '';
+          const targetId = e.targetNodeID ?? '';
           if (
             String(sourceId).startsWith('block_start') ||
             String(targetId).startsWith('block_end')
