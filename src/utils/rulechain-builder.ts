@@ -699,10 +699,20 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
                 model: { type: 'string', extra: { label: '模型名称' } },
                 key: { type: 'string' },
                 url: { type: 'string' },
-                systemPrompt: { type: 'string', extra: { label: '系统提示词', formComponent: 'prompt-editor' } },
-                userPrompt: { type: 'string', extra: { label: '用户提示词', formComponent: 'prompt-editor' } },
+                systemPrompt: {
+                  type: 'string',
+                  extra: { label: '系统提示词', formComponent: 'prompt-editor' },
+                },
+                userPrompt: {
+                  type: 'string',
+                  extra: { label: '用户提示词', formComponent: 'prompt-editor' },
+                },
                 maxTokens: { type: 'number', extra: { label: '最大输出长度' } },
-                responseFormat: { type: 'string', enum: ['text', 'json_object', 'json_schema'], extra: { label: '输出格式', formComponent: 'enum-select' } },
+                responseFormat: {
+                  type: 'string',
+                  enum: ['text', 'json_object', 'json_schema'],
+                  extra: { label: '输出格式', formComponent: 'enum-select' },
+                },
                 temperature: { type: 'number' },
                 topP: { type: 'number' },
               },
@@ -766,7 +776,8 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
                 else if (ch === "'" && prev !== '\\') inSingle = true;
                 else if (ch === '"' && prev !== '\\') inDouble = true;
                 else if (ch === '`' && prev !== '\\') inTemplate = true;
-                const isDelim = delim === '||' ? expr.slice(i, i + 2) === '||' : expr.slice(i, i + 2) === '&&';
+                const isDelim =
+                  delim === '||' ? expr.slice(i, i + 2) === '||' : expr.slice(i, i + 2) === '&&';
                 if (isDelim && depth === 0) {
                   parts.push(buf.trim());
                   buf = '';
@@ -783,7 +794,40 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
             if (buf.trim()) parts.push(buf.trim());
             return parts.filter((p) => p.length > 0);
           };
-          const parseRow = (rowExpr: string) => ({ type: 'expression', content: rowExpr.trim() });
+          const parseRow = (rowExpr: string) => {
+            const expr = rowExpr.trim();
+            const ops = ['contains', '==', '!=', '>=', '<=', '>', '<'];
+            let foundOp = '';
+            let left = '';
+            let right = '';
+            for (const op of ops) {
+              const idx = expr.indexOf(op);
+              if (idx > 0) {
+                foundOp = op;
+                left = expr.slice(0, idx).trim();
+                right = expr.slice(idx + op.length).trim();
+                break;
+              }
+            }
+            if (!foundOp) return { type: 'expression', content: expr };
+            const stripQuotes = (s: string) => {
+              const t = s.trim();
+              if (
+                (t.startsWith("'") && t.endsWith("'")) ||
+                (t.startsWith('"') && t.endsWith('"'))
+              ) {
+                return t.slice(1, -1);
+              }
+              return t;
+            };
+            return {
+              type: 'expression',
+              content: '',
+              left: { type: 'constant', content: left },
+              operator: foundOp,
+              right: { type: 'constant', content: stripQuotes(right) },
+            } as any;
+          };
           base.data = {
             title: n.name ?? 'switch',
             positionType: 'middle',
@@ -914,6 +958,7 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
       if (targetId && targetId !== String(cronNode.id) && !exists) {
         edges.unshift({
           sourceNodeID: String(cronNode.id),
+          sourcePortID: 'Success',
           targetNodeID: String(targetId),
           // 默认端口不写入，保持与示例 b.json 一致
           // sourcePortID: 'Success',
@@ -929,6 +974,4 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
   } as any;
 
   return { nodes, edges, globalVariable } as any;
-
-  return { nodes, edges } as any;
 }
