@@ -199,15 +199,42 @@ function buildRuleChainMetaNodes(
           range: n.data?.note.content,
           do: n.data?.nodeId.content,
           mode: n.data?.operationMode.content,
+          extra: {
+            blocks: [],
+            edges: [],
+          },
         };
       }
       if (n.blocks && n.blocks.length > 0) {
+        const forBlocks: any = [];
         for (const b of n.blocks) {
+          const nodeType = String(b.type);
+          if (nodeType === 'block-start' || nodeType === 'block-end') {
+            forBlocks.push(b);
+            continue;
+          }
           buildRuleChainMetaNodes(b, nodesRC, connectionsRC);
         }
+        base.configuration.extra.blocks = forBlocks;
       }
       if (n.edges && n.edges.length > 0) {
-        buildRuleChainMetaConnections(n, connectionsRC);
+        const forEdges: any = [];
+        for (const e of n.edges) {
+          const sourceId = n.sourceNodeID ?? '';
+          const targetId = n.targetNodeID ?? '';
+          if (
+            String(sourceId).startsWith('block_start') ||
+            String(targetId).startsWith('block_end')
+          ) {
+            forEdges.push(e);
+            continue;
+          }
+          const connection = buildRuleChainMetaConnection(e);
+          if (connection) {
+            connectionsRC.push(connection);
+          }
+        }
+        base.configuration.extra.edges = forEdges;
       }
       break;
     }
@@ -445,19 +472,24 @@ function buildRuleChainMetaConnections(n: any, connectionsRC: NodeConnectionRC[]
   if (Array.isArray((n as any).edges)) {
     (n.edges as any[]).forEach((e: any) => {
       if (!e) return;
-      if (
-        String(e.sourceNodeID || e.from?.id || '').startsWith('block_start') ||
-        String(e.targetNodeID || e.to?.id || '').startsWith('block_end')
-      ) {
-        return;
+      const connection = buildRuleChainMetaConnection(e);
+      if (connection) {
+        connectionsRC.push(connection);
       }
-      connectionsRC.push({
-        fromId: e.sourceNodeID ?? e.fromId ?? e.from?.id ?? '',
-        toId: e.targetNodeID ?? e.toId ?? e.to?.id ?? '',
-        type: e.sourcePortID ?? 'Success',
-        label: e.sourcePortID ?? e.label,
-      });
     });
   }
   return connectionsRC;
+}
+function buildRuleChainMetaConnection(n: any): NodeConnectionRC | null {
+  const sourceId = n.sourceNodeID ?? '';
+  const targetId = n.targetNodeID ?? '';
+  // if (String(sourceId).startsWith('block_start') || String(targetId).startsWith('block_end')) {
+  //   return null;
+  // }
+  return {
+    fromId: sourceId,
+    toId: targetId,
+    type: n.sourcePortID ?? 'Success',
+    label: n.sourcePortID ?? n.label,
+  };
 }
