@@ -9,6 +9,7 @@ import { useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Space } from '@douyinfe/semi-ui';
 
 import { TestRunButton } from '../testrun/testrun-button';
+import { VariablePanelToggle } from './variable-panel-toggle';
 import { SaveButton } from './save-button';
 import { ExportImport } from './export-import';
 
@@ -36,6 +37,7 @@ export const TopToolbar: React.FC = () => {
   return createPortal(
     <Space spacing={8}>
       <ExportImport disabled={disabled} />
+      <VariablePanelToggle />
       <TestRunButton disabled={disabled} />
       <SaveButton disabled={disabled} />
     </Space>,

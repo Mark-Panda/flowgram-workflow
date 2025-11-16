@@ -13,6 +13,8 @@ import {
 } from '@flowgram.ai/free-layout-editor';
 import { JsonSchemaEditor, JsonSchemaUtils } from '@flowgram.ai/form-materials';
 
+import styles from './index.module.less';
+
 export function GlobalVariableEditor() {
   const globalScope = useService(GlobalScope);
 
@@ -37,9 +39,12 @@ export function GlobalVariableEditor() {
   const value = globalVar.type ? JsonSchemaUtils.astToSchema(globalVar.type) : { type: 'object' };
 
   return (
-    <JsonSchemaEditor
-      value={value}
-      onChange={(_schema) => globalVar.updateType(JsonSchemaUtils.schemaToAST(_schema))}
-    />
+    <div className={styles['global-editor']}>
+      <JsonSchemaEditor
+        readonly
+        value={value}
+        onChange={(_schema) => globalVar.updateType(JsonSchemaUtils.schemaToAST(_schema))}
+      />
+    </div>
   );
 }

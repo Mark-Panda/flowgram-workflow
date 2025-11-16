@@ -13,6 +13,7 @@ import { IconUndo, IconRedo } from '@douyinfe/semi-icons';
 import { TestRunButton } from '../testrun/testrun-button';
 import { AddNode } from '../add-node';
 import { ZoomSelect } from './zoom-select';
+import { VariablePanelToggle } from './variable-panel-toggle';
 import { SwitchLine } from './switch-line';
 import { ToolContainer, ToolSection } from './styles';
 import { SaveButton } from './save-button';
@@ -99,6 +100,9 @@ export const DemoTools = ({
             <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
             {!allowedTools || allowedTools.includes('exportImport') ? (
               <ExportImport disabled={playground.config.readonly} />
+            ) : null}
+            {!allowedTools || allowedTools.includes('variablePanelToggle') ? (
+              <VariablePanelToggle />
             ) : null}
             <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
             {!allowedTools || allowedTools.includes('save') ? (
