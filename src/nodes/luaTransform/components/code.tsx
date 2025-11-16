@@ -4,10 +4,10 @@
  */
 
 import { Field } from '@flowgram.ai/free-layout-editor';
-import { TypeScriptCodeEditor } from '@flowgram.ai/form-materials';
 import { Divider } from '@douyinfe/semi-ui';
 
 import { useIsSidebar, useNodeRenderContext } from '../../../hooks';
+import { LuaCodeEditor } from '../../../form-components/code-editor/lua';
 
 export function LuaTransformCode() {
   const isSidebar = useIsSidebar();
@@ -48,7 +48,7 @@ export function LuaTransformCode() {
           };
 
           return (
-            <TypeScriptCodeEditor
+            <LuaCodeEditor
               value={field.value}
               onChange={(value) => field.onChange(enforceSignature(String(value ?? '')))}
               readonly={readonly}

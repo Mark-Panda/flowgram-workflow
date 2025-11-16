@@ -13,6 +13,7 @@ import { formMeta } from './form-meta';
 const defaultLua = `-- 函数签名不可修改
 function Transform(msg, metadata, msgType, dataType)
   -- 在此处编写 Lua 逻辑
+  return msg, metadata, msgType
 end`;
 
 export const LuaTransformNodeRegistry: FlowNodeRegistry = {
