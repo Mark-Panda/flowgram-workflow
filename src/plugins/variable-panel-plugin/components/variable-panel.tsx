@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 
+import { usePlayground } from '@flowgram.ai/free-layout-editor';
 import { Button, Collapsible, Tabs, Tooltip } from '@douyinfe/semi-ui';
 import { IconMinus } from '@douyinfe/semi-icons';
 
@@ -15,6 +16,9 @@ import { FullVariableList } from './full-variable-list';
 import styles from './index.module.less';
 
 export function VariablePanel() {
+  const playground = usePlayground();
+  const isReadonly = playground?.config?.readonly;
+  if (isReadonly) return null;
   const [isOpen, setOpen] = useState<boolean>(false);
 
   return (

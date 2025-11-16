@@ -10,14 +10,13 @@ import { VariablePanel } from './components/variable-panel';
 @injectable()
 export class VariablePanelLayer extends Layer {
   onReady(): void {
-    // Fix variable panel in the right of canvas
-    this.config.onDataChange(() => {
-      const { scrollX, scrollY } = this.config.config;
-      domUtils.setStyle(this.node, {
-        position: 'absolute',
-        right: 25 - scrollX,
-        top: scrollY + 25,
-      });
+    // 固定在画布右上角，不随滚动偏移
+    domUtils.setStyle(this.node, {
+      position: 'absolute',
+      right: 25,
+      top: 25,
+      zIndex: 100,
+      pointerEvents: 'auto',
     });
   }
 
