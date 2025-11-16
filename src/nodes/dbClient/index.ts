@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
 import { WorkflowNodeType, OutPutPortType } from '../constants';
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconDB from '../../assets/icon_database-search.svg';
 
@@ -31,7 +30,7 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: 'dbClient',
       data: {
         title: `查询数据库_${++index}`,

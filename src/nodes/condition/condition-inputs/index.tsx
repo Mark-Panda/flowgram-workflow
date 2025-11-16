@@ -5,12 +5,12 @@
 
 import { useLayoutEffect } from 'react';
 
-import { nanoid } from 'nanoid';
 import { Field, FieldArray, I18n } from '@flowgram.ai/free-layout-editor';
 import { ConditionRow, ConditionRowValueType } from '@flowgram.ai/form-materials';
 import { Button } from '@douyinfe/semi-ui';
 import { IconPlus, IconCrossCircleStroked } from '@douyinfe/semi-icons';
 
+import { alphaNanoid } from '../../../utils';
 import { useNodeRenderContext } from '../../../hooks';
 import { FormItem } from '../../../form-components';
 import { Feedback } from '../../../form-components';
@@ -72,7 +72,7 @@ export function ConditionInputs() {
                 icon={<IconPlus />}
                 onClick={() =>
                   field.append({
-                    key: `if_${nanoid(6)}`,
+                    key: `if_${alphaNanoid(6)}`,
                     value: { type: 'expression', content: '' },
                   })
                 }

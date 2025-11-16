@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconContinue from '../../assets/icon-continue.jpg';
 import { formMeta } from './form-meta';
@@ -34,7 +33,7 @@ export const ContinueNodeRegistry: FlowNodeRegistry = {
   formMeta,
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: 'continue',
       data: {
         title: `Continue_${++index}`,

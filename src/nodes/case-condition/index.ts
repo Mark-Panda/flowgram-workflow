@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconSwitch from '../../assets/icon_switch.svg';
 import { formMeta } from './form-meta';
@@ -36,9 +35,9 @@ export const CaseConditionNodeRegistry: FlowNodeRegistry = {
   },
   formMeta,
   onAdd() {
-    const caseId = (i: number) => `case_${i}_${nanoid(4)}`;
+    const caseId = (i: number) => `case_${i}_${alphaNanoid(4)}`;
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: WorkflowNodeType.CaseCondition,
       data: {
         title: '条件列表',

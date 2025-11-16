@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconBreak from '../../assets/icon-break.jpg';
 import { formMeta } from './form-meta';
@@ -34,7 +33,7 @@ export const BreakNodeRegistry: FlowNodeRegistry = {
   formMeta,
   onAdd() {
     return {
-      id: `break_${nanoid(5)}`,
+      id: `break_${alphaNanoid(5)}`,
       type: 'break',
       data: {
         title: `Break_${++index}`,

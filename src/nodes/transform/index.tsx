@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
 import { WorkflowNodeType, OutPutPortType } from '../constants';
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconCode from '../../assets/icon-script.png';
 import { formMeta } from './form-meta';
@@ -41,7 +40,7 @@ export const TransformNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: WorkflowNodeType.Transform,
       data: {
         title: `Transform`,

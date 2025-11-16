@@ -5,12 +5,12 @@
 
 import { useLayoutEffect } from 'react';
 
-import { nanoid } from 'nanoid';
 import { Field, FieldArray } from '@flowgram.ai/free-layout-editor';
 import { ConditionRowValueType } from '@flowgram.ai/form-materials';
 import { Button, Input, Select, Tag } from '@douyinfe/semi-ui';
 import { IconPlus, IconCrossCircleStroked } from '@douyinfe/semi-icons';
 
+import { alphaNanoid } from '../../../utils';
 import { useNodeRenderContext } from '../../../hooks';
 import { VariablePicker } from '../../../form-components/variable-picker';
 import { FormItem } from '../../../form-components';
@@ -329,7 +329,7 @@ export function CaseInputs() {
                 icon={<IconPlus />}
                 onClick={() =>
                   field.append({
-                    key: `case_${nanoid(6)}`,
+                    key: `case_${alphaNanoid(6)}`,
                     groups: [
                       {
                         operator: 'and',

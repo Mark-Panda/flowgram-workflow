@@ -1,5 +1,3 @@
-import { nanoid } from 'nanoid';
-
 export async function executeTestRun(params: {
   ruleId: string;
   msgType: string;

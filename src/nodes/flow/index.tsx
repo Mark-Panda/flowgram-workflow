@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
 import { defaultFormMeta } from '../default-form-meta';
 import { WorkflowNodeType, OutPutPortType } from '../constants';
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconVariable from '../../assets/icon-variable.png';
 
@@ -31,7 +30,7 @@ export const FlowSubChainNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: WorkflowNodeType.Flow,
       data: {
         title: `子规则链_${++index}`,

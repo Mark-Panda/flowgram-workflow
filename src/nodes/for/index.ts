@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
 import {
   WorkflowNodeEntity,
   PositionSchema,
   FlowNodeTransformData,
 } from '@flowgram.ai/free-layout-editor';
 
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconLoop from '../../assets/icon-loop.jpg';
 import { formMeta } from './form-meta';
@@ -78,7 +78,7 @@ export const ForNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: WorkflowNodeType.For,
       data: {
         title: `For_${++index}`,
@@ -86,7 +86,7 @@ export const ForNodeRegistry: FlowNodeRegistry = {
       },
       blocks: [
         {
-          id: `block_start_${nanoid(5)}`,
+          id: `block_start_${alphaNanoid(5)}`,
           type: WorkflowNodeType.BlockStart,
           meta: {
             position: {
@@ -97,7 +97,7 @@ export const ForNodeRegistry: FlowNodeRegistry = {
           data: { positionType: 'middle' },
         },
         {
-          id: `block_end_${nanoid(5)}`,
+          id: `block_end_${alphaNanoid(5)}`,
           type: WorkflowNodeType.BlockEnd,
           meta: {
             position: {

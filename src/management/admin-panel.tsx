@@ -54,8 +54,8 @@ export const AdminPanel: React.FC = () => {
   const [createId, setCreateId] = useState<string>(() => {
     try {
       // lazy nanoid import to avoid bundle if not used
-      const { nanoid } = require('nanoid');
-      return nanoid(12);
+      const { customAlphabet } = require('nanoid');
+      return customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 12)();
     } catch {
       return Math.random().toString(36).slice(2, 14);
     }
@@ -832,8 +832,10 @@ export const AdminPanel: React.FC = () => {
           setCreateDesc('');
           setCreateRoot(true);
           try {
-            const { nanoid } = require('nanoid');
-            setCreateId(nanoid(12));
+            const { customAlphabet } = require('nanoid');
+            setCreateId(
+              customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 12)()
+            );
           } catch {
             setCreateId(Math.random().toString(36).slice(2, 14));
           }

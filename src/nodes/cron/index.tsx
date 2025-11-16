@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
 import { WorkflowNodeType } from '../constants';
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconClock from '../../assets/icon_alarm-clock.svg';
 
@@ -29,7 +28,7 @@ export const CronNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: WorkflowNodeType.Cron,
       data: {
         title: `定时任务_${++index}`,

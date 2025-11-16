@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
 import { WorkflowDocument, WorkflowNodeEntity } from '@flowgram.ai/free-layout-editor';
 
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings/node';
 import { WorkflowNodeType } from '../nodes/constants';
+import { alphaNanoid } from './index';
 
 export interface RuleChainBaseInfo {
   id: string;
@@ -107,7 +107,7 @@ export function buildRuleChainJSONFromDocument(
           if (n.data?.inputs && n.data?.inputsValues) {
             base.routers = [
               {
-                id: nanoid(16),
+                id: alphaNanoid(16),
                 params: [],
                 from: {
                   path: n.data?.inputsValues.cron.content,

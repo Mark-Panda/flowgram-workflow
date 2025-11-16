@@ -5,7 +5,6 @@
 
 import { FC, useState, useEffect } from 'react';
 
-import { nanoid } from 'nanoid';
 import classnames from 'classnames';
 import { WorkflowInputs, WorkflowOutputs } from '@flowgram.ai/runtime-interface';
 import { type PanelFactory, usePanelManager } from '@flowgram.ai/panel-manager-plugin';
@@ -16,6 +15,7 @@ import { IconClose, IconPlay, IconSpin } from '@douyinfe/semi-icons';
 import { TestRunJsonInput } from '../testrun-json-input';
 import { TestRunForm } from '../testrun-form';
 import { NodeStatusGroup } from '../node-status-bar/group';
+import { alphaNanoid } from '../../../utils';
 import { executeTestRun, fetchRunLogs } from '../../../services/test-run-http';
 import { getRuleBaseInfo } from '../../../services/rule-base-info';
 import { WorkflowRuntimeService } from '../../../plugins/runtime-plugin/runtime-service';
@@ -71,7 +71,7 @@ export const TestRunSidePanel: FC<TestRunSidePanelProps> = () => {
     const msgType = String(mt);
     setRunning(true);
     try {
-      const msgId = nanoid(24) + '11';
+      const msgId = alphaNanoid(24) + '11';
       const resp = await executeTestRun({
         ruleId,
         msgType,

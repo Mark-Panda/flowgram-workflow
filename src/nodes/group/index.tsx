@@ -7,9 +7,9 @@ import {
   WorkflowNodeEntity,
   PositionSchema,
   FlowNodeTransformData,
-  nanoid,
 } from '@flowgram.ai/free-layout-editor';
 
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 
 let index = 0;
@@ -50,7 +50,7 @@ export const GroupNodeRegistry: FlowNodeRegistry = {
   onAdd() {
     return {
       type: FlowNodeBaseType.GROUP,
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       meta: {
         position: {
           x: 0,

@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
 import { WorkflowNodeType } from '../constants';
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconVariable from '../../assets/icon-variable.png';
 import { formMeta } from './form-meta';
@@ -26,7 +25,7 @@ export const VariableNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: 'variable',
       data: {
         title: `Variable_${++index}`,

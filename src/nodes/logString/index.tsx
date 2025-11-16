@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
 import { WorkflowNodeType, OutPutPortType } from '../constants';
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconLog from '../../assets/icon_log.svg';
 import { formMeta } from './form-meta';
@@ -36,7 +35,7 @@ export const LogStringNodeRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: WorkflowNodeType.LogString,
       data: {
         title: `Log_${++index}`,

@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconCondition from '../../assets/icon-condition.svg';
 import { formMeta } from './form-meta';
@@ -30,18 +29,18 @@ export const ConditionNodeRegistry: FlowNodeRegistry = {
   formMeta,
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: 'condition',
       data: {
         title: 'Condition',
         positionType: 'middle',
         conditions: [
           {
-            key: `if_${nanoid(5)}`,
+            key: `if_${alphaNanoid(5)}`,
             value: {},
           },
           {
-            key: `if_${nanoid(5)}`,
+            key: `if_${alphaNanoid(5)}`,
             value: {},
           },
         ],

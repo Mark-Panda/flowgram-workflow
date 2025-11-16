@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { nanoid } from 'nanoid';
-
 import { WorkflowNodeType, OutPutPortType } from '../constants';
+import { alphaNanoid } from '../../utils';
 import { FlowNodeRegistry } from '../../typings';
 import iconCollectLaptop from '../../assets/icon_collect-laptop.svg';
 
@@ -30,7 +29,7 @@ export const FetchNodeOutputRegistry: FlowNodeRegistry = {
   },
   onAdd() {
     return {
-      id: `${nanoid(16)}`,
+      id: `${alphaNanoid(16)}`,
       type: WorkflowNodeType.FetchNodeOutput,
       data: {
         title: `获取完成节点信息_${++index}`,
