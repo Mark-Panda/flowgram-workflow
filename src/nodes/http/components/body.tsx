@@ -39,14 +39,28 @@ export function Body() {
         return (
           <Field<IFlowTemplateValue> name="body.json">
             {({ field }) => (
-              <JsonEditorWithVariables
-                value={field.value?.content}
-                readonly={readonly}
-                activeLinePlaceholder="use var by '@'"
-                onChange={(value) => {
-                  field.onChange({ type: 'template', content: value });
-                }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ flex: 1 }}>
+                  <JsonEditorWithVariables
+                    value={field.value?.content}
+                    readonly={readonly}
+                    activeLinePlaceholder="use var by '@'"
+                    onChange={(value) => {
+                      field.onChange({ type: 'template', content: value });
+                    }}
+                  />
+                </div>
+                <VariablePicker
+                  size="small"
+                  disabled={readonly}
+                  onInsert={(text) => {
+                    const oldText =
+                      typeof field.value?.content === 'string' ? String(field.value?.content) : '';
+                    const nextText = oldText ? `${oldText}${text}` : text;
+                    field.onChange({ type: 'template', content: nextText } as any);
+                  }}
+                />
+              </div>
             )}
           </Field>
         );

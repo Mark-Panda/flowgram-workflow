@@ -12,6 +12,7 @@ import { Button, Input, Select, Tag } from '@douyinfe/semi-ui';
 import { IconPlus, IconCrossCircleStroked } from '@douyinfe/semi-icons';
 
 import { useNodeRenderContext } from '../../../hooks';
+import { VariablePicker } from '../../../form-components/variable-picker';
 import { FormItem } from '../../../form-components';
 import { Feedback } from '../../../form-components';
 import {
@@ -139,60 +140,118 @@ export function CaseInputs() {
                                 labelWidth={50}
                               >
                                 <ConditionRow>
-                                  <Input
-                                    disabled={readonly}
-                                    placeholder="左值：手动输入"
-                                    value={
-                                      typeof (row as any)?.left?.content === 'string'
-                                        ? (row as any).left.content
-                                        : ''
-                                    }
-                                    onChange={(val) => {
-                                      const nextGroups = groups.map(ensureGroup);
-                                      const nextRows = [...nextGroups[gi].rows];
-                                      const base = (row ??
-                                        ({
-                                          type: 'expression',
-                                          content: '',
-                                        } as ConditionRowValueType)) as any;
-                                      const nextRow: any = {
-                                        ...base,
-                                        left: { type: 'constant', content: String(val ?? '') },
-                                        operator: base.operator ?? '==',
-                                        right: base.right ?? { type: 'constant', content: '' },
-                                      };
-                                      nextRows[rIndex] = nextRow as ConditionRowValueType;
-                                      nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
-                                      setGroups(nextGroups);
-                                    }}
-                                  />
-                                  <Input
-                                    disabled={readonly}
-                                    placeholder="右值：手动输入"
-                                    value={
-                                      typeof (row as any)?.right?.content === 'string'
-                                        ? (row as any).right.content
-                                        : ''
-                                    }
-                                    onChange={(val) => {
-                                      const nextGroups = groups.map(ensureGroup);
-                                      const nextRows = [...nextGroups[gi].rows];
-                                      const base = (row ??
-                                        ({
-                                          type: 'expression',
-                                          content: '',
-                                        } as ConditionRowValueType)) as any;
-                                      const nextRow: any = {
-                                        ...base,
-                                        right: { type: 'constant', content: String(val ?? '') },
-                                        operator: base.operator ?? '==',
-                                        left: base.left ?? { type: 'constant', content: '' },
-                                      };
-                                      nextRows[rIndex] = nextRow as ConditionRowValueType;
-                                      nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
-                                      setGroups(nextGroups);
-                                    }}
-                                  />
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <Input
+                                      disabled={readonly}
+                                      placeholder="左值：手动输入"
+                                      value={
+                                        typeof (row as any)?.left?.content === 'string'
+                                          ? (row as any).left.content
+                                          : ''
+                                      }
+                                      onChange={(val) => {
+                                        const nextGroups = groups.map(ensureGroup);
+                                        const nextRows = [...nextGroups[gi].rows];
+                                        const base = (row ??
+                                          ({
+                                            type: 'expression',
+                                            content: '',
+                                          } as ConditionRowValueType)) as any;
+                                        const nextRow: any = {
+                                          ...base,
+                                          left: { type: 'constant', content: String(val ?? '') },
+                                          operator: base.operator ?? '==',
+                                          right: base.right ?? { type: 'constant', content: '' },
+                                        };
+                                        nextRows[rIndex] = nextRow as ConditionRowValueType;
+                                        nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
+                                        setGroups(nextGroups);
+                                      }}
+                                    />
+                                    <VariablePicker
+                                      size="small"
+                                      disabled={readonly}
+                                      onInsert={(text) => {
+                                        const nextGroups = groups.map(ensureGroup);
+                                        const nextRows = [...nextGroups[gi].rows];
+                                        const base = (row ??
+                                          ({
+                                            type: 'expression',
+                                            content: '',
+                                          } as ConditionRowValueType)) as any;
+                                        const oldText =
+                                          typeof base?.left?.content === 'string'
+                                            ? String(base.left.content)
+                                            : '';
+                                        const nextText = oldText ? `${oldText}${text}` : text;
+                                        const nextRow: any = {
+                                          ...base,
+                                          left: { type: 'template', content: nextText },
+                                          operator: base.operator ?? '==',
+                                          right: base.right ?? { type: 'constant', content: '' },
+                                        };
+                                        nextRows[rIndex] = nextRow as ConditionRowValueType;
+                                        nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
+                                        setGroups(nextGroups);
+                                      }}
+                                    />
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <Input
+                                      disabled={readonly}
+                                      placeholder="右值：手动输入"
+                                      value={
+                                        typeof (row as any)?.right?.content === 'string'
+                                          ? (row as any).right.content
+                                          : ''
+                                      }
+                                      onChange={(val) => {
+                                        const nextGroups = groups.map(ensureGroup);
+                                        const nextRows = [...nextGroups[gi].rows];
+                                        const base = (row ??
+                                          ({
+                                            type: 'expression',
+                                            content: '',
+                                          } as ConditionRowValueType)) as any;
+                                        const nextRow: any = {
+                                          ...base,
+                                          right: { type: 'constant', content: String(val ?? '') },
+                                          operator: base.operator ?? '==',
+                                          left: base.left ?? { type: 'constant', content: '' },
+                                        };
+                                        nextRows[rIndex] = nextRow as ConditionRowValueType;
+                                        nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
+                                        setGroups(nextGroups);
+                                      }}
+                                    />
+                                    <VariablePicker
+                                      size="small"
+                                      disabled={readonly}
+                                      onInsert={(text) => {
+                                        const nextGroups = groups.map(ensureGroup);
+                                        const nextRows = [...nextGroups[gi].rows];
+                                        const base = (row ??
+                                          ({
+                                            type: 'expression',
+                                            content: '',
+                                          } as ConditionRowValueType)) as any;
+                                        const oldText =
+                                          typeof base?.right?.content === 'string'
+                                            ? String(base.right.content)
+                                            : '';
+                                        const nextText = oldText ? `${oldText}${text}` : text;
+                                        const nextRow: any = {
+                                          ...base,
+                                          right: { type: 'template', content: nextText },
+                                          operator: base.operator ?? '==',
+                                          left: base.left ?? { type: 'constant', content: '' },
+                                        };
+                                        nextRows[rIndex] = nextRow as ConditionRowValueType;
+                                        nextGroups[gi] = { ...nextGroups[gi], rows: nextRows };
+                                        setGroups(nextGroups);
+                                      }}
+                                    />
+                                  </div>
                                   <OperatorSelectWrapper>
                                     <Select
                                       disabled={readonly}

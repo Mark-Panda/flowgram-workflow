@@ -19,6 +19,7 @@ import { Input, Select } from '@douyinfe/semi-ui';
 import { defaultFormMeta } from '../default-form-meta';
 import { WorkflowNodeType } from '../constants';
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
+import { VariablePicker } from '../../form-components/variable-picker';
 import { FormHeader, FormContent, FormItem, Feedback } from '../../form-components';
 
 // 使用通用 FlowNodeJSON 即可，无需特定 forFor 字段
@@ -85,12 +86,28 @@ export const ForFormRender = ({ form }: FormRenderProps<ForNodeJSON>) => {
     <Field<IFlowValue> name={`note`}>
       {({ field, fieldState }) => (
         <FormItem name={'迭代值表达式'} type={'string'} required>
-          <Input
-            value={typeof field.value?.content === 'string' ? (field.value?.content as string) : ''}
-            onChange={(val) => field.onChange({ type: 'constant', content: val })}
-            disabled={readonly}
-            placeholder={'1..3'}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Input
+              value={
+                typeof field.value?.content === 'string' ? (field.value?.content as string) : ''
+              }
+              onChange={(val) => field.onChange({ type: 'constant', content: val })}
+              disabled={readonly}
+              placeholder={'1..3'}
+            />
+            <VariablePicker
+              size="small"
+              disabled={readonly}
+              onInsert={(text) => {
+                const oldText =
+                  typeof field.value?.content === 'string'
+                    ? String(field.value?.content as string)
+                    : '';
+                const nextText = oldText ? `${oldText}${text}` : text;
+                field.onChange({ type: 'template', content: nextText } as any);
+              }}
+            />
+          </div>
           <Feedback errors={fieldState?.errors} />
         </FormItem>
       )}
