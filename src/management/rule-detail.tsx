@@ -92,7 +92,6 @@ export const RuleDetail: React.FC<{
   const designDoc: FlowDocumentJSON | undefined = convertMetadataToDoc(data?.metadata);
   // 左侧子菜单选中状态（基础信息/变量/运行日志/工作流集成）
   const [subKey, setSubKey] = useState<string>('basic');
-  const [logName, setLogName] = useState<string>('');
   const [timeRange, setTimeRange] = useState<[Date | null, Date | null]>([null, null]);
   const [runs, setRuns] = useState<any[]>([]);
   const [page, setPage] = useState<number>(1);
@@ -112,7 +111,20 @@ export const RuleDetail: React.FC<{
     const hh = pad(d.getHours());
     const mm = pad(d.getMinutes());
     const ss = pad(d.getSeconds());
-    return `${y}-${m}-${dd}+${hh}:${mm}:${ss}`;
+    return `${y}-${m}-${dd} ${hh}:${mm}:${ss}`;
+  };
+
+  const toStartOfDay = (d?: Date | null): Date | null => {
+    if (!d) return null;
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  };
+  const toEndOfDay = (d?: Date | null): Date | null => {
+    if (!d) return null;
+    const x = new Date(d);
+    x.setHours(23, 59, 59, 999);
+    return x;
   };
 
   const fetchRuns = async (p?: number, s?: number) => {
@@ -122,12 +134,12 @@ export const RuleDetail: React.FC<{
       size: pageSize,
       page: current,
       current: current,
+      chainId: String(data?.ruleChain?.id ?? ''),
     };
     const startTime = formatDateTime(timeRange?.[0] || null);
     const endTime = formatDateTime(timeRange?.[1] || null);
     if (startTime) params.startTime = startTime;
     if (endTime) params.endTime = endTime;
-    if (logName) params.name = logName;
     try {
       setLoadingRuns(true);
       const data = await requestJSON<{
@@ -346,18 +358,13 @@ export const RuleDetail: React.FC<{
                 {subKey === 'logs' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <Input
-                        style={{ width: 240 }}
-                        placeholder="工作流名称"
-                        value={logName}
-                        onChange={setLogName}
-                      />
                       <DatePicker
                         type="dateTime"
                         value={timeRange[0] as any}
                         placeholder="开始时间"
                         onChange={(v: any) => {
-                          setTimeRange([v || null, timeRange[1]]);
+                          const nv = v ? toStartOfDay(v as Date) : null;
+                          setTimeRange([nv, timeRange[1]]);
                         }}
                       />
                       <DatePicker
@@ -365,7 +372,8 @@ export const RuleDetail: React.FC<{
                         value={timeRange[1] as any}
                         placeholder="结束时间"
                         onChange={(v: any) => {
-                          setTimeRange([timeRange[0], v || null]);
+                          const nv = v ? toEndOfDay(v as Date) : null;
+                          setTimeRange([timeRange[0], nv]);
                         }}
                       />
                       <Button
@@ -381,11 +389,9 @@ export const RuleDetail: React.FC<{
                       <Button
                         type="tertiary"
                         onClick={() => {
-                          setLogName('');
                           setTimeRange([null, null]);
                           setPage(1);
-                          setSize(10);
-                          fetchRuns(1, 10);
+                          fetchRuns(1, size);
                         }}
                       >
                         重置
