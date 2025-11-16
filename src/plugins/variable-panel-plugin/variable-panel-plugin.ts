@@ -127,7 +127,7 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
       // 当节点被创建时，立即合并到 global.nodes
       const disposeCreate = document.onNodeCreate(() => registerNodeVariables());
       // 当画布销毁时清理监听
-      ctx.playground.onDispose(() => disposeCreate?.dispose?.());
+      (ctx.playground as any).toDispose?.add?.(disposeCreate);
     } catch {}
 
     try {

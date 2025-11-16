@@ -26,10 +26,12 @@ export function FullVariableList() {
   useEffect(() => {
     let disposables: any[] = [];
     try {
-      disposables.push(document.output.onDocumentChange(() => refresh()));
+      const d = (document as any).output?.onDocumentChange?.(() => refresh());
+      if (d) disposables.push(d);
     } catch {}
     try {
-      disposables.push(globalScope.output.onVariableListChange(() => refresh()));
+      const d = (globalScope as any).output?.onVariableListChange?.(() => refresh());
+      if (d) disposables.push(d);
     } catch {}
     return () => {
       disposables.forEach((d) => d?.dispose?.());
