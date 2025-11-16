@@ -26,7 +26,13 @@ import { AutoLayout } from './auto-layout';
 import { ProblemButton } from '../problem-panel';
 import { ExportImport } from './export-import';
 
-export const DemoTools = ({ showBottomActions = true }: { showBottomActions?: boolean }) => {
+export const DemoTools = ({
+  showBottomActions = true,
+  allowedTools,
+}: {
+  showBottomActions?: boolean;
+  allowedTools?: string[];
+}) => {
   const { history, playground } = useClientContext();
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -48,44 +54,60 @@ export const DemoTools = ({ showBottomActions = true }: { showBottomActions?: bo
   return (
     <ToolContainer className="demo-free-layout-tools">
       <ToolSection>
-        <Interactive />
-        <AutoLayout />
-        <SwitchLine />
-        <ZoomSelect />
-        <FitView />
-        <MinimapSwitch minimapVisible={minimapVisible} setMinimapVisible={setMinimapVisible} />
-        <Minimap visible={minimapVisible} />
-        <Readonly />
-        <Comment />
-        <Tooltip content="Undo">
-          <IconButton
-            type="tertiary"
-            theme="borderless"
-            icon={<IconUndo />}
-            disabled={!canUndo || playground.config.readonly}
-            onClick={() => history.undo()}
-          />
-        </Tooltip>
-        <Tooltip content="Redo">
-          <IconButton
-            type="tertiary"
-            theme="borderless"
-            icon={<IconRedo />}
-            disabled={!canRedo || playground.config.readonly}
-            onClick={() => history.redo()}
-          />
-        </Tooltip>
-        <ProblemButton />
+        {!allowedTools || allowedTools.includes('interactive') ? <Interactive /> : null}
+        {!allowedTools || allowedTools.includes('autoLayout') ? <AutoLayout /> : null}
+        {!allowedTools || allowedTools.includes('switchLine') ? <SwitchLine /> : null}
+        {!allowedTools || allowedTools.includes('zoomSelect') ? <ZoomSelect /> : null}
+        {!allowedTools || allowedTools.includes('fitView') ? <FitView /> : null}
+        {!allowedTools || allowedTools.includes('minimapSwitch') ? (
+          <MinimapSwitch minimapVisible={minimapVisible} setMinimapVisible={setMinimapVisible} />
+        ) : null}
+        {!allowedTools || allowedTools.includes('minimap') ? (
+          <Minimap visible={minimapVisible} />
+        ) : null}
+        {!allowedTools || allowedTools.includes('readonly') ? <Readonly /> : null}
+        {!allowedTools || allowedTools.includes('comment') ? <Comment /> : null}
+        {!allowedTools || allowedTools.includes('undo') ? (
+          <Tooltip content="Undo">
+            <IconButton
+              type="tertiary"
+              theme="borderless"
+              icon={<IconUndo />}
+              disabled={!canUndo || playground.config.readonly}
+              onClick={() => history.undo()}
+            />
+          </Tooltip>
+        ) : null}
+        {!allowedTools || allowedTools.includes('redo') ? (
+          <Tooltip content="Redo">
+            <IconButton
+              type="tertiary"
+              theme="borderless"
+              icon={<IconRedo />}
+              disabled={!canRedo || playground.config.readonly}
+              onClick={() => history.redo()}
+            />
+          </Tooltip>
+        ) : null}
+        {!allowedTools || allowedTools.includes('problems') ? <ProblemButton /> : null}
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <AddNode disabled={playground.config.readonly} />
+        {!allowedTools || allowedTools.includes('addNode') ? (
+          <AddNode disabled={playground.config.readonly} />
+        ) : null}
         {showBottomActions && (
           <>
             <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-            <ExportImport disabled={playground.config.readonly} />
+            {!allowedTools || allowedTools.includes('exportImport') ? (
+              <ExportImport disabled={playground.config.readonly} />
+            ) : null}
             <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-            <SaveButton disabled={playground.config.readonly} />
+            {!allowedTools || allowedTools.includes('save') ? (
+              <SaveButton disabled={playground.config.readonly} />
+            ) : null}
             <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-            <TestRunButton disabled={playground.config.readonly} />
+            {!allowedTools || allowedTools.includes('testRun') ? (
+              <TestRunButton disabled={playground.config.readonly} />
+            ) : null}
           </>
         )}
       </ToolSection>

@@ -44,7 +44,9 @@ import { BaseNode, CommentRender, GroupNodeRender, LineAddButton, NodePanel } fr
 
 export function useEditorProps(
   initialData: FlowDocumentJSON,
-  nodeRegistries: FlowNodeRegistry[]
+  nodeRegistries: FlowNodeRegistry[],
+  readonly?: boolean,
+  initialLogs?: { list: any[]; startTs?: number; endTs?: number }
 ): FreeLayoutProps {
   return useMemo<FreeLayoutProps>(
     () => ({
@@ -66,7 +68,7 @@ export function useEditorProps(
       /**
        * Whether it is read-only or not, the node cannot be dragged in read-only mode
        */
-      readonly: false,
+      readonly: !!readonly,
       /**
        * Line support both-way connection (default true)
        * 线条支持双向连接
@@ -293,6 +295,12 @@ export function useEditorProps(
         // ctx.tools.autoLayout(); // init auto layout
         ctx.tools.fitView(false);
         console.log('--- Playground rendered ---');
+        try {
+          if (initialLogs && Array.isArray(initialLogs.list)) {
+            const svc = ctx.get(WorkflowRuntimeService);
+            svc.injectLogs(initialLogs.list, initialLogs.startTs, initialLogs.endTs);
+          }
+        } catch {}
       },
       /**
        * Playground dispose

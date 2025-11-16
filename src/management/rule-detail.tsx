@@ -5,11 +5,25 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { Button, Input, Nav, Switch, Typography, Toast, Tag } from '@douyinfe/semi-ui';
+import {
+  Button,
+  Input,
+  Nav,
+  Switch,
+  Typography,
+  Toast,
+  Tag,
+  DatePicker,
+  Table,
+  Pagination,
+  Spin,
+  Modal,
+} from '@douyinfe/semi-ui';
 
 import { buildDocumentFromRuleChainJSON } from '../utils/rulechain-builder';
 import { FlowDocumentJSON, FlowNodeJSON } from '../typings';
 import { setRuleBaseInfo } from '../services/rule-base-info';
+import { requestJSON } from '../services/http';
 import { createRuleBase, getRuleDetail } from '../services/api-rules';
 import { WorkflowNodeType } from '../nodes';
 import { Editor } from '../editor';
@@ -78,6 +92,66 @@ export const RuleDetail: React.FC<{
   const designDoc: FlowDocumentJSON | undefined = convertMetadataToDoc(data?.metadata);
   // 左侧子菜单选中状态（基础信息/变量/运行日志/工作流集成）
   const [subKey, setSubKey] = useState<string>('basic');
+  const [logName, setLogName] = useState<string>('');
+  const [timeRange, setTimeRange] = useState<[Date | null, Date | null]>([null, null]);
+  const [runs, setRuns] = useState<any[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [size, setSize] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const [loadingRuns, setLoadingRuns] = useState<boolean>(false);
+  const [viewerOpen, setViewerOpen] = useState<boolean>(false);
+  const [viewerDoc, setViewerDoc] = useState<FlowDocumentJSON | undefined>();
+  const [viewerLogs, setViewerLogs] = useState<{ list: any[]; startTs?: number; endTs?: number }>();
+
+  const formatDateTime = (d?: Date | null): string => {
+    if (!d) return '';
+    const pad = (n: number) => (n < 10 ? `0${n}` : String(n));
+    const y = d.getFullYear();
+    const m = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mm = pad(d.getMinutes());
+    const ss = pad(d.getSeconds());
+    return `${y}-${m}-${dd}+${hh}:${mm}:${ss}`;
+  };
+
+  const fetchRuns = async (p?: number, s?: number) => {
+    const current = typeof p === 'number' ? p : page;
+    const pageSize = typeof s === 'number' ? s : size;
+    const params: Record<string, any> = {
+      size: pageSize,
+      page: current,
+      current: current,
+    };
+    const startTime = formatDateTime(timeRange?.[0] || null);
+    const endTime = formatDateTime(timeRange?.[1] || null);
+    if (startTime) params.startTime = startTime;
+    if (endTime) params.endTime = endTime;
+    if (logName) params.name = logName;
+    try {
+      setLoadingRuns(true);
+      const data = await requestJSON<{
+        items: any[];
+        total?: number;
+        size?: number;
+        page?: number;
+      }>('/logs/runs', { params });
+      setRuns(Array.isArray((data as any)?.items) ? (data as any).items : []);
+      setTotal(Number((data as any)?.total ?? 0));
+      setPage(Number((data as any)?.page ?? current));
+      setSize(Number((data as any)?.size ?? pageSize));
+      setLoadingRuns(false);
+    } catch (e) {
+      setLoadingRuns(false);
+      Toast.error({ content: String((e as Error)?.message ?? e) });
+    }
+  };
+
+  React.useEffect(() => {
+    if (subKey === 'logs') {
+      fetchRuns(1, size);
+    }
+  }, [subKey]);
   return (
     <div
       style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F7F8FA' }}
@@ -270,7 +344,159 @@ export const RuleDetail: React.FC<{
                   <Typography.Text type="tertiary">变量配置功能待接入</Typography.Text>
                 )}
                 {subKey === 'logs' && (
-                  <Typography.Text type="tertiary">运行日志功能待接入</Typography.Text>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <Input
+                        style={{ width: 240 }}
+                        placeholder="工作流名称"
+                        value={logName}
+                        onChange={setLogName}
+                      />
+                      <DatePicker
+                        type="dateTime"
+                        value={timeRange[0] as any}
+                        placeholder="开始时间"
+                        onChange={(v: any) => {
+                          setTimeRange([v || null, timeRange[1]]);
+                        }}
+                      />
+                      <DatePicker
+                        type="dateTime"
+                        value={timeRange[1] as any}
+                        placeholder="结束时间"
+                        onChange={(v: any) => {
+                          setTimeRange([timeRange[0], v || null]);
+                        }}
+                      />
+                      <Button
+                        theme="solid"
+                        type="primary"
+                        onClick={() => {
+                          setPage(1);
+                          fetchRuns(1, size);
+                        }}
+                      >
+                        查询
+                      </Button>
+                      <Button
+                        type="tertiary"
+                        onClick={() => {
+                          setLogName('');
+                          setTimeRange([null, null]);
+                          setPage(1);
+                          setSize(10);
+                          fetchRuns(1, 10);
+                        }}
+                      >
+                        重置
+                      </Button>
+                    </div>
+                    <Spin spinning={loadingRuns}>
+                      <Table
+                        dataSource={runs}
+                        columns={[
+                          {
+                            title: '工作流名称',
+                            dataIndex: 'ruleChain.name',
+                            width: 200,
+                          },
+                          {
+                            title: '规则链ID',
+                            dataIndex: 'ruleChain.id',
+                            width: 160,
+                          },
+                          {
+                            title: '开始时间',
+                            render: (_, r: any) => {
+                              const ts = Number(r?.startTs ?? 0);
+                              return ts ? new Date(ts).toLocaleString() : '';
+                            },
+                            width: 180,
+                          },
+                          {
+                            title: '结束时间',
+                            render: (_, r: any) => {
+                              const ts = Number(r?.endTs ?? 0);
+                              return ts ? new Date(ts).toLocaleString() : '';
+                            },
+                            width: 180,
+                          },
+                          {
+                            title: '耗时(ms)',
+                            render: (_, r: any) => {
+                              const s = Number(r?.startTs ?? 0);
+                              const e = Number(r?.endTs ?? 0);
+                              return s && e ? e - s : '';
+                            },
+                            width: 120,
+                          },
+                          {
+                            title: '状态',
+                            render: (_, r: any) => {
+                              const hasErr = Array.isArray(r?.logs)
+                                ? r.logs.some((l: any) => String(l?.err || '').length > 0)
+                                : false;
+                              return (
+                                <Tag size="small" color={hasErr ? 'red' : 'green'}>
+                                  {hasErr ? '失败' : '成功'}
+                                </Tag>
+                              );
+                            },
+                            width: 100,
+                          },
+                          {
+                            title: '操作',
+                            render: (_, r: any) => (
+                              <Button
+                                size="small"
+                                onClick={() => {
+                                  try {
+                                    const rcjson = {
+                                      ruleChain: r?.ruleChain,
+                                      metadata: r?.metadata,
+                                    } as any;
+                                    const doc = buildDocumentFromRuleChainJSON(rcjson) as any;
+                                    setViewerDoc(doc);
+                                    const logs = Array.isArray(r?.logs) ? r.logs : [];
+                                    setViewerLogs({
+                                      list: logs,
+                                      startTs: r?.startTs,
+                                      endTs: r?.endTs,
+                                    });
+                                    setViewerOpen(true);
+                                  } catch (e) {
+                                    Toast.error({ content: String((e as Error)?.message ?? e) });
+                                  }
+                                }}
+                              >
+                                查看
+                              </Button>
+                            ),
+                            width: 120,
+                          },
+                        ]}
+                        pagination={false}
+                        rowKey={(r: any) => String(r?.id || r?.ruleChain?.id || Math.random())}
+                      />
+                    </Spin>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Pagination
+                        total={total}
+                        pageSize={size}
+                        currentPage={page}
+                        onPageChange={(p) => {
+                          setPage(p);
+                          fetchRuns(p, size);
+                        }}
+                        onPageSizeChange={(ps) => {
+                          setSize(ps);
+                          setPage(1);
+                          fetchRuns(1, ps);
+                        }}
+                        pageSizeOpts={[10, 20, 50]}
+                      />
+                    </div>
+                  </div>
                 )}
                 {subKey === 'integration' && (
                   <Typography.Text type="tertiary">工作流集成功能待接入</Typography.Text>
@@ -280,6 +506,23 @@ export const RuleDetail: React.FC<{
           </div>
         </div>
       )}
+      <Modal
+        visible={viewerOpen}
+        title="运行日志查看"
+        onCancel={() => setViewerOpen(false)}
+        footer={null}
+        width={1200}
+      >
+        <div style={{ height: '70vh' }}>
+          <Editor
+            initialDoc={viewerDoc}
+            showTopToolbar={true}
+            readonly={true}
+            initialLogs={viewerLogs}
+            openRunPanel={false}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
