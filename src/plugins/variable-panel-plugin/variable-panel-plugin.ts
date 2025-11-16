@@ -53,7 +53,6 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
         })
       );
     } else {
-      // You can also fetch global variable from remote
       fetchMockVariableFromRemote().then((v) => {
         globalScope.setVar(
           ASTFactory.createVariableDeclaration({
@@ -65,6 +64,9 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
             type: JsonSchemaUtils.schemaToAST(v),
           })
         );
+        try {
+          registerNodeVariables();
+        } catch {}
       });
     }
 
@@ -78,8 +80,10 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
       const nodeProps: Record<string, IJsonSchema> = {};
       document.getAllNodes().forEach((n: any) => {
         const id = String(n.id);
+        const title = document.toNodeJSON(n)?.data?.title || id;
         nodeProps[id] = {
           type: 'object',
+          title,
           properties: {
             id: { type: 'string' },
             ts: { type: 'string' },
@@ -100,11 +104,34 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
         },
       } as any;
       globalVar.updateType(JsonSchemaUtils.schemaToAST(nextSchema));
+
+      try {
+        document.getAllNodes().forEach((n: any) => {
+          const id = String(n.id);
+          const title = document.toNodeJSON(n)?.data?.title || id;
+          const field = globalVar.getByKeyPath(['nodes', id]);
+          field?.updateMeta({ ...(field?.meta || {}), title });
+        });
+      } catch {}
     };
 
     try {
       registerNodeVariables();
+    } catch {}
+
+    try {
       document.output.onDocumentChange(registerNodeVariables);
+    } catch {}
+
+    try {
+      // 当节点被创建时，立即合并到 global.nodes
+      const disposeCreate = document.onNodeCreate(() => registerNodeVariables());
+      // 当画布销毁时清理监听
+      ctx.playground.onDispose(() => disposeCreate?.dispose?.());
+    } catch {}
+
+    try {
+      globalScope.output.onVariableListChange(registerNodeVariables);
     } catch {}
   },
 });

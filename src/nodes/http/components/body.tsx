@@ -12,6 +12,7 @@ import {
 import { Select } from '@douyinfe/semi-ui';
 
 import { useNodeRenderContext } from '../../../hooks';
+import { VariablePicker } from '../../../form-components/variable-picker';
 import { FormItem } from '../../../form-components';
 
 const BODY_TYPE_OPTIONS = [
@@ -53,15 +54,30 @@ export function Body() {
         return (
           <Field<IFlowTemplateValue> name="body.rawText">
             {({ field }) => (
-              <PromptEditorWithVariables
-                disableMarkdownHighlight
-                readonly={readonly}
-                style={{ flexGrow: 1 }}
-                placeholder="Input raw text, use var by '{'"
-                onChange={(value) => {
-                  field.onChange(value!);
-                }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <PromptEditorWithVariables
+                  disableMarkdownHighlight
+                  readonly={readonly}
+                  style={{ flexGrow: 1 }}
+                  placeholder="Input raw text, use var by '${'"
+                  value={field.value}
+                  onChange={(value) => {
+                    field.onChange(value!);
+                  }}
+                />
+                <VariablePicker
+                  size="small"
+                  disabled={readonly}
+                  onInsert={(text) => {
+                    const oldText =
+                      typeof (field.value as any)?.content === 'string'
+                        ? String((field.value as any)?.content)
+                        : '';
+                    const nextText = oldText ? `${oldText}${text}` : text;
+                    field.onChange({ type: 'template', content: nextText } as any);
+                  }}
+                />
+              </div>
             )}
           </Field>
         );

@@ -8,6 +8,7 @@ import { IFlowTemplateValue, PromptEditorWithVariables } from '@flowgram.ai/form
 import { Select } from '@douyinfe/semi-ui';
 
 import { useNodeRenderContext } from '../../../hooks';
+import { VariablePicker } from '../../../form-components/variable-picker';
 import { FormItem } from '../../../form-components';
 
 export function Api() {
@@ -41,16 +42,30 @@ export function Api() {
 
           <Field<IFlowTemplateValue> name="api.url">
             {({ field }) => (
-              <PromptEditorWithVariables
-                disableMarkdownHighlight
-                readonly={readonly}
-                style={{ flexGrow: 1 }}
-                placeholder="Input URL, use var by '{'"
-                value={field.value}
-                onChange={(value) => {
-                  field.onChange(value!);
-                }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                <PromptEditorWithVariables
+                  disableMarkdownHighlight
+                  readonly={readonly}
+                  style={{ flexGrow: 1 }}
+                  placeholder="Input URL, use var by '${'"
+                  value={field.value}
+                  onChange={(value) => {
+                    field.onChange(value!);
+                  }}
+                />
+                <VariablePicker
+                  size="small"
+                  disabled={readonly}
+                  onInsert={(text) => {
+                    const oldText =
+                      typeof (field.value as any)?.content === 'string'
+                        ? String((field.value as any)?.content)
+                        : '';
+                    const nextText = oldText ? `${oldText}${text}` : text;
+                    field.onChange({ type: 'template', content: nextText } as any);
+                  }}
+                />
+              </div>
             )}
           </Field>
         </div>

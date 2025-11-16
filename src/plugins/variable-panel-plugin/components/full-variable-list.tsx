@@ -3,22 +3,45 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { useService } from '@flowgram.ai/free-layout-editor';
-import { WorkflowDocument, WorkflowNodeEntity } from '@flowgram.ai/free-layout-editor';
-import { useVariableTree } from '@flowgram.ai/form-materials';
+import { useEffect } from 'react';
+
+import {
+  useRefresh,
+  useService,
+  GlobalScope,
+  WorkflowDocument,
+  WorkflowNodeEntity,
+  BaseVariableField,
+} from '@flowgram.ai/free-layout-editor';
+import { useVariableTree, JsonSchemaUtils } from '@flowgram.ai/form-materials';
 import { Tree } from '@douyinfe/semi-ui';
 
 import { getNodeTypeName } from '../../../nodes/node-type-names';
 
 export function FullVariableList() {
-  const treeData = useVariableTree({});
+  const refresh = useRefresh();
   const document = useService(WorkflowDocument);
-  const nodes: WorkflowNodeEntity[] = document.getAllNodes();
+  const globalScope = useService(GlobalScope);
 
+  useEffect(() => {
+    let disposables: any[] = [];
+    try {
+      disposables.push(document.output.onDocumentChange(() => refresh()));
+    } catch {}
+    try {
+      disposables.push(globalScope.output.onVariableListChange(() => refresh()));
+    } catch {}
+    return () => {
+      disposables.forEach((d) => d?.dispose?.());
+    };
+  }, []);
+
+  const treeData = useVariableTree({});
+  const nodes: WorkflowNodeEntity[] = document.getAllNodes();
   const nodeItems = nodes
     .filter((n: any) => n.flowNodeType !== 'block-start' && n.flowNodeType !== 'block-end')
     .map((n: any) => {
-      const label = n.data?.title || getNodeTypeName(String(n.flowNodeType));
+      const label = document.toNodeJSON(n)?.data?.title || getNodeTypeName(String(n.flowNodeType));
       return {
         label,
         key: `node:${n.id}`,
@@ -36,5 +59,25 @@ export function FullVariableList() {
 
   const merged = Array.isArray(treeData) ? [...treeData, ...nodeItems] : nodeItems;
 
-  return <Tree treeData={merged} />;
+  return (
+    <Tree
+      treeData={merged}
+      onSelect={(keys, info: any) => {
+        try {
+          const label: string = String(info?.node?.label ?? '');
+          if (!label) return;
+          const globalVar = globalScope.getVar() as BaseVariableField;
+          if (!globalVar) return;
+          const schema = globalVar.type
+            ? JsonSchemaUtils.astToSchema(globalVar.type)
+            : ({ type: 'object', properties: {} } as any);
+          const props = (schema as any).properties || ((schema as any).properties = {});
+          if (!props[label]) {
+            props[label] = { type: 'string' } as any;
+            globalVar.updateType(JsonSchemaUtils.schemaToAST(schema));
+          }
+        } catch {}
+      }}
+    />
+  );
 }

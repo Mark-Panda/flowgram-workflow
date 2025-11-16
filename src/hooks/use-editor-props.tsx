@@ -21,6 +21,7 @@ import {
 } from '@flowgram.ai/free-layout-editor';
 import { createFreeGroupPlugin } from '@flowgram.ai/free-group-plugin';
 import { createContainerNodePlugin } from '@flowgram.ai/free-container-plugin';
+import { EditorVariableTree } from '@flowgram.ai/form-materials';
 
 import { canContainNode, onDragLineEnd } from '../utils';
 import { FlowNodeRegistry, FlowDocumentJSON } from '../typings';
@@ -40,6 +41,7 @@ import { testRunPanelFactory } from '../components/testrun/testrun-panel';
 import { nodeFormPanelFactory } from '../components/sidebar';
 import { SelectorBoxPopover } from '../components/selector-box-popover';
 import { problemPanelFactory } from '../components/problem-panel';
+import { CustomVariableTree } from '../components/custom-variable-tree';
 import { BaseNode, CommentRender, GroupNodeRender, LineAddButton, NodePanel } from '../components';
 
 export function useEditorProps(
@@ -209,7 +211,9 @@ export function useEditorProps(
         enableScrollLimit: false,
       },
       materials: {
-        components: {},
+        components: {
+          [EditorVariableTree.renderKey!]: CustomVariableTree,
+        },
         /**
          * Render Node
          */
