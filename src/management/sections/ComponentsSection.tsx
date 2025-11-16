@@ -31,6 +31,8 @@ export const ComponentsSection: React.FC = () => {
   const [compPage, setCompPage] = useState(1);
   const [compSize, setCompSize] = useState(10);
   const compKinds = ['all', 'endpoint', 'node'] as const;
+  const [compViewVisible, setCompViewVisible] = useState(false);
+  const [compViewText, setCompViewText] = useState('');
 
   const filteredComponents = useMemo(() => {
     const kw = compKeywords.trim().toLowerCase();
@@ -89,7 +91,9 @@ export const ComponentsSection: React.FC = () => {
           description: String(ep?.desc ?? ''),
           version: String(ep?.version ?? ''),
           disabled: !!ep?.disabled,
+          fields: Array.isArray(ep?.fields) ? ep.fields : [],
           fieldsLen: Array.isArray(ep?.fields) ? ep.fields.length : 0,
+          relationTypes: Array.isArray(ep?.relationTypes) ? ep.relationTypes : [],
           relationTypesLen: Array.isArray(ep?.relationTypes) ? ep.relationTypes.length : 0,
           instancesCount: inst.length,
         };
@@ -106,7 +110,9 @@ export const ComponentsSection: React.FC = () => {
           description: String(nd?.desc ?? ''),
           version: String(nd?.version ?? ''),
           disabled: !!nd?.disabled,
+          fields: Array.isArray(nd?.fields) ? nd.fields : [],
           fieldsLen: Array.isArray(nd?.fields) ? nd.fields.length : 0,
+          relationTypes: Array.isArray(nd?.relationTypes) ? nd.relationTypes : [],
           relationTypesLen: Array.isArray(nd?.relationTypes) ? nd.relationTypes.length : 0,
           instancesCount: 0,
         };
@@ -261,7 +267,6 @@ export const ComponentsSection: React.FC = () => {
             items={[
               { itemKey: 'installed', text: '✅ 已安装组件' },
               { itemKey: 'rules', text: '📐 组件规则' },
-              { itemKey: 'market', text: '🛍️ 组件市场' },
             ]}
             selectedKeys={[componentSub]}
             onSelect={(data) => setComponentSub(data.itemKey as any)}
@@ -330,15 +335,6 @@ export const ComponentsSection: React.FC = () => {
                   重置
                 </Button>
               </div>
-              <div>
-                <Button
-                  theme="solid"
-                  type="primary"
-                  onClick={() => Toast.info({ content: '创建组件功能待接入' })}
-                >
-                  创建组件
-                </Button>
-              </div>
             </div>
             {compError ? (
               <Typography.Text type="danger">加载失败：{compError}</Typography.Text>
@@ -363,44 +359,26 @@ export const ComponentsSection: React.FC = () => {
                     render: (_, r: any) => (String(r.kind) === 'endpoint' ? '端点' : '节点'),
                     width: 120,
                   },
-                  { title: '字段数', dataIndex: 'fieldsLen', width: 100 },
-                  { title: '关联数', dataIndex: 'relationTypesLen', width: 100 },
-                  { title: '实例数', dataIndex: 'instancesCount', width: 100 },
-                  {
-                    title: '描述',
-                    render: (_, r: any) => (
-                      <Typography.Text type="tertiary">
-                        {String(r.description ?? r.desc ?? '')}
-                      </Typography.Text>
-                    ),
-                  },
                   {
                     title: '操作',
-                    width: 220,
+                    width: 120,
                     render: (_, r: any) => (
                       <div style={{ display: 'flex', gap: 8 }}>
                         <Button
                           size="small"
                           type="primary"
-                          onClick={() =>
-                            Toast.info({ content: `查看详情：${String(r.name ?? r.type ?? '')}` })
-                          }
+                          onClick={() => {
+                            try {
+                              const text = JSON.stringify(r, null, 2);
+                              setCompViewText(text);
+                              setCompViewVisible(true);
+                            } catch (e) {
+                              setCompViewText(String(r));
+                              setCompViewVisible(true);
+                            }
+                          }}
                         >
                           详情
-                        </Button>
-                        <Button
-                          size="small"
-                          type="secondary"
-                          onClick={() => Toast.info({ content: '启用/停用功能待接入' })}
-                        >
-                          启用/停用
-                        </Button>
-                        <Button
-                          size="small"
-                          type="danger"
-                          onClick={() => Toast.info({ content: '移除功能待接入' })}
-                        >
-                          移除
                         </Button>
                       </div>
                     ),
@@ -409,6 +387,26 @@ export const ComponentsSection: React.FC = () => {
                 pagination={false}
               />
             </Spin>
+            <Modal
+              title={
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 20 }}>🧩</span>
+                  <span style={{ fontSize: 16, fontWeight: 600 }}>组件详情</span>
+                </div>
+              }
+              visible={compViewVisible}
+              onCancel={() => setCompViewVisible(false)}
+              okText="关闭"
+              onOk={() => setCompViewVisible(false)}
+              style={{ borderRadius: 16, width: 720 }}
+            >
+              <TextArea
+                value={compViewText}
+                readOnly
+                rows={18}
+                style={{ fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}
+              />
+            </Modal>
             <div
               style={{
                 background: '#fff',
