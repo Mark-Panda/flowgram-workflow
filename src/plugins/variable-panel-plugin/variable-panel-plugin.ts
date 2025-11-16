@@ -8,6 +8,7 @@ import {
   definePluginCreator,
   GlobalScope,
   VariableDeclaration,
+  WorkflowDocument,
 } from '@flowgram.ai/free-layout-editor';
 import { IJsonSchema, JsonSchemaUtils } from '@flowgram.ai/form-materials';
 
@@ -38,6 +39,7 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
     ctx.playground.registerLayer(VariablePanelLayer);
 
     const globalScope = ctx.get(GlobalScope);
+    const document: any = ctx.get(WorkflowDocument);
 
     if (opts.initialData) {
       globalScope.setVar(
@@ -65,5 +67,44 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
         );
       });
     }
+
+    const registerNodeVariables = () => {
+      const globalVar = globalScope.getVar() as VariableDeclaration;
+      const schemaFromAst = globalVar?.type
+        ? JsonSchemaUtils.astToSchema(globalVar.type)
+        : undefined;
+      const baseSchema =
+        schemaFromAst ?? ({ type: 'object', properties: {}, required: [] } as IJsonSchema);
+      const nodeProps: Record<string, IJsonSchema> = {};
+      document.getAllNodes().forEach((n: any) => {
+        const id = String(n.id);
+        nodeProps[id] = {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            ts: { type: 'string' },
+            data: { type: 'object' },
+            msg: { type: 'object' },
+            metadata: { type: 'object' },
+            msgType: { type: 'string' },
+            dataType: { type: 'string' },
+          },
+        } as any;
+      });
+      const nextSchema: IJsonSchema = {
+        type: 'object',
+        required: Array.isArray(baseSchema?.required) ? (baseSchema as any).required : [],
+        properties: {
+          ...((baseSchema && (baseSchema as any).properties) || {}),
+          nodes: { type: 'object', properties: nodeProps },
+        },
+      } as any;
+      globalVar.updateType(JsonSchemaUtils.schemaToAST(nextSchema));
+    };
+
+    try {
+      registerNodeVariables();
+      document.output.onDocumentChange(registerNodeVariables);
+    } catch {}
   },
 });
