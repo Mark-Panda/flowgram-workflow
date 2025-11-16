@@ -96,7 +96,7 @@ export const DBClientNodeRegistry: FlowNodeRegistry = {
               type: 'string',
               extra: {
                 label: 'sql',
-                formComponent: 'prompt-editor',
+                formComponent: 'sql-editor',
                 description:
                   '可以使用 ${metadata.key} 或者 ${msg.key}变量，SQL参数允许使用 ? 占位符',
               },

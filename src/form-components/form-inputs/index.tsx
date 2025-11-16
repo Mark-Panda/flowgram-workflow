@@ -10,7 +10,9 @@ import { FormItem } from '../form-item';
 import { Feedback } from '../feedback';
 import { JsonSchema } from '../../typings';
 import { useNodeRenderContext } from '../../hooks';
+import { SqlTemplateEditor } from './sql-template-editor';
 import { RuleSelect } from './rule-select';
+import { NodeIdSelect } from './node-id-select';
 import { NodeIdMultiSelect } from './node-id-multi-select';
 
 export function FormInputs() {
@@ -30,7 +32,7 @@ export function FormInputs() {
           const formComponent = property.extra?.formComponent;
           const displayLabel = property.extra?.label || key;
 
-          const vertical = ['prompt-editor'].includes(formComponent || '');
+          const vertical = ['prompt-editor', 'sql-editor'].includes(formComponent || '');
 
           return (
             <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
@@ -44,6 +46,14 @@ export function FormInputs() {
                 >
                   {formComponent === 'prompt-editor' && (
                     <PromptEditorWithVariables
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                    />
+                  )}
+                  {formComponent === 'sql-editor' && (
+                    <SqlTemplateEditor
                       value={field.value}
                       onChange={field.onChange}
                       readonly={readonly}
@@ -111,6 +121,5 @@ export function FormInputs() {
     </Field>
   );
 }
-import { NodeIdSelect } from './node-id-select';
 import { EnumSelect } from './enum-select';
 import { ArrayEditor } from './array-editor';
