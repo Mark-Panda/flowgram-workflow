@@ -936,6 +936,13 @@ export const AdminPanel: React.FC = () => {
               border: '1px solid rgba(6,7,9,0.06)',
               boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
               padding: '10px 12px',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(6,7,9,0.08)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(6,7,9,0.04)';
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
@@ -968,6 +975,7 @@ export const AdminPanel: React.FC = () => {
             </div>
             <div>
               <Button
+                icon={<IconPlus />}
                 theme="solid"
                 type="primary"
                 onClick={() => {
@@ -975,6 +983,12 @@ export const AdminPanel: React.FC = () => {
                   setDocForm({ id: '', name: '', description: '', content: '' });
                   setDocPreview(true);
                   setDocCreateVisible(true);
+                }}
+                style={{
+                  borderRadius: 10,
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  background: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)',
+                  border: 'none',
                 }}
               >
                 新建文档
@@ -984,144 +998,172 @@ export const AdminPanel: React.FC = () => {
           {docError ? <Typography.Text type="danger">加载失败：{docError}</Typography.Text> : null}
           <div style={{ marginTop: 16 }}>
             <Spin spinning={docLoading}>
-              <Table
-                dataSource={docItems
-                  .filter((d) => {
-                    const kw = docKeywords.trim().toLowerCase();
-                    if (!kw) return true;
-                    const name = String(d.name || '').toLowerCase();
-                    const desc = String(d.description || '').toLowerCase();
-                    return name.includes(kw) || desc.includes(kw);
-                  })
-                  .slice((docPage - 1) * docSize, (docPage - 1) * docSize + docSize)}
-                rowKey={(r: any) => String(r.id)}
-                columns={[
-                  { title: '文档名称', render: (_, r: any) => String(r.name || '-'), width: 240 },
-                  {
-                    title: '描述',
-                    render: (_, r: any) => (
-                      <Typography.Text type="tertiary">
-                        {String(r.description || '')}
-                      </Typography.Text>
-                    ),
-                  },
-                  {
-                    title: '关联工作项',
-                    width: 160,
-                    render: (_, r: any) => Number(r.relatedCount || 0),
-                  },
-                  {
-                    title: '创建时间',
-                    width: 200,
-                    render: (_, r: any) => {
-                      const ts = Number(r.createTime ? Date.parse(String(r.createTime)) : 0);
-                      return ts ? new Date(ts).toLocaleString() : '';
+              {docItems.filter((d) => {
+                const kw = docKeywords.trim().toLowerCase();
+                if (!kw) return true;
+                const name = String(d.name || '').toLowerCase();
+                const desc = String(d.description || '').toLowerCase();
+                return name.includes(kw) || desc.includes(kw);
+              }).length === 0 ? (
+                <div
+                  style={{
+                    background: '#fff',
+                    borderRadius: 12,
+                    border: '1px solid rgba(6,7,9,0.06)',
+                    boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
+                    padding: '48px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <Typography.Title heading={5} style={{ margin: 0 }}>
+                    暂无文档
+                  </Typography.Title>
+                  <Typography.Text type="tertiary">点击右上角“新建文档”快速创建</Typography.Text>
+                </div>
+              ) : (
+                <Table
+                  dataSource={docItems
+                    .filter((d) => {
+                      const kw = docKeywords.trim().toLowerCase();
+                      if (!kw) return true;
+                      const name = String(d.name || '').toLowerCase();
+                      const desc = String(d.description || '').toLowerCase();
+                      return name.includes(kw) || desc.includes(kw);
+                    })
+                    .slice((docPage - 1) * docSize, (docPage - 1) * docSize + docSize)}
+                  rowKey={(r: any) => String(r.id)}
+                  columns={[
+                    { title: '文档名称', render: (_, r: any) => String(r.name || '-'), width: 240 },
+                    {
+                      title: '描述',
+                      render: (_, r: any) => (
+                        <Typography.Text type="tertiary">
+                          {String(r.description || '')}
+                        </Typography.Text>
+                      ),
                     },
-                  },
-                  {
-                    title: '操作',
-                    width: 260,
-                    render: (_, r: any) => (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <Button
-                          size="small"
-                          type="primary"
-                          onClick={() => {
-                            setDocEditMode('view');
-                            setDocForm({
-                              id: String(r.id || ''),
-                              name: String(r.name || ''),
-                              description: String(r.description || ''),
-                              content: String(r.content || ''),
-                            });
-                            setDocPreview(true);
-                            setDocCreateVisible(true);
-                          }}
-                        >
-                          查看
-                        </Button>
-                        <Button
-                          size="small"
-                          type="secondary"
-                          onClick={() => {
-                            setDocEditMode('edit');
-                            setDocForm({
-                              id: String(r.id || ''),
-                              name: String(r.name || ''),
-                              description: String(r.description || ''),
-                              content: String(r.content || ''),
-                            });
-                            setDocPreview(true);
-                            setDocCreateVisible(true);
-                          }}
-                        >
-                          编辑
-                        </Button>
-                        <Button
-                          size="small"
-                          type="secondary"
-                          onClick={async () => {
-                            setGenFlowDocId(String(r.id || ''));
-                            setGenFlowPayload(String(r.content || ''));
-                            setGenFlowSelectedId('');
-                            setGenFlowRulePage(1);
-                            setGenFlowRuleSize(10);
-                            setGenFlowVisible(true);
-                            setGenFlowLoading(true);
-                            try {
-                              const data = await requestJSON<any>('/rules', {
-                                params: { page: 1, size: 10 },
+                    {
+                      title: '关联工作项',
+                      width: 160,
+                      render: (_, r: any) => Number(r.relatedCount || 0),
+                    },
+                    {
+                      title: '创建时间',
+                      width: 200,
+                      render: (_, r: any) => {
+                        const ts = Number(r.createTime ? Date.parse(String(r.createTime)) : 0);
+                        return ts ? new Date(ts).toLocaleString() : '';
+                      },
+                    },
+                    {
+                      title: '操作',
+                      width: 260,
+                      render: (_, r: any) => (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <Button
+                            size="small"
+                            type="primary"
+                            onClick={() => {
+                              setDocEditMode('view');
+                              setDocForm({
+                                id: String(r.id || ''),
+                                name: String(r.name || ''),
+                                description: String(r.description || ''),
+                                content: String(r.content || ''),
                               });
-                              const items = Array.isArray(data?.items)
-                                ? data.items
-                                : Array.isArray(data)
-                                ? data
-                                : [];
-                              const opts = items
-                                .map((it: any) => {
-                                  const rc = it?.ruleChain || it;
-                                  const id = String(rc?.id || it?.id || '');
-                                  const name = String(rc?.name || it?.name || id);
-                                  const disabled = Boolean(rc?.disabled);
-                                  if (disabled) return null;
-                                  return { label: name, value: id };
-                                })
-                                .filter(Boolean) as Array<{ label: string; value: string }>;
-                              setGenFlowOptions(opts);
-                              const total = Number(data?.total ?? opts.length);
-                              setGenFlowRuleTotal(Number.isFinite(total) ? total : opts.length);
-                            } catch (e) {
-                              Toast.error({ content: String((e as Error)?.message ?? e) });
-                            } finally {
-                              setGenFlowLoading(false);
-                            }
-                          }}
-                        >
-                          生成工作流
-                        </Button>
-                        <Button
-                          size="small"
-                          type="danger"
-                          onClick={() => {
-                            Modal.confirm({
-                              title: '删除文档',
-                              content: `确认删除文档「${String(r.name || '-')}」？此操作不可恢复`,
-                              okText: '删除',
-                              cancelText: '取消',
-                              onOk: async () => {
-                                Toast.success({ content: '已删除（待接入服务端）' });
-                              },
-                            });
-                          }}
-                        >
-                          删除
-                        </Button>
-                      </div>
-                    ),
-                  },
-                ]}
-                pagination={false}
-              />
+                              setDocPreview(true);
+                              setDocCreateVisible(true);
+                            }}
+                          >
+                            查看
+                          </Button>
+                          <Button
+                            size="small"
+                            type="secondary"
+                            onClick={() => {
+                              setDocEditMode('edit');
+                              setDocForm({
+                                id: String(r.id || ''),
+                                name: String(r.name || ''),
+                                description: String(r.description || ''),
+                                content: String(r.content || ''),
+                              });
+                              setDocPreview(true);
+                              setDocCreateVisible(true);
+                            }}
+                          >
+                            编辑
+                          </Button>
+                          <Button
+                            size="small"
+                            type="secondary"
+                            onClick={async () => {
+                              setGenFlowDocId(String(r.id || ''));
+                              setGenFlowPayload(String(r.content || ''));
+                              setGenFlowSelectedId('');
+                              setGenFlowRulePage(1);
+                              setGenFlowRuleSize(10);
+                              setGenFlowVisible(true);
+                              setGenFlowLoading(true);
+                              try {
+                                const data = await requestJSON<any>('/rules', {
+                                  params: { page: 1, size: 10 },
+                                });
+                                const items = Array.isArray(data?.items)
+                                  ? data.items
+                                  : Array.isArray(data)
+                                  ? data
+                                  : [];
+                                const opts = items
+                                  .map((it: any) => {
+                                    const rc = it?.ruleChain || it;
+                                    const id = String(rc?.id || it?.id || '');
+                                    const name = String(rc?.name || it?.name || id);
+                                    const disabled = Boolean(rc?.disabled);
+                                    if (disabled) return null;
+                                    return { label: name, value: id };
+                                  })
+                                  .filter(Boolean) as Array<{ label: string; value: string }>;
+                                setGenFlowOptions(opts);
+                                const total = Number(data?.total ?? opts.length);
+                                setGenFlowRuleTotal(Number.isFinite(total) ? total : opts.length);
+                              } catch (e) {
+                                Toast.error({ content: String((e as Error)?.message ?? e) });
+                              } finally {
+                                setGenFlowLoading(false);
+                              }
+                            }}
+                          >
+                            生成工作流
+                          </Button>
+                          <Button
+                            size="small"
+                            type="danger"
+                            onClick={() => {
+                              Modal.confirm({
+                                title: '删除文档',
+                                content: `确认删除文档「${String(r.name || '-')}」？此操作不可恢复`,
+                                okText: '删除',
+                                cancelText: '取消',
+                                onOk: async () => {
+                                  Toast.success({ content: '已删除（待接入服务端）' });
+                                },
+                              });
+                            }}
+                          >
+                            删除
+                          </Button>
+                        </div>
+                      ),
+                    },
+                  ]}
+                  pagination={false}
+                />
+              )}
             </Spin>
             <Modal
               title={
@@ -1326,28 +1368,30 @@ export const AdminPanel: React.FC = () => {
               style={{ borderRadius: 16, width: 980 }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
-                  <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
-                    文档名称 *
-                  </Typography.Text>
-                  <Input
-                    value={docForm.name}
-                    onChange={(v) => setDocForm({ ...docForm, name: v })}
-                    placeholder="请输入文档名称"
-                    disabled={docEditMode === 'view'}
-                  />
-                </div>
-                <div>
-                  <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
-                    文档描述
-                  </Typography.Text>
-                  <TextArea
-                    value={docForm.description}
-                    onChange={(v) => setDocForm({ ...docForm, description: String(v) })}
-                    autosize={{ minRows: 3, maxRows: 6 }}
-                    placeholder="请输入文档描述"
-                    disabled={docEditMode === 'view'}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                      文档名称 *
+                    </Typography.Text>
+                    <Input
+                      value={docForm.name}
+                      onChange={(v) => setDocForm({ ...docForm, name: v })}
+                      placeholder="请输入文档名称"
+                      disabled={docEditMode === 'view'}
+                    />
+                  </div>
+                  <div>
+                    <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                      文档描述
+                    </Typography.Text>
+                    <TextArea
+                      value={docForm.description}
+                      onChange={(v) => setDocForm({ ...docForm, description: String(v) })}
+                      autosize={{ minRows: 3, maxRows: 6 }}
+                      placeholder="请输入文档描述"
+                      disabled={docEditMode === 'view'}
+                    />
+                  </div>
                 </div>
                 <div>
                   <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
@@ -1371,10 +1415,10 @@ export const AdminPanel: React.FC = () => {
                       <div
                         style={{
                           border: '1px solid rgba(6,7,9,0.08)',
-                          borderRadius: 8,
+                          borderRadius: 10,
                           padding: 12,
-                          background: '#FAFAFB',
-                          overflowY: 'auto',
+                          background: '#fff',
+                          overflow: 'auto',
                           maxHeight: 420,
                         }}
                         dangerouslySetInnerHTML={{
