@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   Button,
@@ -23,10 +23,7 @@ import {
 } from '../../services/api-rules';
 import { Editor } from '../../editor';
 
-type MenuKey = 'workflow' | 'component' | 'docs';
-
 export const WorkflowSection: React.FC = () => {
-  const [activeMenu] = useState<MenuKey>('workflow');
   const [showEditor, setShowEditor] = useState(false);
   const [rules, setRules] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
