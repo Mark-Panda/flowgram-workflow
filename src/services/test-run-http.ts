@@ -1,3 +1,5 @@
+import { requestRaw } from './http';
+
 export async function executeTestRun(params: {
   ruleId: string;
   msgType: string;
@@ -15,9 +17,9 @@ export async function executeTestRun(params: {
   ]
     .filter(Boolean)
     .join('&');
-  const url = `http://127.0.0.1:9099/api/v1/rules/${encodeURIComponent(
-    ruleId
-  )}/notify/${encodeURIComponent(msgType)}${qs ? `?${qs}` : ''}`;
+  const url = `/rules/${encodeURIComponent(ruleId)}/notify/${encodeURIComponent(msgType)}${
+    qs ? `?${qs}` : ''
+  }`;
   const hdrs: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -25,25 +27,12 @@ export async function executeTestRun(params: {
     const v = (headers as any)[k];
     if (v !== undefined && v !== null) hdrs[k] = String(v);
   });
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: hdrs,
-    body: JSON.stringify(body ?? {}),
-  });
-  try {
-    const data = await resp.json();
-    return { ok: resp.ok, status: resp.status, data };
-  } catch {
-    return { ok: resp.ok, status: resp.status, data: {} };
-  }
+  return requestRaw(url, { method: 'POST', headers: hdrs, body });
 }
 
 export async function fetchRunLogs(msgId: string): Promise<any> {
-  const url = `http://127.0.0.1:9099/api/v1/logs/runs/msgId?msgId=${encodeURIComponent(msgId)}`;
-  const resp = await fetch(url, { method: 'GET' });
-  try {
-    return await resp.json();
-  } catch {
-    return {};
-  }
+  const url = `/logs/runs/msgId?msgId=${encodeURIComponent(msgId)}`;
+  const resp = await requestRaw(url, { method: 'GET' });
+  if (resp.ok) return resp.data;
+  return {};
 }
