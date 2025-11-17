@@ -8,7 +8,10 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-let BASE_URL = 'http://127.0.0.1:9099/api/v1';
+const API_ORIGIN = (
+  ((import.meta as any).env?.PUBLIC_API_ORIGIN as string) || 'http://127.0.0.1:9099'
+).replace(/\/$/, '');
+let BASE_URL = `${API_ORIGIN}/api/v1`;
 
 const getToken = (): string => {
   if (typeof window === 'undefined') return '';
