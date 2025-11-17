@@ -3,29 +3,49 @@
  * SPDX-License-Identifier: MIT
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Nav, Typography } from '@douyinfe/semi-ui';
 
 import { WorkflowSection } from './sections/WorkflowSection';
 import { DocsSection } from './sections/DocsSection';
 import { ComponentsSection } from './sections/ComponentsSection';
+import { IntroPage } from '../landing/IntroPage';
 
-type MenuKey = 'workflow' | 'component' | 'docs';
+type MenuKey = 'intro' | 'workflow' | 'component' | 'docs';
 
 export const AdminPanel: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<MenuKey>(() => {
     try {
       const h = typeof window !== 'undefined' ? window.location.hash : '';
+      if (h === '#/' || h === '' || h === '#') return 'intro';
       if (h.startsWith('#/components')) return 'component';
       if (h.startsWith('#/docs')) return 'docs';
       return 'workflow';
     } catch {
-      return 'workflow';
+      return 'intro';
     }
   });
 
+  useEffect(() => {
+    const getMenu = (h: string): MenuKey => {
+      if (h === '#/' || h === '' || h === '#') return 'intro';
+      if (h.startsWith('#/components')) return 'component';
+      if (h.startsWith('#/docs')) return 'docs';
+      return 'workflow';
+    };
+    const onHash = () => {
+      try {
+        const h = typeof window !== 'undefined' ? window.location.hash : '';
+        setActiveMenu(getMenu(h || '#/'));
+      } catch {}
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
   const renderContent = () => {
+    if (activeMenu === 'intro') return <IntroPage />;
     if (activeMenu === 'workflow') return <WorkflowSection />;
     if (activeMenu === 'docs') return <DocsSection />;
     return <ComponentsSection />;
@@ -66,7 +86,16 @@ export const AdminPanel: React.FC = () => {
               background: 'rgba(255,255,255,0.1)',
             }}
           />
-          <Typography.Title heading={5} style={{ margin: 0, color: '#fff', position: 'relative' }}>
+          <Typography.Title
+            heading={5}
+            style={{ margin: 0, color: '#fff', position: 'relative', cursor: 'pointer' }}
+            onClick={() => {
+              try {
+                window.location.hash = '#/';
+                setActiveMenu('intro');
+              } catch {}
+            }}
+          >
             ⚡ Flowgram
           </Typography.Title>
           <Typography.Text
@@ -83,11 +112,11 @@ export const AdminPanel: React.FC = () => {
               { itemKey: 'component', text: '🧩 组件管理' },
               { itemKey: 'docs', text: '📄 业务文档管理' },
             ]}
-            selectedKeys={[activeMenu]}
+            selectedKeys={activeMenu === 'intro' ? [] : [activeMenu]}
             onSelect={(data) => {
               const key = data.itemKey as MenuKey;
               setActiveMenu(key);
-              if (key === 'workflow') window.location.hash = '#/';
+              if (key === 'workflow') window.location.hash = '#/admin';
               if (key === 'component') window.location.hash = '#/components';
               if (key === 'docs') window.location.hash = '#/docs';
             }}

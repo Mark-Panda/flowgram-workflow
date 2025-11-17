@@ -67,7 +67,7 @@ export const RuleDetailPage: React.FC<{ id: string; tab?: 'workflow' | 'design' 
     <RuleDetail
       data={data}
       onBack={() => {
-        window.location.hash = '#/';
+        window.location.hash = '#/admin';
       }}
       initialTab={tab ?? 'workflow'}
     />
