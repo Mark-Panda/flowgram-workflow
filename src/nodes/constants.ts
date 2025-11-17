@@ -30,6 +30,7 @@ export enum WorkflowNodeType {
   Cron = 'endpoint/schedule',
   Flow = 'flow',
   LuaTransform = 'luaTransform',
+  RedisClient = 'x/redisClient',
 }
 
 export enum OutPutPortType {

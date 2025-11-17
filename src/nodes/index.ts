@@ -6,6 +6,7 @@
 import { FlowNodeRegistry } from '../typings';
 import { TransformNodeRegistry } from './transform';
 import { StartNodeRegistry } from './start';
+import { RedisClientNodeRegistry } from './redisClient';
 import { MultiNodeOutputRegistry } from './multi-node-output';
 import { LuaTransformNodeRegistry } from './luaTransform';
 import { LogStringNodeRegistry } from './logString';
@@ -49,6 +50,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   HTTPNodeRegistry,
   GroupNodeRegistry,
   DBClientNodeRegistry,
+  RedisClientNodeRegistry,
   CronNodeRegistry,
   FlowSubChainNodeRegistry,
 ];

@@ -662,6 +662,65 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
           };
           break;
         }
+        case 'x/redisClient': {
+          const cfg = n.configuration ?? {};
+          base.data = {
+            title: n.name ?? 'Redis 客户端',
+            positionType: 'middle',
+            inputs: {
+              type: 'object',
+              required: ['server', 'cmd'],
+              properties: {
+                server: {
+                  type: 'string',
+                  extra: {
+                    label: '服务器地址',
+                    description: '示例：redis://host:port 或 host:port',
+                  },
+                },
+                password: { type: 'string', extra: { label: '密码' } },
+                poolSize: {
+                  type: 'number',
+                  extra: {
+                    label: '连接池大小',
+                    description: '并发量大时适当增大；留空或 0 使用默认值',
+                  },
+                },
+                db: { type: 'number', extra: { label: '数据库编号', description: '默认为 0' } },
+                cmd: {
+                  type: 'string',
+                  extra: {
+                    label: '命令',
+                    formComponent: 'prompt-editor',
+                    description: '支持使用 ${metadata.key} 或 ${msg.key} 变量进行模板插值',
+                  },
+                },
+                params: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  extra: {
+                    label: '参数列表',
+                    formComponent: 'array-editor',
+                    description:
+                      '按顺序传入命令参数；支持使用 ${metadata.key} 或 ${msg.key} 变量进行替换',
+                  },
+                },
+              },
+            },
+            inputsValues: {
+              server: { type: 'constant', content: String((cfg as any).server ?? '') },
+              password: { type: 'constant', content: String((cfg as any).password ?? '') },
+              poolSize: { type: 'constant', content: Number((cfg as any).poolSize ?? 0) },
+              db: { type: 'constant', content: Number((cfg as any).db ?? 0) },
+              cmd: { type: 'template', content: String((cfg as any).cmd ?? '') },
+              params: {
+                type: 'constant',
+                content: Array.isArray((cfg as any).params) ? (cfg as any).params : [],
+              },
+            },
+          } as any;
+          break;
+        }
         case 'restApiCall': {
           const cfg = n.configuration ?? {};
           const fullUrl = String(cfg.restEndpointUrlPattern ?? '');
