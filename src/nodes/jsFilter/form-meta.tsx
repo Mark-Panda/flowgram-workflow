@@ -7,15 +7,12 @@ import { FormMeta, FormRenderProps, ValidateTrigger } from '@flowgram.ai/free-la
 
 import { FormHeader, FormContent } from '../../form-components';
 import { JsFilterNodeJSON } from './types';
-import { JsFilterPortHints } from './components/port-hints';
 import { JsFilterCode } from './components/code';
 
 export const FormRender = ({ form }: FormRenderProps<JsFilterNodeJSON>) => (
   <>
     <FormHeader />
     <FormContent>
-      {/* 画布上显示端口提示（success / failed） */}
-      <JsFilterPortHints />
       <JsFilterCode />
     </FormContent>
   </>

@@ -840,6 +840,78 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
           };
           break;
         }
+        case 'dbClient': {
+          const cfg = n.configuration ?? {};
+          base.data = {
+            title: n.name ?? 'dbClient',
+            positionType: 'middle',
+            inputs: {
+              type: 'object',
+              required: ['sql', 'getOne', 'poolSize', 'driverName', 'dsn'],
+              properties: {
+                driverName: {
+                  type: 'string',
+                  enum: ['mysql', 'postgres'],
+                  extra: { label: '数据库驱动名称', formComponent: 'enum-select' },
+                },
+                dsn: {
+                  type: 'string',
+                  extra: {
+                    description:
+                      '数据库连接字符串，支持模板变量。示例：mysql 使用 user:pass@tcp(host:port)/db?charset=utf8mb4；postgres 使用 postgres://user:pass@host:port/db?sslmode=disable',
+                  },
+                },
+                sql: {
+                  type: 'string',
+                  extra: {
+                    label: 'sql',
+                    formComponent: 'sql-editor',
+                    description:
+                      '可以使用 ${metadata.key} 或者 ${msg.key}变量，SQL参数允许使用 ? 占位符',
+                  },
+                },
+                params: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                  },
+                  extra: {
+                    label: '参数列表',
+                    description:
+                      '可以使用 ${metadata.key} 读取元数据中的变量或者使用 ${msg.key} 读取消息负荷中的变量进行替换',
+                    formComponent: 'array-editor',
+                  },
+                },
+                getOne: {
+                  type: 'boolean',
+                  extra: {
+                    label: '是否仅返回一条记录',
+                    description: '开启后仅返回第一条记录；关闭返回全部记录',
+                  },
+                },
+                poolSize: {
+                  type: 'number',
+                  extra: {
+                    label: '连接池大小',
+                    description: '并发量大时适当增大；留空或 0 使用默认值',
+                  },
+                },
+              },
+            },
+            inputsValues: {
+              sql: { type: 'template', content: String((cfg as any).sql ?? '') },
+              params: {
+                type: 'constant',
+                content: Array.isArray((cfg as any).params) ? (cfg as any).params : [],
+              },
+              getOne: { type: 'constant', content: !!(cfg as any).getOne },
+              poolSize: { type: 'constant', content: Number((cfg as any).poolSize ?? 0) },
+              driverName: { type: 'constant', content: String((cfg as any).driverName ?? 'mysql') },
+              dsn: { type: 'template', content: String((cfg as any).dsn ?? '') },
+            },
+          } as any;
+          break;
+        }
         case 'luaTransform': {
           const body = String((n.configuration ?? {}).luaScript ?? '');
           base.data = {

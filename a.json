@@ -97,7 +97,7 @@
             }
           }
         },
-        "type": "llm",
+        "type": "ai/llm",
         "name": "LLM_1",
         "debugMode": false,
         "configuration": {
