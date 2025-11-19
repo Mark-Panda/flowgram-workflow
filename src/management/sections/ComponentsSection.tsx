@@ -342,7 +342,7 @@ export const ComponentsSection: React.FC = () => {
             <Spin spinning={compLoading}>
               <Table
                 dataSource={pagedComponents}
-                rowKey={(r: any) => String(r.id ?? r.type ?? Math.random())}
+                rowKey={(r: any) => String(r.id || r.type || `comp-${r.category}-${r.label}`)}
                 columns={[
                   {
                     title: '组件名称',
@@ -666,20 +666,20 @@ export const ComponentsSection: React.FC = () => {
             </Spin>
             <Modal
               title={
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 20 }}>🛠️</span>
-                  <span style={{ fontSize: 16, fontWeight: 600 }}>
-                    {ruleEditMode === 'edit'
-                      ? '编辑组件规则'
-                      : ruleEditMode === 'create'
-                      ? '新增组件规则'
-                      : '组件规则详情'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 24 }}>
+                    {ruleEditMode === 'create' ? '✨' : ruleEditMode === 'edit' ? '✏️' : '📋'}
+                  </span>
+                  <span style={{ fontSize: 18, fontWeight: 600 }}>
+                    {ruleEditMode === 'create' ? '新增' : ruleEditMode === 'edit' ? '编辑' : '查看'}组件规则
                   </span>
                 </div>
               }
               visible={ruleEditVisible}
               onCancel={() => setRuleEditVisible(false)}
               confirmLoading={ruleSubmitting}
+              width={1200}
+              style={{ borderRadius: 16 }}
               okText={
                 ruleEditMode === 'edit' ? '更新' : ruleEditMode === 'create' ? '新增' : '关闭'
               }
@@ -734,11 +734,18 @@ export const ComponentsSection: React.FC = () => {
                   setRuleSubmitting(false);
                 }
               }}
-              style={{ borderRadius: 16, width: 980 }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div>
-                  <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                  <Typography.Text 
+                    strong 
+                    style={{ 
+                      display: 'block', 
+                      marginBottom: 8, 
+                      color: '#1C2029',
+                      fontSize: 14 
+                    }}
+                  >
                     组件名称 *
                   </Typography.Text>
                   {ruleEditMode === 'edit' ? (
@@ -765,9 +772,27 @@ export const ComponentsSection: React.FC = () => {
                     <Input value={ruleForm.componentName} disabled />
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <div style={{ flex: 1 }}>
-                    <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                <div 
+                  style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr auto', 
+                    gap: 16,
+                    padding: '16px',
+                    background: 'rgba(102, 126, 234, 0.04)',
+                    borderRadius: 12,
+                    border: '1px solid rgba(102, 126, 234, 0.1)'
+                  }}
+                >
+                  <div>
+                    <Typography.Text 
+                      strong 
+                      style={{ 
+                        display: 'block', 
+                        marginBottom: 8,
+                        color: '#1C2029',
+                        fontSize: 14
+                      }}
+                    >
                       组件类型 *
                     </Typography.Text>
                     <Select
@@ -780,27 +805,41 @@ export const ComponentsSection: React.FC = () => {
                       <Select.Option value="external">外部</Select.Option>
                     </Select>
                   </div>
-                  <div style={{ width: 160 }}>
-                    <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                  <div style={{ minWidth: 200 }}>
+                    <Typography.Text 
+                      strong 
+                      style={{ 
+                        display: 'block', 
+                        marginBottom: 8,
+                        color: '#1C2029',
+                        fontSize: 14
+                      }}
+                    >
                       组件状态
                     </Typography.Text>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Typography.Text>启用</Typography.Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <Select
                         value={!ruleForm.disabled ? '1' : '0'}
                         onChange={(v) => setRuleForm({ ...ruleForm, disabled: v !== '1' })}
                         disabled={ruleEditMode === 'view'}
-                        style={{ width: 100 }}
+                        style={{ width: 120 }}
                       >
-                        <Select.Option value="1">是</Select.Option>
-                        <Select.Option value="0">否</Select.Option>
+                        <Select.Option value="1">✅ 启用</Select.Option>
+                        <Select.Option value="0">🚫 禁用</Select.Option>
                       </Select>
-                      <Typography.Text type="tertiary">禁用</Typography.Text>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                  <Typography.Text 
+                    strong 
+                    style={{ 
+                      display: 'block', 
+                      marginBottom: 8,
+                      color: '#1C2029',
+                      fontSize: 14
+                    }}
+                  >
                     使用描述
                   </Typography.Text>
                   <TextArea
@@ -809,39 +848,67 @@ export const ComponentsSection: React.FC = () => {
                     autosize={{ minRows: 3, maxRows: 6 }}
                     placeholder="请输入使用描述"
                     disabled={ruleEditMode === 'view'}
+                    style={{ borderRadius: 10 }}
                   />
                 </div>
-                <div>
+                <div
+                  style={{
+                    padding: '16px',
+                    background: '#FAFAFB',
+                    borderRadius: 12,
+                    border: '1px solid rgba(6,7,9,0.06)'
+                  }}
+                >
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      marginBottom: 12
                     }}
                   >
-                    <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
-                      使用规则描述
-                    </Typography.Text>
-                    <Select
-                      value={ruleDescMode}
-                      onChange={(v) => {
-                        setRuleDescMode(v as any);
-                        if (String(v) === 'rich') setRuleDescPreview(false);
-                        else setRuleDescPreview(true);
+                    <Typography.Text 
+                      strong 
+                      style={{ 
+                        color: '#1C2029',
+                        fontSize: 14
                       }}
-                      disabled={ruleEditMode === 'view'}
-                      style={{ width: 140 }}
                     >
-                      <Select.Option value="rich">富文本</Select.Option>
-                      <Select.Option value="markdown">Markdown</Select.Option>
-                    </Select>
+                      📝 使用规则描述
+                    </Typography.Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <Select
+                        value={ruleDescMode}
+                        onChange={(v) => {
+                          setRuleDescMode(v as any);
+                          if (String(v) === 'rich') setRuleDescPreview(false);
+                          else setRuleDescPreview(true);
+                        }}
+                        disabled={ruleEditMode === 'view'}
+                        style={{ width: 140 }}
+                      >
+                        <Select.Option value="rich">📄 富文本</Select.Option>
+                        <Select.Option value="markdown">📝 Markdown</Select.Option>
+                      </Select>
+                      {ruleDescMode === 'markdown' && (
+                        <Select
+                          value={ruleDescPreview ? '1' : '0'}
+                          onChange={(v) => setRuleDescPreview(v === '1')}
+                          disabled={ruleEditMode === 'view'}
+                          style={{ width: 120 }}
+                        >
+                          <Select.Option value="1">👁️ 预览</Select.Option>
+                          <Select.Option value="0">✏️ 编辑</Select.Option>
+                        </Select>
+                      )}
+                    </div>
                   </div>
                   <div
                     style={{
                       display: 'grid',
                       gridTemplateColumns:
                         ruleDescMode === 'markdown' && ruleDescPreview ? '1fr 1fr' : '1fr',
-                      gap: 12,
+                      gap: 16,
                     }}
                   >
                     <div>
@@ -900,32 +967,25 @@ export const ComponentsSection: React.FC = () => {
                       <div
                         style={{
                           border: '1px solid rgba(6,7,9,0.08)',
-                          borderRadius: 8,
-                          padding: 12,
-                          background: '#FAFAFB',
+                          borderRadius: 10,
+                          padding: 16,
+                          background: '#fff',
                           overflowY: 'auto',
                           maxHeight: 420,
+                          boxShadow: '0 1px 4px rgba(6,7,9,0.04)'
                         }}
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            ruleDescMode === 'markdown'
-                              ? String(marked.parse(ruleForm.useRuleDesc || ''))
-                              : String(ruleForm.useRuleDesc || ''),
-                        }}
-                      />
+                      >
+                        <div
+                          className="markdown-preview"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              ruleDescMode === 'markdown'
+                                ? String(marked.parse(ruleForm.useRuleDesc || ''))
+                                : String(ruleForm.useRuleDesc || ''),
+                          }}
+                        />
+                      </div>
                     )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                    <Typography.Text>实时预览</Typography.Text>
-                    <Select
-                      value={ruleDescPreview ? '1' : '0'}
-                      onChange={(v) => setRuleDescPreview(v === '1')}
-                      disabled={ruleEditMode === 'view'}
-                      style={{ width: 120 }}
-                    >
-                      <Select.Option value="1">开启</Select.Option>
-                      <Select.Option value="0">关闭</Select.Option>
-                    </Select>
                   </div>
                 </div>
               </div>

@@ -148,7 +148,13 @@ export const RuleDetail: React.FC<{
         size?: number;
         page?: number;
       }>('/logs/runs', { params });
-      setRuns(Array.isArray((data as any)?.items) ? (data as any).items : []);
+      // 为每条记录添加唯一 ID，避免 React key 重复警告
+      const items = Array.isArray((data as any)?.items) ? (data as any).items : [];
+      const itemsWithId = items.map((item: any, index: number) => ({
+        ...item,
+        _uniqueId: item?.id || item?.ruleChain?.id || `run-${item?.startTs || Date.now()}-${index}`,
+      }));
+      setRuns(itemsWithId);
       setTotal(Number((data as any)?.total ?? 0));
       setPage(Number((data as any)?.page ?? current));
       setSize(Number((data as any)?.size ?? pageSize));
@@ -462,6 +468,21 @@ export const RuleDetail: React.FC<{
                                       metadata: r?.metadata,
                                     } as any;
                                     const doc = buildDocumentFromRuleChainJSON(rcjson) as any;
+                                    
+                                    // 为节点添加唯一 key，避免重复 key 警告
+                                    if (doc && Array.isArray(doc.nodes)) {
+                                      const seenIds = new Set<string>();
+                                      doc.nodes = doc.nodes.map((node: FlowNodeJSON, index: number) => {
+                                        let nodeId = node.id;
+                                        // 如果 ID 重复，生成新的唯一 ID
+                                        if (seenIds.has(nodeId)) {
+                                          nodeId = `${nodeId}-dup-${index}`;
+                                        }
+                                        seenIds.add(nodeId);
+                                        return { ...node, id: nodeId };
+                                      });
+                                    }
+                                    
                                     setViewerDoc(doc);
                                     const logs = Array.isArray(r?.logs) ? r.logs : [];
                                     setViewerLogs({
@@ -482,7 +503,7 @@ export const RuleDetail: React.FC<{
                           },
                         ]}
                         pagination={false}
-                        rowKey={(r: any) => String(r?.id || r?.ruleChain?.id || Math.random())}
+                        rowKey={(r: any) => r?._uniqueId || String(r?.id || Math.random())}
                       />
                     </Spin>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

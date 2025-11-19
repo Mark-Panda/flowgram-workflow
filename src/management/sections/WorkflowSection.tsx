@@ -670,16 +670,21 @@ export const WorkflowSection: React.FC = () => {
             </Typography.Text>
             <Input
               value={createId}
-              onChange={setCreateId}
-              placeholder="自动生成，可修改"
+              disabled
+              placeholder="自动生成"
               size="large"
-              style={{ borderRadius: 10, fontFamily: 'monospace' }}
+              style={{ 
+                borderRadius: 10, 
+                fontFamily: 'monospace',
+                backgroundColor: '#f7f8fa',
+                color: '#8a8f8d',
+              }}
             />
             <Typography.Text
               type="tertiary"
               style={{ fontSize: 11, marginTop: 4, display: 'block' }}
             >
-              💡 提示：ID 用于唯一标识工作流，建议使用默认生成的随机 ID
+              💡 提示：ID 自动生成，用于唯一标识工作流
             </Typography.Text>
           </div>
         </div>
