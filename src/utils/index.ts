@@ -6,6 +6,8 @@
 export { onDragLineEnd } from './on-drag-line-end';
 export { toggleLoopExpanded } from './toggle-loop-expanded';
 export { canContainNode } from './can-contain-node';
+export { AppError, errorHandler } from './error-handler';
+
 import { customAlphabet } from 'nanoid';
 export const alphaNanoid = (size: number) =>
   customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', size)();

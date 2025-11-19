@@ -29,6 +29,30 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@types": [
+        "./src/typings"
+      ],
+      "@components": [
+        "./src/components"
+      ],
+      "@hooks": [
+        "./src/hooks"
+      ],
+      "@services": [
+        "./src/services"
+      ],
+      "@utils": [
+        "./src/utils"
+      ],
+      "@config": [
+        "./src/config"
+      ],
+      "@nodes": [
+        "./src/nodes"
+      ],
+      "@plugins": [
+        "./src/plugins"
       ]
     },
   },

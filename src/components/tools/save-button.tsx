@@ -13,6 +13,7 @@ import { IconSave } from '@douyinfe/semi-icons';
 import { problemPanelFactory } from '../problem-panel';
 import { collectWorkflowProblems } from '../../utils/workflow-validation';
 import { buildRuleChainJSONFromDocument } from '../../utils/rulechain-builder';
+import { useEditorStore } from '../../stores/editor-store';
 import { getRuleBaseInfo } from '../../services/rule-base-info';
 import { DirtyService } from '../../services/dirty-service';
 import { updateRule } from '../../services/api-rules';
@@ -22,11 +23,7 @@ export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   const { playground, document } = useClientContext();
   const panelManager = usePanelManager();
   const dirtyService = useService(DirtyService);
-  const [isDirty, setDirty] = React.useState<boolean>(dirtyService.dirty);
-  React.useEffect(() => {
-    const disposer = dirtyService.onChange((d) => setDirty(d));
-    return () => disposer.dispose();
-  }, [dirtyService]);
+  const isDirty = useEditorStore((state) => state.isDirty);
 
   const onClick = async () => {
     try {

@@ -6,11 +6,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
+import { errorHandler } from '../utils/error-handler';
+import { env } from '../config/env';
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-const API_ORIGIN = (
-  ((import.meta as any).env?.PUBLIC_API_ORIGIN as string) || 'http://127.0.0.1:9099'
-).replace(/\/$/, '');
+const API_ORIGIN = env.apiOrigin.replace(/\/$/, '');
 let BASE_URL = `${API_ORIGIN}/api/v1`;
 
 const getToken = (): string => {
@@ -28,6 +29,7 @@ export interface RequestOptions {
 // 创建 axios 实例并设置拦截器
 const client: AxiosInstance = axios.create({
   baseURL: BASE_URL,
+  timeout: env.apiTimeout,
   headers: {
     Accept: 'application/json, text/plain, */*',
   },
@@ -44,7 +46,21 @@ client.interceptors.request.use((config) => {
 
 client.interceptors.response.use(
   (resp) => resp,
-  async (error) => Promise.reject(error)
+  async (error) => {
+    const response = error?.response;
+    if (response) {
+      const message = response.data?.message || response.data || 'Request failed';
+      const appError = errorHandler.createNetworkError(
+        typeof message === 'string' ? message : JSON.stringify(message),
+        response.status,
+        response.data
+      );
+      return Promise.reject(appError);
+    }
+    return Promise.reject(
+      errorHandler.createBusinessError(error.message || 'Unknown error', 'REQUEST_ERROR')
+    );
+  }
 );
 
 export const requestJSON = async <T = any>(path: string, opts: RequestOptions = {}): Promise<T> => {
@@ -59,12 +75,7 @@ export const requestJSON = async <T = any>(path: string, opts: RequestOptions = 
     const resp = await client.request<T>(config);
     return resp.data as T;
   } catch (error: any) {
-    const r = error?.response;
-    if (r) {
-      const status = r.status;
-      const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
-      throw new Error(`HTTP ${status}: ${text || 'Request failed'}`);
-    }
+    // 错误已在拦截器中处理并转换为 AppError
     throw error;
   }
 };

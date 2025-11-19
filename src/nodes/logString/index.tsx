@@ -22,9 +22,9 @@ export const LogStringNodeRegistry: FlowNodeRegistry = {
     description: 'String 消息内容，函数签名与入参固定',
   },
   meta: {
-    // 设置端口：一个输入，两个输出（success / failed）
+    // 设置端口：一个输入（上部中间），两个输出（success / failed）
     defaultPorts: [
-      { type: 'input', location: 'left' },
+      { type: 'input', location: 'top' },
       { type: 'output', location: 'right', portID: OutPutPortType.SuccessPort },
       { type: 'output', location: 'bottom', portID: OutPutPortType.FailurePort },
     ],

@@ -3,13 +3,19 @@
  * SPDX-License-Identifier: MIT
  */
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 
 import { createRoot } from 'react-dom/client';
 import { unstableSetCreateRoot } from '@flowgram.ai/form-materials';
+import { Spin } from '@douyinfe/semi-ui';
 
-import { RuleDetailPage } from './management/rule-detail-page';
-import { AdminPanel } from './management/admin-panel';
+// 使用 React.lazy 进行代码分割
+const RuleDetailPage = lazy(() =>
+  import('./management/rule-detail-page').then((m) => ({ default: m.RuleDetailPage }))
+);
+const AdminPanel = lazy(() =>
+  import('./management/admin-panel').then((m) => ({ default: m.AdminPanel }))
+);
 
 /**
  * React 18/19 polyfill for form-materials
@@ -36,8 +42,28 @@ window.addEventListener('error', resizeObserverErrorHandler);
 
 const app = createRoot(document.getElementById('root')!);
 
+/**
+ * Loading 组件
+ */
+const LoadingFallback = () => (
+  <Spin
+    tip="加载中..."
+    style={{
+      width: '100%',
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  />
+);
+
+/**
+ * 路由组件
+ */
 function Router() {
   const [hash, setHash] = React.useState<string>(() => window.location.hash || '#/');
+
   React.useEffect(() => {
     const onHash = () => setHash(window.location.hash || '#/');
     window.addEventListener('hashchange', onHash);
@@ -53,4 +79,8 @@ function Router() {
   return <AdminPanel />;
 }
 
-app.render(<Router />);
+app.render(
+  <Suspense fallback={<LoadingFallback />}>
+    <Router />
+  </Suspense>
+);
