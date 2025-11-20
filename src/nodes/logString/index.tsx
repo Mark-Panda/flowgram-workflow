@@ -24,7 +24,7 @@ export const LogStringNodeRegistry: FlowNodeRegistry = {
   meta: {
     // 设置端口：一个输入，两个输出（success / failed）
     defaultPorts: [
-      { type: 'input', location: 'left' },
+      { type: 'input', location: 'top' },
       { type: 'output', location: 'right', portID: OutPutPortType.SuccessPort },
       { type: 'output', location: 'bottom', portID: OutPutPortType.FailurePort },
     ],

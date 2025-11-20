@@ -20,22 +20,22 @@ export const NODE_TYPE_NAMES: Record<string, string> = {
   [WorkflowNodeType.Loop]: '循环',
   [WorkflowNodeType.For]: '遍历循环',
   [WorkflowNodeType.Fork]: '并发分支',
-  [WorkflowNodeType.Join]: '汇聚',
+  [WorkflowNodeType.Join]: '合并分支',
   [WorkflowNodeType.Continue]: '继续',
   [WorkflowNodeType.Break]: '中断',
 
   // 数据处理节点
-  [WorkflowNodeType.Transform]: '数据转换',
+  [WorkflowNodeType.Transform]: 'JS数据转换',
   [WorkflowNodeType.JsFilter]: 'JS过滤器',
   [WorkflowNodeType.Variable]: '变量',
-  [WorkflowNodeType.FetchNodeOutput]: '获取节点输出',
+  [WorkflowNodeType.FetchNodeOutput]: '获取已完成节点输出',
 
   // 外部调用节点
   [WorkflowNodeType.HTTP]: 'HTTP请求',
   [WorkflowNodeType.LLM]: 'LLM大模型',
-  [WorkflowNodeType.DBClient]: '数据库',
-  [WorkflowNodeType.RedisClient]: 'Redis 客户端',
-  [WorkflowNodeType.Cron]: '定时任务',
+  [WorkflowNodeType.DBClient]: '数据库客户端',
+  [WorkflowNodeType.RedisClient]: 'Redis客户端',
+  [WorkflowNodeType.Cron]: '定时触发',
   [WorkflowNodeType.Flow]: '子规则链',
 
   // 辅助节点
@@ -48,8 +48,8 @@ export const NODE_TYPE_NAMES: Record<string, string> = {
   [WorkflowNodeType.BlockEnd]: '块结束',
 
   // 多输出节点
-  [WorkflowNodeType.MultiNodeOutput]: '获取多节点输出',
-  [WorkflowNodeType.LuaTransform]: 'Lua 脚本转换',
+  [WorkflowNodeType.MultiNodeOutput]: '获取已完成多节点输出',
+  [WorkflowNodeType.LuaTransform]: 'Lua脚本转换',
 
   // 分组节点
   group: '分组',
