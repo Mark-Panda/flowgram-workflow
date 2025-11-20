@@ -15,6 +15,7 @@ import { SqlTemplateEditor } from './sql-template-editor';
 import { RuleSelect } from './rule-select';
 import { NodeIdSelect } from './node-id-select';
 import { NodeIdMultiSelect } from './node-id-multi-select';
+import { CronEditor } from './cron-editor';
 
 export function FormInputs() {
   const { readonly } = useNodeRenderContext();
@@ -211,6 +212,16 @@ export function FormInputs() {
                   if (formComponent === 'array-editor') {
                     return (
                       <ArrayEditor
+                        value={field.value}
+                        onChange={field.onChange}
+                        readonly={readonly}
+                        hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      />
+                    );
+                  }
+                  if (formComponent === 'cron-editor') {
+                    return (
+                      <CronEditor
                         value={field.value}
                         onChange={field.onChange}
                         readonly={readonly}

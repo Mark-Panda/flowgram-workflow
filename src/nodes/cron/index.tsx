@@ -48,6 +48,7 @@ export const CronNodeRegistry: FlowNodeRegistry = {
               extra: {
                 label: 'Cron 表达式',
                 description: '支持秒级（六位）Quartz 表达式，例如：*/10 * * * * *',
+                formComponent: 'cron-editor',
               },
             },
           },

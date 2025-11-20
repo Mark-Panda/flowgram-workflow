@@ -1160,8 +1160,23 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
         data: {
           title: ep.name ?? '定时任务',
           positionType: 'header',
-          inputsValues: { cron: { type: 'constant', content: String(cron ?? '') } },
-          inputs: { type: 'object', properties: {} },
+          inputsValues: { 
+            cron: { type: 'constant', content: String(cron ?? '*/10 * * * * *') } 
+          },
+          inputs: { 
+            type: 'object',
+            required: ['cron'],
+            properties: {
+              cron: {
+                type: 'string',
+                extra: {
+                  label: 'Cron 表达式',
+                  description: '支持秒级（六位）Quartz 表达式，例如：*/10 * * * * *',
+                  formComponent: 'cron-editor',
+                },
+              },
+            },
+          },
         },
       };
       nodes.unshift(cronNode);
