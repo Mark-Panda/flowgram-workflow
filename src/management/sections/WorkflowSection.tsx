@@ -11,7 +11,7 @@ import {
   Modal,
   Toast,
 } from '@douyinfe/semi-ui';
-import { IconPlus, IconChevronLeft } from '@douyinfe/semi-icons';
+import { IconPlus, IconChevronLeft, IconDelete } from '@douyinfe/semi-icons';
 
 import { RuleDetail, RuleDetailData } from '../rule-detail';
 import { FlowDocumentJSON } from '../../typings';
@@ -20,6 +20,7 @@ import {
   createRuleBase,
   startRuleChain,
   stopRuleChain,
+  deleteRuleChain,
 } from '../../services/api-rules';
 import { Editor } from '../../editor';
 
@@ -487,6 +488,45 @@ export const WorkflowSection: React.FC = () => {
                               部署
                             </Button>
                           )}
+                          <Button
+                            size="small"
+                            type="danger"
+                            icon={<IconDelete />}
+                            disabled={operatingIds.has(String(chain?.id ?? ''))}
+                            loading={operatingIds.has(String(chain?.id ?? ''))}
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const id = String(chain?.id ?? '');
+                              const name = String(chain?.name ?? '');
+                              if (!id) return;
+                              
+                              Modal.confirm({
+                                title: '确认删除',
+                                content: `确定要删除工作流 "${name}" 吗？此操作不可恢复。`,
+                                okText: '确认删除',
+                                cancelText: '取消',
+                                okType: 'danger',
+                                onOk: async () => {
+                                  const next = new Set(operatingIds);
+                                  next.add(id);
+                                  setOperatingIds(next);
+                                  try {
+                                    await deleteRuleChain(id);
+                                    Toast.success({ content: '删除成功' });
+                                    await refreshList();
+                                  } catch (e) {
+                                    Toast.error({ content: String((e as Error)?.message ?? e) });
+                                  } finally {
+                                    const done = new Set(operatingIds);
+                                    done.delete(id);
+                                    setOperatingIds(done);
+                                  }
+                                },
+                              });
+                            }}
+                          >
+                            删除
+                          </Button>
                           <Button
                             size="small"
                             theme="solid"
