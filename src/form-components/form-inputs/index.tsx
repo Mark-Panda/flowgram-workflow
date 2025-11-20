@@ -10,7 +10,7 @@ import { VariablePicker } from '../variable-picker';
 import { FormItem } from '../form-item';
 import { Feedback } from '../feedback';
 import { JsonSchema } from '../../typings';
-import { useNodeRenderContext } from '../../hooks';
+import { useNodeRenderContext, useIsSidebar } from '../../hooks';
 import { SqlTemplateEditor } from './sql-template-editor';
 import { RuleSelect } from './rule-select';
 import { NodeIdSelect } from './node-id-select';
@@ -18,6 +18,7 @@ import { NodeIdMultiSelect } from './node-id-multi-select';
 
 export function FormInputs() {
   const { readonly } = useNodeRenderContext();
+  const isSidebar = useIsSidebar();
 
   return (
     <Field<JsonSchema> name="inputs">
@@ -39,9 +40,31 @@ export function FormInputs() {
             <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
               {({ field, fieldState }) => {
                 const isTemplate = (field.value as any)?.type === 'template';
-                const needsToggle = false;
                 const renderCore = () => {
                   if (formComponent === 'prompt-editor') {
+                    // 在画布视图中只显示截断的文本预览
+                    if (!isSidebar) {
+                      const content = typeof (field.value as any)?.content === 'string'
+                        ? String((field.value as any)?.content)
+                        : '';
+                      const truncated = content.length > 100 ? content.slice(0, 100) + '...' : content;
+                      return (
+                        <div style={{
+                          padding: '8px',
+                          background: '#f5f5f5',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          color: '#666',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          maxHeight: '60px',
+                          overflow: 'hidden',
+                        }}>
+                          {truncated || '(空)'}
+                        </div>
+                      );
+                    }
+                    // 在侧边栏中显示完整的编辑器
                     return (
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                         <div style={{ flex: 1 }}>
@@ -68,6 +91,30 @@ export function FormInputs() {
                     );
                   }
                   if (formComponent === 'sql-editor') {
+                    // 在画布视图中只显示截断的文本预览
+                    if (!isSidebar) {
+                      const content = typeof (field.value as any)?.content === 'string'
+                        ? String((field.value as any)?.content)
+                        : '';
+                      const truncated = content.length > 100 ? content.slice(0, 100) + '...' : content;
+                      return (
+                        <div style={{
+                          padding: '8px',
+                          background: '#f5f5f5',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          color: '#666',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          maxHeight: '60px',
+                          overflow: 'hidden',
+                          fontFamily: 'monospace',
+                        }}>
+                          {truncated || '(空)'}
+                        </div>
+                      );
+                    }
+                    // 在侧边栏中显示完整的编辑器
                     return (
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                         <div style={{ flex: 1 }}>

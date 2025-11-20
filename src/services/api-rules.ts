@@ -27,3 +27,7 @@ export const startRuleChain = async (id: string) =>
 // 下线（停止）规则链
 export const stopRuleChain = async (id: string) =>
   requestJSON(`/rules/${encodeURIComponent(id)}/operate/stop`, { method: 'POST' });
+
+// 删除规则链
+export const deleteRuleChain = async (id: string) =>
+  requestJSON(`/rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
