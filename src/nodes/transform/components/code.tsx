@@ -4,10 +4,10 @@
  */
 
 import { Field } from '@flowgram.ai/free-layout-editor';
-import { TypeScriptCodeEditor } from '@flowgram.ai/form-materials';
 import { Divider } from '@douyinfe/semi-ui';
 
 import { useIsSidebar, useNodeRenderContext } from '../../../hooks';
+import { CodeEditorWithFormat } from '../../../components/code-editor-with-format';
 
 export function TransformCode() {
   const isSidebar = useIsSidebar();
@@ -42,9 +42,9 @@ export function TransformCode() {
           };
 
           return (
-            <TypeScriptCodeEditor
+            <CodeEditorWithFormat
               value={field.value}
-              onChange={(value) => field.onChange(enforceSignature(String(value ?? '')))}
+              onChange={(value: string) => field.onChange(enforceSignature(String(value ?? '')))}
               readonly={readonly}
             />
           );
