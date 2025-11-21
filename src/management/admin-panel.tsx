@@ -5,21 +5,23 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { Nav, Typography } from '@douyinfe/semi-ui';
+import { Nav, Typography, Breadcrumb, Tabs, TabPane } from '@douyinfe/semi-ui';
+import { IconUser, IconHome, IconList, IconFile } from '@douyinfe/semi-icons';
 
 import { WorkflowSection } from './sections/WorkflowSection';
 import { DocsSection } from './sections/DocsSection';
 import { ComponentsSection } from './sections/ComponentsSection';
 import { IntroPage } from '../landing/IntroPage';
 
-type MenuKey = 'intro' | 'workflow' | 'component' | 'docs';
+type MenuKey = 'intro' | 'workflow' | 'component-installed' | 'component-rules' | 'docs' | 'engine' | 'component';
 
 export const AdminPanel: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<MenuKey>(() => {
     try {
       const h = typeof window !== 'undefined' ? window.location.hash : '';
       if (h === '#/' || h === '' || h === '#') return 'intro';
-      if (h.startsWith('#/components')) return 'component';
+      if (h.startsWith('#/components/rules')) return 'component-rules';
+      if (h.startsWith('#/components')) return 'component-installed';
       if (h.startsWith('#/docs')) return 'docs';
       return 'workflow';
     } catch {
@@ -30,7 +32,8 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     const getMenu = (h: string): MenuKey => {
       if (h === '#/' || h === '' || h === '#') return 'intro';
-      if (h.startsWith('#/components')) return 'component';
+      if (h.startsWith('#/components/rules')) return 'component-rules';
+      if (h.startsWith('#/components')) return 'component-installed';
       if (h.startsWith('#/docs')) return 'docs';
       return 'workflow';
     };
@@ -48,100 +51,99 @@ export const AdminPanel: React.FC = () => {
     if (activeMenu === 'intro') return <IntroPage />;
     if (activeMenu === 'workflow') return <WorkflowSection />;
     if (activeMenu === 'docs') return <DocsSection />;
-    return <ComponentsSection />;
+    if (activeMenu === 'component-rules') return <ComponentsSection view="rules" />;
+    return <ComponentsSection view="installed" />;
+  };
+
+  const getPageTitle = () => {
+    switch (activeMenu) {
+      case 'intro': return '概览';
+      case 'workflow': return '流程管理';
+      case 'component-installed': return '已安装组件';
+      case 'component-rules': return '组件规则';
+      case 'docs': return '开发文档';
+      default: return '概览';
+    }
+  };
+
+  const getParentTitle = () => {
+    if (activeMenu === 'workflow') return '工作流引擎';
+    if (activeMenu === 'component-installed' || activeMenu === 'component-rules') return '组件管理';
+    return '系统';
   };
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#F7F8FA' }}>
+      {/* Sidebar */}
       <div
         style={{
-          width: 260,
+          width: 240,
+          background: '#fff',
           borderRight: '1px solid rgba(6,7,9,0.08)',
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%)',
-          padding: '20px 16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
-          boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
         }}
       >
+        {/* Logo Area */}
         <div
           style={{
-            padding: '16px 14px',
-            borderRadius: 12,
-            background: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)',
-            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)',
-            position: 'relative',
-            overflow: 'hidden',
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 24px',
+            borderBottom: '1px solid rgba(6,7,9,0.08)',
           }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              top: -20,
-              right: -20,
-              width: 100,
-              height: 100,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.1)',
-            }}
-          />
-          <Typography.Title
-            heading={5}
-            style={{ margin: 0, color: '#fff', position: 'relative', cursor: 'pointer' }}
-            onClick={() => {
-              try {
-                window.location.hash = '#/';
-                setActiveMenu('intro');
-              } catch {}
-            }}
-          >
-            ⚡ Flowgram
+          <Typography.Title heading={5} style={{ margin: 0, color: '#1C2029' }}>
+             Flowgram
           </Typography.Title>
-          <Typography.Text
-            style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, position: 'relative' }}
-          >
-            控制台 · 管理与组件
-          </Typography.Text>
         </div>
-        <div style={{ flex: 1 }}>
+
+        {/* Nav */}
+        <div style={{ flex: 1, padding: '12px 0' }}>
           <Nav
             mode="vertical"
             items={[
-              { itemKey: 'workflow', text: '🔄 工作流管理' },
-              { itemKey: 'component', text: '🧩 组件管理' },
-              { itemKey: 'docs', text: '📄 业务文档管理' },
+              { itemKey: 'intro', text: '概览', icon: <IconHome /> },
+              { 
+                text: '工作流引擎', 
+                itemKey: 'engine',
+                icon: <IconList />,
+                items: [
+                  { itemKey: 'workflow', text: '流程管理' }, 
+                  { 
+                    text: '组件管理',
+                    itemKey: 'component',
+                    items: [
+                       { itemKey: 'component-installed', text: '已安装组件' },
+                       { itemKey: 'component-rules', text: '组件规则' },
+                    ]
+                  },
+                ]
+              },
+               { itemKey: 'docs', text: '开发文档', icon: <IconFile /> },
             ]}
-            selectedKeys={activeMenu === 'intro' ? [] : [activeMenu]}
+            selectedKeys={[activeMenu]}
+            defaultOpenKeys={['engine', 'component']}
             onSelect={(data) => {
               const key = data.itemKey as MenuKey;
+              if (key === 'engine' || key === 'component') return; 
               setActiveMenu(key);
+              if (key === 'intro') window.location.hash = '#/';
               if (key === 'workflow') window.location.hash = '#/admin';
-              if (key === 'component') window.location.hash = '#/components';
+              if (key === 'component-installed') window.location.hash = '#/components';
+              if (key === 'component-rules') window.location.hash = '#/components/rules';
               if (key === 'docs') window.location.hash = '#/docs';
             }}
             style={{ background: 'transparent' }}
+            footer={{
+              collapseButton: true,
+            }}
           />
         </div>
-        <div
-          style={{
-            padding: '12px 14px',
-            borderRadius: 10,
-            background: 'rgba(102, 126, 234, 0.08)',
-            border: '1px solid rgba(102, 126, 234, 0.15)',
-          }}
-        >
-          <Typography.Text
-            type="tertiary"
-            style={{ fontSize: 11, display: 'block', fontWeight: 500 }}
-          >
-            💎 v1.0.0 Demo
-          </Typography.Text>
-          <Typography.Text type="tertiary" style={{ fontSize: 10 }}>
-            Powered by Flowgram.ai
-          </Typography.Text>
-        </div>
       </div>
+
+      {/* Main Content Area */}
       <div
         style={{
           flex: 1,
@@ -152,7 +154,66 @@ export const AdminPanel: React.FC = () => {
           overflow: 'hidden',
         }}
       >
-        {renderContent()}
+        {/* Header */}
+        <div
+          style={{
+            height: 64,
+            background: '#fff',
+            padding: '0 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid rgba(6,7,9,0.08)',
+          }}
+        >
+          <Breadcrumb>
+            <Breadcrumb.Item>{getParentTitle()}</Breadcrumb.Item>
+            <Breadcrumb.Item>{getPageTitle()}</Breadcrumb.Item>
+          </Breadcrumb>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Typography.Text strong>Flowgram Team</Typography.Text>
+             <div style={{ height: 16, width: 1, background: '#E5E6EB' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <IconUser />
+              <Typography.Text>Admin</Typography.Text>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ padding: '6px 12px 0', background: '#fff', borderBottom: '1px solid rgba(6,7,9,0.08)' }}>
+           <Tabs 
+             type="card" 
+             activeKey={activeMenu}
+             onChange={(key) => {
+                // Only handle tab clicks if they correspond to actual routes
+                if (['intro', 'workflow', 'component-installed', 'component-rules', 'docs'].includes(key)) {
+                   setActiveMenu(key as MenuKey);
+                    if (key === 'intro') window.location.hash = '#/';
+                    if (key === 'workflow') window.location.hash = '#/admin';
+                    if (key === 'component-installed') window.location.hash = '#/components';
+                    if (key === 'component-rules') window.location.hash = '#/components/rules';
+                    if (key === 'docs') window.location.hash = '#/docs';
+                }
+             }}
+             tabBarExtraContent={null}
+           >
+             <TabPane tab="概览" itemKey="intro" />
+             {activeMenu !== 'intro' && (
+                <TabPane 
+                  tab={getPageTitle()} 
+                  itemKey={activeMenu} 
+                  closable 
+                />
+             )}
+           </Tabs>
+        </div>
+
+        {/* Content Body */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 0 }}>
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

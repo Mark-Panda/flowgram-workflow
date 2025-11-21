@@ -6,7 +6,6 @@ import {
   Button,
   Input,
   Modal,
-  Nav,
   Pagination,
   Select,
   Spin,
@@ -18,11 +17,9 @@ import {
 } from '@douyinfe/semi-ui';
 
 import { requestJSON } from '../../services/http';
-import { nodeRegistries } from '../../nodes';
 import 'react-quill/dist/quill.snow.css';
 
-export const ComponentsSection: React.FC = () => {
-  const [componentSub, setComponentSub] = useState<'installed' | 'rules' | 'market'>('installed');
+export const ComponentsSection: React.FC<{ view?: 'installed' | 'rules' }> = ({ view = 'installed' }) => {
   const [compLoading, setCompLoading] = useState(false);
   const [compError, setCompError] = useState<string | undefined>();
   const [components, setComponents] = useState<any[]>([]);
@@ -126,8 +123,8 @@ export const ComponentsSection: React.FC = () => {
   };
 
   useEffect(() => {
-    if (componentSub === 'installed') fetchComponents();
-  }, [componentSub]);
+    if (view === 'installed') fetchComponents();
+  }, [view]);
 
   const [ruleLoading, setRuleLoading] = useState(false);
   const [ruleError, setRuleError] = useState<string | undefined>();
@@ -219,62 +216,17 @@ export const ComponentsSection: React.FC = () => {
   };
 
   useEffect(() => {
-    if (componentSub === 'rules') {
+    if (view === 'rules') {
       fetchRules(1, ruleSize);
       setRulePage(1);
     }
-  }, [componentSub]);
-
-  const componentList = useMemo(
-    () =>
-      nodeRegistries.map((reg) => ({
-        type: reg.type,
-        description: reg.info?.description ?? '',
-        icon: reg.info?.icon,
-      })),
-    []
-  );
+  }, [view]);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#F7F8FA' }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 24px',
-          borderBottom: '1px solid rgba(6,7,9,0.06)',
-          background: '#fff',
-          boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
-        }}
-      >
-        <Typography.Title heading={4} style={{ margin: 0 }}>
-          组件管理
-        </Typography.Title>
-      </div>
-      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div
-          style={{
-            background: '#fff',
-            borderRadius: 12,
-            border: '1px solid rgba(6,7,9,0.06)',
-            boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
-            padding: '8px 12px',
-          }}
-        >
-          <Nav
-            mode="horizontal"
-            items={[
-              { itemKey: 'installed', text: '✅ 已安装组件' },
-              { itemKey: 'rules', text: '📐 组件规则' },
-            ]}
-            selectedKeys={[componentSub]}
-            onSelect={(data) => setComponentSub(data.itemKey as any)}
-            style={{ background: 'transparent' }}
-          />
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#F7F8FA', height: '100%', overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {componentSub === 'installed' && (
+        {view === 'installed' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div
               style={{
@@ -451,7 +403,7 @@ export const ComponentsSection: React.FC = () => {
           </div>
         )}
 
-        {componentSub === 'rules' && (
+        {view === 'rules' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div
               style={{
@@ -975,87 +927,6 @@ export const ComponentsSection: React.FC = () => {
                   }}
                 />
               </div>
-            </div>
-          </div>
-        )}
-
-        {componentSub === 'market' && (
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 12,
-              border: '1px solid rgba(6,7,9,0.06)',
-              boxShadow: '0 2px 8px rgba(6,7,9,0.04)',
-              padding: 20,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <Typography.Title heading={5} style={{ margin: 0 }}>
-                  组件市场
-                </Typography.Title>
-                <Typography.Text type="tertiary" style={{ display: 'block', marginTop: 6 }}>
-                  暂无远程市场接入，展示本地可用组件概览
-                </Typography.Text>
-              </div>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-                gap: 12,
-                marginTop: 16,
-              }}
-            >
-              {componentList.map((item) => (
-                <div
-                  key={String(item.type)}
-                  style={{
-                    background: '#FAFAFB',
-                    borderRadius: 12,
-                    border: '1px solid rgba(6,7,9,0.06)',
-                    padding: 12,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                  }}
-                >
-                  {item.icon ? (
-                    <img
-                      src={item.icon as string}
-                      alt={String(item.type)}
-                      style={{ width: 32, height: 32, borderRadius: 4 }}
-                    />
-                  ) : (
-                    <div
-                      style={{ width: 32, height: 32, borderRadius: 4, background: '#F2F3F5' }}
-                    />
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <Typography.Text strong style={{ display: 'block' }}>
-                      {String(item.type)}
-                    </Typography.Text>
-                    <Typography.Text
-                      type="tertiary"
-                      style={{
-                        fontSize: 12,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {item.description}
-                    </Typography.Text>
-                  </div>
-                  <Button
-                    size="small"
-                    type="tertiary"
-                    onClick={() => Toast.info({ content: '可在画布侧边栏添加此组件' })}
-                  >
-                    添加
-                  </Button>
-                </div>
-              ))}
             </div>
           </div>
         )}
