@@ -44,6 +44,7 @@ export const WorkflowSection: React.FC = () => {
   const [createDesc, setCreateDesc] = useState('');
   const [createRoot, setCreateRoot] = useState(true);
   const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [nameError, setNameError] = useState(false);
   const [createId, setCreateId] = useState<string>(() => {
     try {
       const { customAlphabet } = require('nanoid');
@@ -328,12 +329,15 @@ export const WorkflowSection: React.FC = () => {
           </div>
         }
         visible={showCreateModal}
-        onCancel={() => setShowCreateModal(false)}
+        onCancel={() => {
+          setShowCreateModal(false);
+          setNameError(false);
+        }}
         confirmLoading={createSubmitting}
         style={{ borderRadius: 16 }}
         onOk={async () => {
           if (!createName.trim()) {
-            Toast.warning({ content: '请输入工作流名称' });
+            setNameError(true);
             return;
           }
           setCreateSubmitting(true);
@@ -351,6 +355,7 @@ export const WorkflowSection: React.FC = () => {
             setCreateName('');
             setCreateDesc('');
             setCreateRoot(true);
+            setNameError(false);
             try {
               const { customAlphabet } = require('nanoid');
               setCreateId(
@@ -377,9 +382,13 @@ export const WorkflowSection: React.FC = () => {
             </Typography.Text>
             <Input
               value={createName}
-              onChange={setCreateName}
+              onChange={(v) => {
+                setCreateName(v);
+                if (v.trim()) setNameError(false);
+              }}
               placeholder="请输入工作流名称"
               size="large"
+              validateStatus={nameError ? 'error' : 'default'}
               style={{ borderRadius: 10 }}
             />
           </div>
