@@ -99,7 +99,7 @@ export const WorkflowSection: React.FC = () => {
     {
       title: '类型',
       dataIndex: 'ruleChain.root',
-      render: (root: boolean) => (root ? <Tag color="blue" type="ghost">常规</Tag> : <Tag color="cyan" type="ghost">子流程</Tag>),
+      render: (root: boolean) => (root ? <Tag color="blue" type="ghost">主流程</Tag> : <Tag color="cyan" type="ghost">子流程</Tag>),
     },
     {
       title: '状态',
@@ -271,7 +271,7 @@ export const WorkflowSection: React.FC = () => {
                                onChange={(v) => setChainFilter(v as any)}
                             >
                                 <Select.Option value="all">全部</Select.Option>
-                                <Select.Option value="root">常规</Select.Option>
+                                <Select.Option value="root">主流程</Select.Option>
                                 <Select.Option value="sub">子流程</Select.Option>
                             </Select>
                         </FilterItem>
@@ -290,7 +290,7 @@ export const WorkflowSection: React.FC = () => {
           {/* Table Area */}
           <div style={{ flex: 1, background: '#fff', padding: 16, borderRadius: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
              {/* Toolbar */}
-             <div style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
+             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
                 <Button icon={<IconPlus />} theme="solid" type="primary" onClick={() => setShowCreateModal(true)}>新建工作流</Button>
              </div>
 
@@ -415,7 +415,7 @@ export const WorkflowSection: React.FC = () => {
             </Select>
             <div>
               <Typography.Text strong style={{ display: 'block', color: '#1C2029' }}>
-                根规则链
+                主流程
               </Typography.Text>
               <Typography.Text type="tertiary" style={{ fontSize: 12 }}>
                 是否设置为根规则链
