@@ -10,7 +10,8 @@ import {
   Toast,
   Table,
   Row,
-  Col
+  Col,
+  Switch
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconChevronLeft } from '@douyinfe/semi-icons';
 
@@ -405,21 +406,17 @@ export const WorkflowSection: React.FC = () => {
               border: '1px solid rgba(102, 126, 234, 0.15)',
             }}
           >
-            <Select
-              value={createRoot ? '1' : '0'}
-              onChange={(v) => setCreateRoot(v === '1')}
-              style={{ width: 80 }}
-            >
-              <Select.Option value="1">是</Select.Option>
-              <Select.Option value="0">否</Select.Option>
-            </Select>
             <div>
-              <Typography.Text strong style={{ display: 'block', color: '#1C2029' }}>
-                主流程
+              <Typography.Text strong style={{ display: 'block', color: '#1C2029', marginBottom: 4 }}>
+                流程类型
               </Typography.Text>
-              <Typography.Text type="tertiary" style={{ fontSize: 12 }}>
-                是否设置为根规则链
-              </Typography.Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Switch 
+                  checked={createRoot} 
+                  onChange={(v) => setCreateRoot(v)} 
+                />
+                <Typography.Text>{createRoot ? '主流程' : '子流程'}</Typography.Text>
+              </div>
             </div>
           </div>
           <div>
@@ -429,8 +426,9 @@ export const WorkflowSection: React.FC = () => {
             <Input
               value={createId}
               onChange={setCreateId}
-              placeholder="自动生成，可修改"
+              placeholder="自动生成，不可修改"
               size="large"
+              disabled
               style={{ borderRadius: 10, fontFamily: 'monospace' }}
             />
             <Typography.Text
