@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { Nav, Typography, Breadcrumb, Tabs, TabPane } from '@douyinfe/semi-ui';
-import { IconUser, IconHome, IconList, IconFile } from '@douyinfe/semi-icons';
+import { IconUser, IconHome, IconList, IconFile, IconChevronLeft, IconChevronRight } from '@douyinfe/semi-icons';
 
 import { WorkflowSection } from './sections/WorkflowSection';
 import { DocsSection } from './sections/DocsSection';
@@ -72,16 +72,19 @@ export const AdminPanel: React.FC = () => {
     return '系统';
   };
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#F7F8FA' }}>
       {/* Sidebar */}
       <div
         style={{
-          width: 240,
+          width: isCollapsed ? 60 : 240,
           background: '#fff',
           borderRight: '1px solid rgba(6,7,9,0.08)',
           display: 'flex',
           flexDirection: 'column',
+          transition: 'width 0.2s',
         }}
       >
         {/* Logo Area */}
@@ -90,19 +93,26 @@ export const AdminPanel: React.FC = () => {
             height: 64,
             display: 'flex',
             alignItems: 'center',
-            padding: '0 24px',
+            padding: isCollapsed ? '0 16px' : '0 24px',
             borderBottom: '1px solid rgba(6,7,9,0.08)',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            overflow: 'hidden',
           }}
         >
-          <Typography.Title heading={5} style={{ margin: 0, color: '#1C2029' }}>
-             Flowgram
-          </Typography.Title>
+          {isCollapsed ? (
+            <span style={{ fontSize: 24 }}>⚡</span>
+          ) : (
+            <Typography.Title heading={5} style={{ margin: 0, color: '#1C2029', whiteSpace: 'nowrap' }}>
+               Flowgram
+            </Typography.Title>
+          )}
         </div>
 
         {/* Nav */}
-        <div style={{ flex: 1, padding: '12px 0' }}>
+        <div style={{ flex: 1, padding: '12px 0', overflowY: 'auto' }}>
           <Nav
             mode="vertical"
+            isCollapsed={isCollapsed}
             items={[
               { itemKey: 'intro', text: '概览', icon: <IconHome /> },
               { 
@@ -136,10 +146,26 @@ export const AdminPanel: React.FC = () => {
               if (key === 'docs') window.location.hash = '#/docs';
             }}
             style={{ background: 'transparent' }}
-            footer={{
-              collapseButton: true,
-            }}
           />
+        </div>
+        
+        {/* Footer Collapse Button */}
+        <div
+          style={{
+            padding: '12px 0',
+            borderTop: '1px solid rgba(6,7,9,0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            paddingLeft: isCollapsed ? 0 : 24,
+            cursor: 'pointer',
+            color: '#1C2029',
+            gap: 12,
+          }}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+           {isCollapsed ? <IconChevronRight /> : <IconChevronLeft />}
+           {!isCollapsed && <Typography.Text style={{ userSelect: 'none' }}>收起导航</Typography.Text>}
         </div>
       </div>
 
