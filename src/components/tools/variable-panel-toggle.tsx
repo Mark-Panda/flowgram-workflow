@@ -4,7 +4,7 @@
  */
 
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
-import { Tooltip, IconButton } from '@douyinfe/semi-ui';
+import { Tooltip, Button } from '@douyinfe/semi-ui';
 
 import iconVariable from '../../assets/icon-variable.png';
 
@@ -14,13 +14,15 @@ export function VariablePanelToggle() {
 
   return (
     <Tooltip content="变量面板">
-      <IconButton
+      <Button
+        theme="light"
         type="tertiary"
-        theme="borderless"
         disabled={disabled}
         icon={<img src={iconVariable} width={20} height={20} />}
         onClick={() => window.dispatchEvent(new Event('toggleVariablePanel'))}
-      />
+      >
+        变量
+      </Button>
     </Tooltip>
   );
 }

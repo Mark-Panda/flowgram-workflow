@@ -113,7 +113,9 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
           const id = String(n.id);
           const title = document.toNodeJSON(n)?.data?.title || id;
           const field = globalVar.getByKeyPath(['nodes', id]);
-          field?.updateMeta({ ...(field?.meta || {}), title });
+          if (field) {
+            field.updateMeta({ ...(field.meta || {}), title });
+          }
         });
       } catch {}
     };

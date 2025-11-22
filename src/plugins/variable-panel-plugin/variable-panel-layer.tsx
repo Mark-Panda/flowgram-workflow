@@ -13,8 +13,8 @@ export class VariablePanelLayer extends Layer {
     // 固定在画布右上角，不随滚动偏移
     domUtils.setStyle(this.node, {
       position: 'absolute',
-      right: 25,
-      top: 25,
+      right: 290,
+      top: 0,
       zIndex: 100,
       pointerEvents: 'auto',
     });

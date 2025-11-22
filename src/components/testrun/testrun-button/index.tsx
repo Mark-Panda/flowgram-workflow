@@ -69,7 +69,6 @@ export function TestRunButton(props: { disabled: boolean }) {
         onClick={onTestRun}
         icon={<IconPlay size="default" />}
         className={styles.testrunSuccessButton}
-        size="small"
         theme="solid"
       >
         试运行
@@ -82,7 +81,6 @@ export function TestRunButton(props: { disabled: boolean }) {
           onClick={onTestRun}
           icon={<IconPlay size="default" />}
           className={styles.testrunErrorButton}
-          size="small"
           theme="solid"
         >
           试运行

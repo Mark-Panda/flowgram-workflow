@@ -61,7 +61,6 @@ export const SaveButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
         icon={<IconSave size="default" />}
         type="primary"
         theme="solid"
-        size="small"
         disabled={disabled || playground.config.readonly || !isDirty}
         onClick={onClick}
       >

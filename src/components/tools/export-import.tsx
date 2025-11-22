@@ -201,7 +201,6 @@ export function ExportImport(props: { disabled?: boolean }) {
       >
         <Button
           theme="light"
-          size="small"
           disabled={disabled}
           icon={<IconDownload size="default" />}
           iconPosition="left"

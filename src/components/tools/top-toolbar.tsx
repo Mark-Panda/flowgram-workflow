@@ -35,9 +35,9 @@ export const TopToolbar: React.FC = () => {
 
   // 使用 Portal 将工具栏渲染到顶部导航栏的右侧
   return createPortal(
-    <Space spacing={8}>
-      <ExportImport disabled={disabled} />
+    <Space spacing={12}>
       <VariablePanelToggle />
+      <ExportImport disabled={disabled} />
       <TestRunButton disabled={disabled} />
       <SaveButton disabled={disabled} />
     </Space>,
