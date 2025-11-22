@@ -533,12 +533,15 @@ export const DocsSection: React.FC = () => {
                 setDocSubmitting(false);
               }
             }}
-            style={{ borderRadius: 16, width: 980 }}
+            style={{ borderRadius: 16, width: 1280 }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
-                  <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                  <Typography.Text
+                    strong
+                    style={{ display: 'block', marginBottom: 8, fontSize: 14 }}
+                  >
                     文档名称 *
                   </Typography.Text>
                   <Input
@@ -546,10 +549,14 @@ export const DocsSection: React.FC = () => {
                     onChange={(v) => setDocForm({ ...docForm, name: v })}
                     placeholder="请输入文档名称"
                     disabled={docEditMode === 'view'}
+                    size="large"
                   />
                 </div>
                 <div>
-                  <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                  <Typography.Text
+                    strong
+                    style={{ display: 'block', marginBottom: 8, fontSize: 14 }}
+                  >
                     文档描述
                   </Typography.Text>
                   <TextArea
@@ -558,36 +565,38 @@ export const DocsSection: React.FC = () => {
                     autosize={{ minRows: 3, maxRows: 6 }}
                     placeholder="请输入文档描述"
                     disabled={docEditMode === 'view'}
+                    style={{ fontSize: 14 }}
                   />
                 </div>
               </div>
               <div>
-                <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
+                <Typography.Text strong style={{ display: 'block', marginBottom: 8, fontSize: 14 }}>
                   文档内容
                 </Typography.Text>
                 <div
                   style={{
                     display: 'grid',
                     gridTemplateColumns: docPreview ? '1fr 1fr' : '1fr',
-                    gap: 12,
+                    gap: 16,
                   }}
                 >
                   <TextArea
                     value={docForm.content}
                     onChange={(v) => setDocForm({ ...docForm, content: String(v) })}
-                    autosize={{ minRows: 12, maxRows: 26 }}
+                    autosize={{ minRows: 16, maxRows: 32 }}
                     placeholder="请输入文档内容，支持 Markdown 语法"
                     disabled={docEditMode === 'view'}
+                    style={{ fontSize: 14 }}
                   />
                   {docPreview && (
                     <div
                       style={{
                         border: '1px solid rgba(6,7,9,0.08)',
                         borderRadius: 10,
-                        padding: 12,
-                        background: '#fff',
+                        padding: 16,
+                        background: '#FAFAFA',
                         overflow: 'auto',
-                        maxHeight: 420,
+                        maxHeight: 560,
                       }}
                       dangerouslySetInnerHTML={{
                         __html: String(marked.parse(docForm.content || '')),
