@@ -4,6 +4,7 @@
  */
 
 import { FlowNodeRegistry } from '../typings';
+import { YapiNodeRegistry } from './yapi';
 import { TransformNodeRegistry } from './transform';
 import { StartNodeRegistry } from './start';
 import { RedisClientNodeRegistry } from './redisClient';
@@ -26,7 +27,6 @@ import { CommentNodeRegistry } from './comment';
 import { CaseConditionNodeRegistry } from './case-condition';
 import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
-import { YapiNodeRegistry } from './yapi';
 export { WorkflowNodeType } from './constants';
 export { NODE_TYPE_NAMES, getNodeTypeName, getNodeDisplayName } from './node-type-names';
 

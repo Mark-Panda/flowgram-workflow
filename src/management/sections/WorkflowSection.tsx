@@ -11,7 +11,7 @@ import {
   Table,
   Row,
   Col,
-  Switch
+  Switch,
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconChevronLeft } from '@douyinfe/semi-icons';
 
@@ -101,7 +101,16 @@ export const WorkflowSection: React.FC = () => {
     {
       title: '类型',
       dataIndex: 'ruleChain.root',
-      render: (root: boolean) => (root ? <Tag color="blue" type="ghost">主流程</Tag> : <Tag color="cyan" type="ghost">子流程</Tag>),
+      render: (root: boolean) =>
+        root ? (
+          <Tag color="blue" type="ghost">
+            主流程
+          </Tag>
+        ) : (
+          <Tag color="cyan" type="ghost">
+            子流程
+          </Tag>
+        ),
     },
     {
       title: '状态',
@@ -109,87 +118,111 @@ export const WorkflowSection: React.FC = () => {
         const chain = record.ruleChain;
         const disabled = chain?.disabled;
         const debug = chain?.debugMode;
-        if (disabled) return <Tag color="red" style={{ borderRadius: 4 }}>已禁用</Tag>;
-        if (debug) return <Tag color="indigo" style={{ borderRadius: 4 }}>调试中</Tag>;
-        return <Tag color="green" style={{ borderRadius: 4 }}>执行中</Tag>;
-      }
+        if (disabled)
+          return (
+            <Tag color="red" style={{ borderRadius: 4 }}>
+              已禁用
+            </Tag>
+          );
+        if (debug)
+          return (
+            <Tag color="indigo" style={{ borderRadius: 4 }}>
+              调试中
+            </Tag>
+          );
+        return (
+          <Tag color="green" style={{ borderRadius: 4 }}>
+            执行中
+          </Tag>
+        );
+      },
     },
     {
       title: '描述',
       dataIndex: 'ruleChain.additionalInfo.description',
       render: (text: string, record: any) => {
-         const desc = record?.ruleChain?.additionalInfo?.description || '-';
-         return <Typography.Text type="tertiary" ellipsis={{ showTooltip: true }} style={{ maxWidth: 200 }}>{desc}</Typography.Text>;
-      }
+        const desc = record?.ruleChain?.additionalInfo?.description || '-';
+        return (
+          <Typography.Text
+            type="tertiary"
+            ellipsis={{ showTooltip: true }}
+            style={{ maxWidth: 200 }}
+          >
+            {desc}
+          </Typography.Text>
+        );
+      },
     },
-     {
+    {
       title: '操作',
       fixed: 'right' as const,
       width: 180,
       render: (text: any, record: any) => (
         <div style={{ display: 'flex', gap: 12 }}>
-             <Typography.Text 
-               style={{ color: '#667EEA', cursor: 'pointer' }}
-               onClick={() => {
-                  const id = record?.ruleChain?.id;
-                  if (id) window.location.hash = `#/workflow/${encodeURIComponent(id)}`;
-               }}
-             >
-                打开
-             </Typography.Text>
-             <Typography.Text 
-                style={{ color: '#667EEA', cursor: 'pointer' }}
-                onClick={async () => {
-                    const id = String(record?.ruleChain?.id ?? '');
-                    const disabled = Boolean(record?.ruleChain?.disabled);
-                    if (!id) return;
-                    try {
-                        if (disabled) {
-                            await startRuleChain(id);
-                            Toast.success({ content: '已部署' });
-                        } else {
-                            await stopRuleChain(id);
-                            Toast.success({ content: '已下线' });
-                        }
-                        refreshList();
-                    } catch(e) {
-                        Toast.error({ content: '操作失败' });
-                    }
-                }}
-             >
-                {record?.ruleChain?.disabled ? '部署' : '下线'}
-             </Typography.Text>
-             <Typography.Text 
-                style={{ color: '#FF4B4B', cursor: 'pointer' }}
-                onClick={async () => {
-                    const id = String(record?.ruleChain?.id ?? '');
-                    if (!id) return;
-                    Modal.confirm({
-                        title: '确认删除',
-                        content: '确认删除该工作流？',
-                        onOk: async () => {
-                             try {
-                                await deleteRuleChain(id);
-                                Toast.success({ content: '删除成功' });
-                                refreshList();
-                             } catch(e) {
-                                Toast.error({ content: '删除失败' });
-                             }
-                        }
-                    });
-                }}
-             >
-                删除
-             </Typography.Text>
+          <Typography.Text
+            style={{ color: '#667EEA', cursor: 'pointer' }}
+            onClick={() => {
+              const id = record?.ruleChain?.id;
+              if (id) window.location.hash = `#/workflow/${encodeURIComponent(id)}`;
+            }}
+          >
+            打开
+          </Typography.Text>
+          <Typography.Text
+            style={{ color: '#667EEA', cursor: 'pointer' }}
+            onClick={async () => {
+              const id = String(record?.ruleChain?.id ?? '');
+              const disabled = Boolean(record?.ruleChain?.disabled);
+              if (!id) return;
+              try {
+                if (disabled) {
+                  await startRuleChain(id);
+                  Toast.success({ content: '已部署' });
+                } else {
+                  await stopRuleChain(id);
+                  Toast.success({ content: '已下线' });
+                }
+                refreshList();
+              } catch (e) {
+                Toast.error({ content: '操作失败' });
+              }
+            }}
+          >
+            {record?.ruleChain?.disabled ? '部署' : '下线'}
+          </Typography.Text>
+          <Typography.Text
+            style={{ color: '#FF4B4B', cursor: 'pointer' }}
+            onClick={async () => {
+              const id = String(record?.ruleChain?.id ?? '');
+              if (!id) return;
+              Modal.confirm({
+                title: '确认删除',
+                content: '确认删除该工作流？',
+                onOk: async () => {
+                  try {
+                    await deleteRuleChain(id);
+                    Toast.success({ content: '删除成功' });
+                    refreshList();
+                  } catch (e) {
+                    Toast.error({ content: '删除失败' });
+                  }
+                },
+              });
+            }}
+          >
+            删除
+          </Typography.Text>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   const FilterItem = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 14, color: '#1C2029', minWidth: 70, textAlign: 'right' }}>{label}</span>
-        <div style={{ flex: 1 }}>{children}</div>
+      <span style={{ fontSize: 14, color: '#1C2029', minWidth: 70, textAlign: 'right' }}>
+        {label}
+      </span>
+      <div style={{ flex: 1 }}>{children}</div>
     </div>
   );
 
@@ -201,7 +234,7 @@ export const WorkflowSection: React.FC = () => {
         flexDirection: 'column',
         background: '#F7F8FA', // Keep gray bg for the whole area
         overflow: 'hidden',
-        padding: 16, 
+        padding: 16,
       }}
     >
       {showDetail ? (
@@ -221,7 +254,7 @@ export const WorkflowSection: React.FC = () => {
             minHeight: 0,
             overflow: 'hidden',
             background: '#fff',
-            borderRadius: 4
+            borderRadius: 4,
           }}
         >
           <div
@@ -249,74 +282,101 @@ export const WorkflowSection: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
           {error ? <Typography.Text type="danger">加载失败：{error}</Typography.Text> : null}
-          
+
           {/* Filter Area */}
           <div style={{ background: '#fff', padding: 24, borderRadius: 2 }}>
-             <div style={{ width: '100%' }}>
-                <Row gutter={24}>
-                    <Col span={8}>
-                        <FilterItem label="关键词">
-                            <Input 
-                               placeholder="搜索名称或 ID" 
-                               value={keywords}
-                               onChange={setKeywords}
-                               showClear
-                            />
-                        </FilterItem>
-                    </Col>
-                     <Col span={6}>
-                        <FilterItem label="类型">
-                            <Select 
-                               placeholder="全部" 
-                               style={{ width: '100%' }}
-                               value={chainFilter}
-                               onChange={(v) => setChainFilter(v as any)}
-                            >
-                                <Select.Option value="all">全部</Select.Option>
-                                <Select.Option value="root">主流程</Select.Option>
-                                <Select.Option value="sub">子流程</Select.Option>
-                            </Select>
-                        </FilterItem>
-                    </Col>
-                    <Col span={10} style={{ textAlign: 'left', display: 'flex', gap: 12, paddingLeft: 24 }}>
-                        <Button type="primary" theme="solid" onClick={refreshList}>筛选</Button>
-                        <Button type="tertiary" onClick={() => {
-                            setKeywords('');
-                            setChainFilter('all');
-                        }}>重置</Button>
-                    </Col>
-                </Row>
-             </div>
+            <div style={{ width: '100%' }}>
+              <Row gutter={24}>
+                <Col span={8}>
+                  <FilterItem label="关键词">
+                    <Input
+                      placeholder="搜索名称或 ID"
+                      value={keywords}
+                      onChange={setKeywords}
+                      showClear
+                    />
+                  </FilterItem>
+                </Col>
+                <Col span={6}>
+                  <FilterItem label="类型">
+                    <Select
+                      placeholder="全部"
+                      style={{ width: '100%' }}
+                      value={chainFilter}
+                      onChange={(v) => setChainFilter(v as any)}
+                    >
+                      <Select.Option value="all">全部</Select.Option>
+                      <Select.Option value="root">主流程</Select.Option>
+                      <Select.Option value="sub">子流程</Select.Option>
+                    </Select>
+                  </FilterItem>
+                </Col>
+                <Col
+                  span={10}
+                  style={{ textAlign: 'left', display: 'flex', gap: 12, paddingLeft: 24 }}
+                >
+                  <Button type="primary" theme="solid" onClick={refreshList}>
+                    筛选
+                  </Button>
+                  <Button
+                    type="tertiary"
+                    onClick={() => {
+                      setKeywords('');
+                      setChainFilter('all');
+                    }}
+                  >
+                    重置
+                  </Button>
+                </Col>
+              </Row>
+            </div>
           </div>
 
           {/* Table Area */}
-          <div style={{ flex: 1, background: '#fff', padding: 16, borderRadius: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-             {/* Toolbar */}
-             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                <Button icon={<IconPlus />} theme="solid" type="primary" onClick={() => setShowCreateModal(true)}>新建工作流</Button>
-             </div>
+          <div
+            style={{
+              flex: 1,
+              background: '#fff',
+              padding: 16,
+              borderRadius: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0,
+            }}
+          >
+            {/* Toolbar */}
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <Button
+                icon={<IconPlus />}
+                theme="solid"
+                type="primary"
+                onClick={() => setShowCreateModal(true)}
+              >
+                新建工作流
+              </Button>
+            </div>
 
-             {/* Table */}
-             <Table
-               dataSource={rules}
-               columns={columns}
-               loading={loading}
-               pagination={{
-                 total,
-                 currentPage: page,
-                 pageSize: size,
-                 onChange: (p) => setPage(p),
-                 onPageSizeChange: (s) => setSize(s),
-                 showSizeChanger: true,
-                 pageSizeOpts: [10, 20, 50],
-               }}
-               rowSelection={{
-                  onChange: (selectedRowKeys, selectedRows) => {
-                    // Handle selection
-                  },
-               }}
-               style={{ flex: 1, overflow: 'auto' }}
-             />
+            {/* Table */}
+            <Table
+              dataSource={rules}
+              columns={columns}
+              loading={loading}
+              pagination={{
+                total,
+                currentPage: page,
+                pageSize: size,
+                onChange: (p) => setPage(p),
+                onPageSizeChange: (s) => setSize(s),
+                showSizeChanger: true,
+                pageSizeOpts: [10, 20, 50],
+              }}
+              rowSelection={{
+                onChange: (selectedRowKeys, selectedRows) => {
+                  // Handle selection
+                },
+              }}
+              style={{ flex: 1, overflow: 'auto' }}
+            />
           </div>
         </div>
       )}
@@ -416,14 +476,14 @@ export const WorkflowSection: React.FC = () => {
             }}
           >
             <div>
-              <Typography.Text strong style={{ display: 'block', color: '#1C2029', marginBottom: 4 }}>
+              <Typography.Text
+                strong
+                style={{ display: 'block', color: '#1C2029', marginBottom: 4 }}
+              >
                 流程类型
               </Typography.Text>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Switch 
-                  checked={createRoot} 
-                  onChange={(v) => setCreateRoot(v)} 
-                />
+                <Switch checked={createRoot} onChange={(v) => setCreateRoot(v)} />
                 <Typography.Text>{createRoot ? '主流程' : '子流程'}</Typography.Text>
               </div>
             </div>

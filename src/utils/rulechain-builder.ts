@@ -1181,10 +1181,10 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
         data: {
           title: ep.name ?? '定时任务',
           positionType: 'header',
-          inputsValues: { 
-            cron: { type: 'constant', content: String(cron ?? '*/10 * * * * *') } 
+          inputsValues: {
+            cron: { type: 'constant', content: String(cron ?? '*/10 * * * * *') },
           },
-          inputs: { 
+          inputs: {
             type: 'object',
             required: ['cron'],
             properties: {

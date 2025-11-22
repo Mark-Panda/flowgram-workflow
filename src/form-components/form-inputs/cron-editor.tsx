@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+
 import { Input, InputNumber, Radio, RadioGroup, Typography } from '@douyinfe/semi-ui';
 
 interface CronEditorProps {
@@ -19,7 +20,7 @@ export const CronEditor: React.FC<CronEditorProps> = ({ value, onChange, readonl
   const content = typeof value?.content === 'string' ? value.content : '*/10 * * * * *';
   const [cronType, setCronType] = useState<CronType>('custom');
   const [customCron, setCustomCron] = useState(content);
-  
+
   // 间隔值
   const [secondInterval, setSecondInterval] = useState(10);
   const [minuteInterval, setMinuteInterval] = useState(10);
@@ -79,7 +80,10 @@ export const CronEditor: React.FC<CronEditorProps> = ({ value, onChange, readonl
     onChange?.({ type: 'constant', content: cron });
   };
 
-  const handleIntervalChange = (intervalType: 'second' | 'minute' | 'hour', val: number | string) => {
+  const handleIntervalChange = (
+    intervalType: 'second' | 'minute' | 'hour',
+    val: number | string
+  ) => {
     const numVal = typeof val === 'number' ? val : parseInt(val) || 1;
     if (intervalType === 'second') {
       setSecondInterval(numVal);
@@ -115,15 +119,34 @@ export const CronEditor: React.FC<CronEditorProps> = ({ value, onChange, readonl
         disabled={readonly}
         style={{ width: '100%' }}
       >
-        <Radio value="every-second" style={{ flex: 1 }}>每N秒</Radio>
-        <Radio value="every-minute" style={{ flex: 1 }}>每N分钟</Radio>
-        <Radio value="every-hour" style={{ flex: 1 }}>每N小时</Radio>
-        <Radio value="every-day" style={{ flex: 1 }}>每天</Radio>
-        <Radio value="custom" style={{ flex: 1 }}>自定义</Radio>
+        <Radio value="every-second" style={{ flex: 1 }}>
+          每N秒
+        </Radio>
+        <Radio value="every-minute" style={{ flex: 1 }}>
+          每N分钟
+        </Radio>
+        <Radio value="every-hour" style={{ flex: 1 }}>
+          每N小时
+        </Radio>
+        <Radio value="every-day" style={{ flex: 1 }}>
+          每天
+        </Radio>
+        <Radio value="custom" style={{ flex: 1 }}>
+          自定义
+        </Radio>
       </RadioGroup>
 
       {cronType === 'every-second' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px', background: '#f5f5f5', borderRadius: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '12px',
+            background: '#f5f5f5',
+            borderRadius: 8,
+          }}
+        >
           <Typography.Text>每</Typography.Text>
           <InputNumber
             value={secondInterval}
@@ -138,7 +161,16 @@ export const CronEditor: React.FC<CronEditorProps> = ({ value, onChange, readonl
       )}
 
       {cronType === 'every-minute' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px', background: '#f5f5f5', borderRadius: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '12px',
+            background: '#f5f5f5',
+            borderRadius: 8,
+          }}
+        >
           <Typography.Text>每</Typography.Text>
           <InputNumber
             value={minuteInterval}
@@ -153,7 +185,16 @@ export const CronEditor: React.FC<CronEditorProps> = ({ value, onChange, readonl
       )}
 
       {cronType === 'every-hour' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px', background: '#f5f5f5', borderRadius: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '12px',
+            background: '#f5f5f5',
+            borderRadius: 8,
+          }}
+        >
           <Typography.Text>每</Typography.Text>
           <InputNumber
             value={hourInterval}
@@ -186,34 +227,43 @@ export const CronEditor: React.FC<CronEditorProps> = ({ value, onChange, readonl
             }}
           />
           <Typography.Text type="tertiary" size="small">
-            格式: 秒(0-59) 分(0-59) 时(0-23) 日(1-31)  周(0-6) 月(1-12)
+            格式: 秒(0-59) 分(0-59) 时(0-23) 日(1-31) 周(0-6) 月(1-12)
           </Typography.Text>
         </div>
       )}
 
-      <div style={{ 
-        padding: '10px 12px', 
-        background: '#e8f4ff', 
-        borderRadius: 6,
-        border: '1px solid #b3d8ff'
-      }}>
+      <div
+        style={{
+          padding: '10px 12px',
+          background: '#e8f4ff',
+          borderRadius: 6,
+          border: '1px solid #b3d8ff',
+        }}
+      >
         <Typography.Text strong style={{ fontSize: 12, color: '#0077cc' }}>
-          当前表达式: <code style={{ 
-            background: '#fff', 
-            padding: '2px 6px', 
-            borderRadius: 4,
-            fontFamily: 'monospace',
-            color: '#0077cc'
-          }}>{generateCron(cronType)}</code>
+          当前表达式:{' '}
+          <code
+            style={{
+              background: '#fff',
+              padding: '2px 6px',
+              borderRadius: 4,
+              fontFamily: 'monospace',
+              color: '#0077cc',
+            }}
+          >
+            {generateCron(cronType)}
+          </code>
         </Typography.Text>
       </div>
 
-      <div style={{ 
-        padding: '8px 12px', 
-        background: '#fff7e6', 
-        borderRadius: 6,
-        border: '1px solid #ffd591'
-      }}>
+      <div
+        style={{
+          padding: '8px 12px',
+          background: '#fff7e6',
+          borderRadius: 6,
+          border: '1px solid #ffd591',
+        }}
+      >
         <Typography.Text size="small" style={{ color: '#ad6800' }}>
           💡 提示: 使用 * 表示任意值, */N 表示每N个单位
         </Typography.Text>

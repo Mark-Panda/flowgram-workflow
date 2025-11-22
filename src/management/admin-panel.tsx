@@ -6,14 +6,28 @@
 import React, { useEffect, useState } from 'react';
 
 import { Nav, Typography, Breadcrumb, Tabs, TabPane } from '@douyinfe/semi-ui';
-import { IconUser, IconHome, IconList, IconFile, IconChevronLeft, IconChevronRight } from '@douyinfe/semi-icons';
+import {
+  IconUser,
+  IconHome,
+  IconList,
+  IconFile,
+  IconChevronLeft,
+  IconChevronRight,
+} from '@douyinfe/semi-icons';
 
 import { WorkflowSection } from './sections/WorkflowSection';
 import { DocsSection } from './sections/DocsSection';
 import { ComponentsSection } from './sections/ComponentsSection';
 import { IntroPage } from '../landing/IntroPage';
 
-type MenuKey = 'intro' | 'workflow' | 'component-installed' | 'component-rules' | 'docs' | 'engine' | 'component';
+type MenuKey =
+  | 'intro'
+  | 'workflow'
+  | 'component-installed'
+  | 'component-rules'
+  | 'docs'
+  | 'engine'
+  | 'component';
 
 export const AdminPanel: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<MenuKey>(() => {
@@ -57,12 +71,18 @@ export const AdminPanel: React.FC = () => {
 
   const getPageTitle = () => {
     switch (activeMenu) {
-      case 'intro': return '概览';
-      case 'workflow': return '流程管理';
-      case 'component-installed': return '已安装组件';
-      case 'component-rules': return '组件规则';
-      case 'docs': return '开发文档';
-      default: return '概览';
+      case 'intro':
+        return '概览';
+      case 'workflow':
+        return '流程管理';
+      case 'component-installed':
+        return '已安装组件';
+      case 'component-rules':
+        return '组件规则';
+      case 'docs':
+        return '开发文档';
+      default:
+        return '概览';
     }
   };
 
@@ -102,8 +122,11 @@ export const AdminPanel: React.FC = () => {
           {isCollapsed ? (
             <span style={{ fontSize: 24 }}>⚡</span>
           ) : (
-            <Typography.Title heading={5} style={{ margin: 0, color: '#1C2029', whiteSpace: 'nowrap' }}>
-               Flowgram
+            <Typography.Title
+              heading={5}
+              style={{ margin: 0, color: '#1C2029', whiteSpace: 'nowrap' }}
+            >
+              Flowgram
             </Typography.Title>
           )}
         </div>
@@ -115,29 +138,29 @@ export const AdminPanel: React.FC = () => {
             isCollapsed={isCollapsed}
             items={[
               { itemKey: 'intro', text: '概览', icon: <IconHome /> },
-              { 
-                text: '工作流引擎', 
+              {
+                text: '工作流引擎',
                 itemKey: 'engine',
                 icon: <IconList />,
                 items: [
-                  { itemKey: 'workflow', text: '流程管理' }, 
-                  { 
+                  { itemKey: 'workflow', text: '流程管理' },
+                  {
                     text: '组件管理',
                     itemKey: 'component',
                     items: [
-                       { itemKey: 'component-installed', text: '已安装组件' },
-                       { itemKey: 'component-rules', text: '组件规则' },
-                    ]
+                      { itemKey: 'component-installed', text: '已安装组件' },
+                      { itemKey: 'component-rules', text: '组件规则' },
+                    ],
                   },
-                ]
+                ],
               },
-               { itemKey: 'docs', text: '开发文档', icon: <IconFile /> },
+              { itemKey: 'docs', text: '开发文档', icon: <IconFile /> },
             ]}
             selectedKeys={[activeMenu]}
             defaultOpenKeys={['engine', 'component']}
             onSelect={(data) => {
               const key = data.itemKey as MenuKey;
-              if (key === 'engine' || key === 'component') return; 
+              if (key === 'engine' || key === 'component') return;
               setActiveMenu(key);
               if (key === 'intro') window.location.hash = '#/';
               if (key === 'workflow') window.location.hash = '#/admin';
@@ -148,7 +171,7 @@ export const AdminPanel: React.FC = () => {
             style={{ background: 'transparent' }}
           />
         </div>
-        
+
         {/* Footer Collapse Button */}
         <div
           style={{
@@ -164,8 +187,10 @@ export const AdminPanel: React.FC = () => {
           }}
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
-           {isCollapsed ? <IconChevronRight /> : <IconChevronLeft />}
-           {!isCollapsed && <Typography.Text style={{ userSelect: 'none' }}>收起导航</Typography.Text>}
+          {isCollapsed ? <IconChevronRight /> : <IconChevronLeft />}
+          {!isCollapsed && (
+            <Typography.Text style={{ userSelect: 'none' }}>收起导航</Typography.Text>
+          )}
         </div>
       </div>
 
@@ -196,10 +221,10 @@ export const AdminPanel: React.FC = () => {
             <Breadcrumb.Item>{getParentTitle()}</Breadcrumb.Item>
             <Breadcrumb.Item>{getPageTitle()}</Breadcrumb.Item>
           </Breadcrumb>
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Typography.Text strong>Flowgram Team</Typography.Text>
-             <div style={{ height: 16, width: 1, background: '#E5E6EB' }} />
+            <div style={{ height: 16, width: 1, background: '#E5E6EB' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
               <IconUser />
               <Typography.Text>Admin</Typography.Text>
@@ -208,38 +233,42 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div style={{ padding: '6px 12px 0', background: '#fff', borderBottom: '1px solid rgba(6,7,9,0.08)' }}>
-           <Tabs 
-             type="card" 
-             activeKey={activeMenu}
-             onChange={(key) => {
-                // Only handle tab clicks if they correspond to actual routes
-                if (['intro', 'workflow', 'component-installed', 'component-rules', 'docs'].includes(key)) {
-                   setActiveMenu(key as MenuKey);
-                    if (key === 'intro') window.location.hash = '#/';
-                    if (key === 'workflow') window.location.hash = '#/admin';
-                    if (key === 'component-installed') window.location.hash = '#/components';
-                    if (key === 'component-rules') window.location.hash = '#/components/rules';
-                    if (key === 'docs') window.location.hash = '#/docs';
-                }
-             }}
-             tabBarExtraContent={null}
-           >
-             <TabPane tab="概览" itemKey="intro" />
-             {activeMenu !== 'intro' && (
-                <TabPane 
-                  tab={getPageTitle()} 
-                  itemKey={activeMenu} 
-                  closable 
-                />
-             )}
-           </Tabs>
+        <div
+          style={{
+            padding: '6px 12px 0',
+            background: '#fff',
+            borderBottom: '1px solid rgba(6,7,9,0.08)',
+          }}
+        >
+          <Tabs
+            type="card"
+            activeKey={activeMenu}
+            onChange={(key) => {
+              // Only handle tab clicks if they correspond to actual routes
+              if (
+                ['intro', 'workflow', 'component-installed', 'component-rules', 'docs'].includes(
+                  key
+                )
+              ) {
+                setActiveMenu(key as MenuKey);
+                if (key === 'intro') window.location.hash = '#/';
+                if (key === 'workflow') window.location.hash = '#/admin';
+                if (key === 'component-installed') window.location.hash = '#/components';
+                if (key === 'component-rules') window.location.hash = '#/components/rules';
+                if (key === 'docs') window.location.hash = '#/docs';
+              }
+            }}
+            tabBarExtraContent={null}
+          >
+            <TabPane tab="概览" itemKey="intro" />
+            {activeMenu !== 'intro' && (
+              <TabPane tab={getPageTitle()} itemKey={activeMenu} closable />
+            )}
+          </Tabs>
         </div>
 
         {/* Content Body */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 0 }}>
-          {renderContent()}
-        </div>
+        <div style={{ flex: 1, overflow: 'auto', padding: 0 }}>{renderContent()}</div>
       </div>
     </div>
   );

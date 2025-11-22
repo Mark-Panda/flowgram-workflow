@@ -46,7 +46,7 @@ export function FullVariableList() {
   const filteredTreeData = Array.isArray(treeData)
     ? treeData.filter((item) => item.label === 'Global')
     : treeData;
-  
+
   return (
     <Tree
       treeData={filteredTreeData}

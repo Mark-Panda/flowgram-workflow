@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+
 import { TypeScriptCodeEditor } from '@flowgram.ai/form-materials';
 import { Button, Toast } from '@douyinfe/semi-ui';
 import { IconCode } from '@douyinfe/semi-icons';
@@ -24,23 +25,23 @@ function formatJavaScript(code: string): string {
     let indentLevel = 0;
     const indentSize = 2;
     const lines = code.split('\n');
-    
+
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i].trim();
-      
+
       if (!line) {
         formatted += '\n';
         continue;
       }
-      
+
       // 减少缩进: }, ], )
       if (line.startsWith('}') || line.startsWith(']') || line.startsWith(')')) {
         indentLevel = Math.max(0, indentLevel - 1);
       }
-      
+
       // 添加缩进
       formatted += ' '.repeat(indentLevel * indentSize) + line + '\n';
-      
+
       // 增加缩进: {, [, (
       const openBraces = (line.match(/\{/g) || []).length;
       const closeBraces = (line.match(/\}/g) || []).length;
@@ -48,11 +49,12 @@ function formatJavaScript(code: string): string {
       const closeBrackets = (line.match(/\]/g) || []).length;
       const openParens = (line.match(/\(/g) || []).length;
       const closeParens = (line.match(/\)/g) || []).length;
-      
-      indentLevel += (openBraces - closeBraces) + (openBrackets - closeBrackets) + (openParens - closeParens);
+
+      indentLevel +=
+        openBraces - closeBraces + (openBrackets - closeBrackets) + (openParens - closeParens);
       indentLevel = Math.max(0, indentLevel);
     }
-    
+
     return formatted.trimEnd();
   } catch (error) {
     console.error('格式化失败:', error);
@@ -65,7 +67,7 @@ export function CodeEditorWithFormat({ value, onChange, readonly }: CodeEditorWi
 
   const handleFormat = () => {
     if (readonly || !value) return;
-    
+
     setFormatting(true);
     try {
       const formatted = formatJavaScript(value);
@@ -82,12 +84,14 @@ export function CodeEditorWithFormat({ value, onChange, readonly }: CodeEditorWi
   return (
     <div style={{ position: 'relative' }}>
       {!readonly && (
-        <div style={{ 
-          position: 'absolute', 
-          top: 8, 
-          right: 8, 
-          zIndex: 10,
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 10,
+          }}
+        >
           <Button
             icon={<IconCode />}
             size="small"
@@ -104,11 +108,7 @@ export function CodeEditorWithFormat({ value, onChange, readonly }: CodeEditorWi
           </Button>
         </div>
       )}
-      <TypeScriptCodeEditor
-        value={value}
-        onChange={onChange}
-        readonly={readonly}
-      />
+      <TypeScriptCodeEditor value={value} onChange={onChange} readonly={readonly} />
     </div>
   );
 }

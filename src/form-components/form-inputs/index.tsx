@@ -45,22 +45,26 @@ export function FormInputs() {
                   if (formComponent === 'prompt-editor') {
                     // 在画布视图中只显示截断的文本预览
                     if (!isSidebar) {
-                      const content = typeof (field.value as any)?.content === 'string'
-                        ? String((field.value as any)?.content)
-                        : '';
-                      const truncated = content.length > 100 ? content.slice(0, 100) + '...' : content;
+                      const content =
+                        typeof (field.value as any)?.content === 'string'
+                          ? String((field.value as any)?.content)
+                          : '';
+                      const truncated =
+                        content.length > 100 ? content.slice(0, 100) + '...' : content;
                       return (
-                        <div style={{
-                          padding: '8px',
-                          background: '#f5f5f5',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          color: '#666',
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
-                          maxHeight: '60px',
-                          overflow: 'hidden',
-                        }}>
+                        <div
+                          style={{
+                            padding: '8px',
+                            background: '#f5f5f5',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            color: '#666',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            maxHeight: '60px',
+                            overflow: 'hidden',
+                          }}
+                        >
                           {truncated || '(空)'}
                         </div>
                       );
@@ -94,23 +98,27 @@ export function FormInputs() {
                   if (formComponent === 'sql-editor') {
                     // 在画布视图中只显示截断的文本预览
                     if (!isSidebar) {
-                      const content = typeof (field.value as any)?.content === 'string'
-                        ? String((field.value as any)?.content)
-                        : '';
-                      const truncated = content.length > 100 ? content.slice(0, 100) + '...' : content;
+                      const content =
+                        typeof (field.value as any)?.content === 'string'
+                          ? String((field.value as any)?.content)
+                          : '';
+                      const truncated =
+                        content.length > 100 ? content.slice(0, 100) + '...' : content;
                       return (
-                        <div style={{
-                          padding: '8px',
-                          background: '#f5f5f5',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          color: '#666',
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
-                          maxHeight: '60px',
-                          overflow: 'hidden',
-                          fontFamily: 'monospace',
-                        }}>
+                        <div
+                          style={{
+                            padding: '8px',
+                            background: '#f5f5f5',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            color: '#666',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            maxHeight: '60px',
+                            overflow: 'hidden',
+                            fontFamily: 'monospace',
+                          }}
+                        >
                           {truncated || '(空)'}
                         </div>
                       );

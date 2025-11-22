@@ -19,7 +19,9 @@ import {
 import { requestJSON } from '../../services/http';
 import 'react-quill/dist/quill.snow.css';
 
-export const ComponentsSection: React.FC<{ view?: 'installed' | 'rules' }> = ({ view = 'installed' }) => {
+export const ComponentsSection: React.FC<{ view?: 'installed' | 'rules' }> = ({
+  view = 'installed',
+}) => {
   const [compLoading, setCompLoading] = useState(false);
   const [compError, setCompError] = useState<string | undefined>();
   const [components, setComponents] = useState<any[]>([]);
@@ -223,9 +225,26 @@ export const ComponentsSection: React.FC<{ view?: 'installed' | 'rules' }> = ({ 
   }, [view]);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#F7F8FA', height: '100%', overflow: 'hidden' }}>
-      <div style={{ flex: 1, overflow: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#F7F8FA',
+        height: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          overflow: 'auto',
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
         {view === 'installed' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div
