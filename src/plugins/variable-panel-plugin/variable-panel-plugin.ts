@@ -72,6 +72,9 @@ export const createVariablePanelPlugin = definePluginCreator<{ initialData?: IJs
 
     const registerNodeVariables = () => {
       const globalVar = globalScope.getVar() as VariableDeclaration;
+      if (!globalVar) {
+        return;
+      }
       const schemaFromAst = globalVar?.type
         ? JsonSchemaUtils.astToSchema(globalVar.type)
         : undefined;

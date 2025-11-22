@@ -26,12 +26,14 @@ import { CommentNodeRegistry } from './comment';
 import { CaseConditionNodeRegistry } from './case-condition';
 import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
+import { YapiNodeRegistry } from './yapi';
 export { WorkflowNodeType } from './constants';
 export { NODE_TYPE_NAMES, getNodeTypeName, getNodeDisplayName } from './node-type-names';
 
 // 节点注册
 export const nodeRegistries: FlowNodeRegistry[] = [
   TransformNodeRegistry,
+  YapiNodeRegistry,
   LuaTransformNodeRegistry,
   JsFilterNodeRegistry,
   LogStringNodeRegistry,

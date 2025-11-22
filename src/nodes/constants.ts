@@ -31,6 +31,7 @@ export enum WorkflowNodeType {
   Flow = 'flow',
   LuaTransform = 'luaTransform',
   RedisClient = 'x/redisClient',
+  Yapi = 'transform/yapi',
 }
 
 export enum OutPutPortType {

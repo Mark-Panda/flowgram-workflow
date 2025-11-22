@@ -22,7 +22,7 @@ import {
 
 import { WorkflowRuntimeClient } from '../client';
 import { GetGlobalVariableSchema } from '../../variable-panel-plugin';
-import { WorkflowNodeType } from '../../../nodes';
+import { WorkflowNodeType } from '../../../nodes/constants';
 
 const SYNC_TASK_REPORT_INTERVAL = 500;
 

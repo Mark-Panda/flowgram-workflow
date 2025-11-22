@@ -50,6 +50,7 @@ export const NODE_TYPE_NAMES: Record<string, string> = {
   // 多输出节点
   [WorkflowNodeType.MultiNodeOutput]: '获取已完成多节点输出',
   [WorkflowNodeType.LuaTransform]: 'Lua脚本转换',
+  [WorkflowNodeType.Yapi]: 'Yapi接口',
 
   // 分组节点
   group: '分组',

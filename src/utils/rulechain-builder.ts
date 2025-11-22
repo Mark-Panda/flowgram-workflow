@@ -475,6 +475,12 @@ function buildRuleChainMetaNodes(
       }
       break;
     }
+    case 'transform/yapi': {
+      base.configuration = {
+        ...(n.data?.yapiConfig ?? {}),
+      };
+      break;
+    }
     default: {
       // 保持默认逻辑
       if (
@@ -1111,6 +1117,21 @@ export function buildDocumentFromRuleChainJSON(raw: string | RuleChainRC): FlowD
           }
           base.blocks = blocks;
           base.edges = innerEdges;
+          break;
+        }
+        case 'transform/yapi': {
+          const cfg = n.configuration ?? {};
+          base.data = {
+            title: n.name ?? 'Yapi 接口',
+            positionType: 'middle',
+            yapiConfig: {
+              baseUrl: String(cfg.baseUrl ?? ''),
+              userName: String(cfg.userName ?? ''),
+              password: String(cfg.password ?? ''),
+              interfacePath: String(cfg.interfacePath ?? ''),
+              loginType: String(cfg.loginType ?? 'ldap'),
+            },
+          };
           break;
         }
         default: {
