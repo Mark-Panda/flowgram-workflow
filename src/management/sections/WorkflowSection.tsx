@@ -117,22 +117,32 @@ export const WorkflowSection: React.FC = () => {
       render: (text: any, record: any) => {
         const chain = record.ruleChain;
         const disabled = chain?.disabled;
-        const debug = chain?.debugMode;
         if (disabled)
           return (
-            <Tag color="red" style={{ borderRadius: 4 }}>
-              已禁用
-            </Tag>
-          );
-        if (debug)
-          return (
-            <Tag color="indigo" style={{ borderRadius: 4 }}>
-              调试中
+            <Tag color="grey" style={{ borderRadius: 4 }}>
+              已下线
             </Tag>
           );
         return (
           <Tag color="green" style={{ borderRadius: 4 }}>
-            执行中
+            已部署
+          </Tag>
+        );
+      },
+    },
+    {
+      title: '调试模式',
+      dataIndex: 'ruleChain.debugMode',
+      render: (debug: boolean) => {
+        if (debug)
+          return (
+            <Tag color="indigo" style={{ borderRadius: 4 }}>
+              开启
+            </Tag>
+          );
+        return (
+          <Tag style={{ borderRadius: 4 }}>
+            关闭
           </Tag>
         );
       },

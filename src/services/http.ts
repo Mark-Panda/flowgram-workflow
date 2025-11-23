@@ -9,7 +9,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 const API_ORIGIN = (
-  ((import.meta as any).env?.PUBLIC_API_ORIGIN as string) || 'http://127.0.0.1:9099'
+  ((import.meta as any).env?.PUBLIC_API_ORIGIN as string) || 'http://localhost:8000'
 ).replace(/\/$/, '');
 let BASE_URL = `${API_ORIGIN}/api/v1`;
 
